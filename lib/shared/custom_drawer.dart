@@ -1,5 +1,6 @@
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
@@ -35,23 +36,38 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   List<Widget> addListTilesToDrawer() {
-    final listTiles = <Widget>[];
-
-    listTiles.add(ListTile(
-      title: const Text('Item 1'),
-      onTap: () {
-        // Update the state of the app.
-        // ...
-      },
-    ));
-
-    listTiles.add(ListTile(
-      title: const Text('Item 3'),
-      onTap: () {
-        // Update the state of the app.
-        // ...
-      },
-    ));
+    final listTiles = <Widget>[
+      ListTile(
+        leading: Icon(Icons.history),
+        title: const Text('Kürzliche Buchungen'),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: Icon(Icons.fingerprint),
+        title: const Text('Profil'),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: Icon(FontAwesomeIcons.syringe),
+        title: const Text('Promillerechner'),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: Icon(Icons.settings),
+        title: const Text('Einstellungen'),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: Icon(FontAwesomeIcons.lockOpen),
+        title: const Text('Verwaltung'),
+        onTap: () {},
+      ),
+      ListTile(
+        leading: Icon(Icons.logout),
+        title: const Text('Abmelden'),
+        onTap: () {},
+      ),
+    ];
     return listTiles;
   }
 }
