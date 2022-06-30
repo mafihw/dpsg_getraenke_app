@@ -1,5 +1,7 @@
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
+import 'package:dpsg_app/shared/custom_bottom_bar.dart';
+import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 
 class DrinkScreen extends StatefulWidget {
@@ -15,9 +17,11 @@ class _DrinkScreenState extends State<DrinkScreen> {
     List<Widget> drinkCards = [];
     drinks.forEach(
       (element) {
-        drinkCards.add(Padding(
-          padding: const EdgeInsets.all(10),
-          child: MaterialButton(
+        drinkCards.add(
+          MaterialButton(
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(22)),
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -30,7 +34,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                   ),
                 ),
                 Text(
-                  element.price.toString() + "€",
+                  element.price.toStringAsFixed(2).replaceAll('.', ',') + " €",
                   style: const TextStyle(
                       fontSize: 24, fontWeight: FontWeight.bold),
                 )
@@ -45,16 +49,30 @@ class _DrinkScreenState extends State<DrinkScreen> {
             }),
             color: kMainColor,
           ),
-        ));
+        );
       },
     );
     return Scaffold(
-      appBar: CustomAppBar(appBarTitle: 'Getränke'),
+      appBar: CustomAppBar(appBarTitle: "Getränke"),
+      drawer: CustomDrawer(),
       body: GridView.count(
+        padding: const EdgeInsets.all(6),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
         crossAxisCount: 2,
         children: drinkCards,
       ),
       backgroundColor: kBackgroundColor,
+      bottomNavigationBar: CustomBottomBar(),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: kSecondaryColor,
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        icon: const Icon(Icons.arrow_back),
+        label: const Text("Zurück"),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
@@ -162,38 +180,38 @@ class Drink {
 List<Drink> drinks = [
   Drink(
     id: 1,
-    name: "Hachenburger Hell",
+    name: "Vulkan Pils",
     icon: const Icon(Icons.local_drink),
     price: 0.70,
   ),
   Drink(
     id: 1,
-    name: "Hachenburger Hell",
+    name: "Vulkan Radler",
     icon: const Icon(Icons.local_drink),
     price: 0.70,
   ),
   Drink(
     id: 1,
-    name: "Hachenburger Hell",
+    name: "Vulkan Helles",
     icon: const Icon(Icons.local_drink),
     price: 0.70,
   ),
   Drink(
     id: 1,
-    name: "Hachenburger Hell",
+    name: "Freibier",
     icon: const Icon(Icons.local_drink),
     price: 0.70,
   ),
   Drink(
     id: 1,
-    name: "Hachenburger Hell",
+    name: "Paulaner Spezi",
     icon: const Icon(Icons.local_drink),
-    price: 0.70,
+    price: 1.0,
   ),
   Drink(
     id: 1,
-    name: "Hachenburger Hell",
+    name: "24er Kiste Bier",
     icon: const Icon(Icons.local_drink),
-    price: 0.70,
+    price: 20.90,
   ),
 ];

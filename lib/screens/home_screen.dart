@@ -2,6 +2,7 @@ import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/welcome_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
+import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -21,34 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke'),
       drawer: CustomDrawer(),
       body: WelcomeScreen(),
-      bottomNavigationBar: BottomAppBar(
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Builder(
-                builder: ((context) => IconButton(
-                      icon: const Icon(
-                        Icons.menu,
-                      ),
-                      onPressed: () {
-                        Scaffold.of(context).openDrawer();
-                      },
-                    )),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.person,
-                ),
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ),
-        elevation: 5,
-        color: kMainColor,
-      ),
+      bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: kSecondaryColor,
         onPressed: () {
