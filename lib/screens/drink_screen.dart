@@ -1,4 +1,3 @@
-import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -66,6 +65,8 @@ class BuyDialog extends StatelessWidget {
   int amountSelected = 1;
   @override
   Widget build(BuildContext context) {
+    final TextEditingController _controller = TextEditingController();
+    _controller.text="1";
     return Dialog(
       backgroundColor: kMainColor,
       child: Padding(
@@ -81,18 +82,54 @@ class BuyDialog extends StatelessWidget {
               height: 20,
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 80),
-              child: TextField(
-                onChanged: (amount) {
-                  amountSelected = int.parse(amount);
-                },
-                onSubmitted: (String? input) {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                decoration:
-                    const InputDecoration(hintText: '1', labelText: "Anzahl"),
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child:
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    height: 45,
+                    child:
+                      IconButton(
+                        onPressed: (){
+                          if (amountSelected > 0) {
+                            _controller.text = (--amountSelected).toString();
+                          }
+                        },
+                        icon: Icon(
+                            Icons.remove_circle_outline
+                        )
+                      )
+                  ),
+                  Expanded(
+                    child:
+                      TextField(
+                        controller: _controller,
+                        onChanged: (amount) {
+                          amountSelected = int.parse(amount);
+                        },
+                        onSubmitted: (String? input) {
+                          Navigator.of(context).popUntil((route) => route.isFirst);
+                        },
+                        keyboardType: TextInputType.number,
+                        decoration:
+                        const InputDecoration(hintText: '1', labelText: "Anzahl"),
+                      ),
+                  ),
+                  SizedBox(
+                      height: 45,
+                      child:
+                      IconButton(
+                          onPressed: (){
+                              _controller.text = (++amountSelected).toString();
+                          },
+                          icon: Icon(
+                              Icons.add_circle_outline
+                          )
+                      )
+                  ),
+                ],
               ),
             ),
             SizedBox(
