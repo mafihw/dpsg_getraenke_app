@@ -1,6 +1,7 @@
 import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/welcome_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
+import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -17,25 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: AppBar(
-        title: const Text('DPSG Gladbach Getränke'),
-        leading: Hero(
-          tag: 'icon_hero',
-          child: TextButton(
-            onPressed: () {},
-            child: Image(
-              image: AssetImage('assets/icon_2500px.png'),
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.logout)),
-        ],
-      ),
+      appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke'),
       drawer: CustomDrawer(),
       body: WelcomeScreen(),
       bottomNavigationBar: BottomAppBar(

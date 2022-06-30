@@ -49,7 +49,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
       },
     );
     return Scaffold(
-      appBar: CustomAppBar(),
+      appBar: CustomAppBar(appBarTitle: 'Getränke'),
       body: GridView.count(
         crossAxisCount: 2,
         children: drinkCards,
@@ -66,7 +66,7 @@ class BuyDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextEditingController _controller = TextEditingController();
-    _controller.text="1";
+    _controller.text = "1";
     return Dialog(
       backgroundColor: kMainColor,
       child: Padding(
@@ -83,52 +83,41 @@ class BuyDialog extends StatelessWidget {
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child:
-              Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   SizedBox(
-                    height: 45,
-                    child:
-                      IconButton(
-                        onPressed: (){
-                          if (amountSelected > 0) {
-                            _controller.text = (--amountSelected).toString();
-                          }
-                        },
-                        icon: Icon(
-                            Icons.remove_circle_outline
-                        )
-                      )
-                  ),
+                      height: 45,
+                      child: IconButton(
+                          onPressed: () {
+                            if (amountSelected > 0) {
+                              _controller.text = (--amountSelected).toString();
+                            }
+                          },
+                          icon: Icon(Icons.remove_circle_outline))),
                   Expanded(
-                    child:
-                      TextField(
-                        controller: _controller,
-                        onChanged: (amount) {
-                          amountSelected = int.parse(amount);
-                        },
-                        onSubmitted: (String? input) {
-                          Navigator.of(context).popUntil((route) => route.isFirst);
-                        },
-                        keyboardType: TextInputType.number,
-                        decoration:
-                        const InputDecoration(hintText: '1', labelText: "Anzahl"),
-                      ),
+                    child: TextField(
+                      controller: _controller,
+                      onChanged: (amount) {
+                        amountSelected = int.parse(amount);
+                      },
+                      onSubmitted: (String? input) {
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst);
+                      },
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                          hintText: '1', labelText: "Anzahl"),
+                    ),
                   ),
                   SizedBox(
                       height: 45,
-                      child:
-                      IconButton(
-                          onPressed: (){
-                              _controller.text = (++amountSelected).toString();
+                      child: IconButton(
+                          onPressed: () {
+                            _controller.text = (++amountSelected).toString();
                           },
-                          icon: Icon(
-                              Icons.add_circle_outline
-                          )
-                      )
-                  ),
+                          icon: Icon(Icons.add_circle_outline))),
                 ],
               ),
             ),

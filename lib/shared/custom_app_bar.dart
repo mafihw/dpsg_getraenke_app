@@ -2,7 +2,9 @@ import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends AppBar {
-  CustomAppBar({Key? key}) : super(key: key);
+  CustomAppBar({Key? key, required this.appBarTitle}) : super(key: key);
+
+  String appBarTitle;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -12,7 +14,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: const Text('Getränkeapp'),
+      title: Text(widget.appBarTitle),
       leading: Hero(
         tag: 'icon_hero',
         child: TextButton(
@@ -24,13 +26,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
           ),
         ),
       ),
-      actions: [
-        IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.logout)),
-      ],
     );
   }
 }
