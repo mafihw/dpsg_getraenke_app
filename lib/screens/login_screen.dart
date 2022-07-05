@@ -16,11 +16,10 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController emailTextController = TextEditingController();
+  final TextEditingController passwordTextController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    final TextEditingController emailTextController = TextEditingController();
-    final TextEditingController passwordTextController =
-        TextEditingController();
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
