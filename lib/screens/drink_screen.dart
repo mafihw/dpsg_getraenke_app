@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
@@ -38,7 +39,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          element.icon,
+                          Icon(Icons.add),
                           Text(
                             element.name,
                             textAlign: TextAlign.center,
@@ -114,13 +115,11 @@ class _DrinkScreenState extends State<DrinkScreen> {
     final drinksJson = await jsonDecode(drinksString);
 
     List<Drink> drinks = [];
-    drinksJson.forEach((drink) => drinks.add(new Drink(
-        id: drink['id'].toInt(),
-        name: drink['name'].toString(),
-        icon: Icon(Icons.local_drink),
-        price: drink['cost'].toDouble())));
+    drinksJson.forEach((drinkJson) {
+      final drink = Drink.fromJson(drinkJson);
+      if (drink.active) drinks.add(drink);
+    });
     return drinks;
-    return Future<List<Drink>>.value(drinks);
   }
 }
 
@@ -211,54 +210,3 @@ class BuyDialog extends StatelessWidget {
     );
   }
 }
-
-class Drink {
-  int id;
-  String name;
-  Icon icon;
-  double price;
-  Drink(
-      {required this.id,
-      required this.name,
-      required this.icon,
-      required this.price});
-}
-
-List<Drink> drinksExample = [
-  Drink(
-    id: 1,
-    name: "Vulkan Pils",
-    icon: const Icon(Icons.local_drink),
-    price: 0.70,
-  ),
-  Drink(
-    id: 1,
-    name: "Vulkan Radler",
-    icon: const Icon(Icons.local_drink),
-    price: 0.70,
-  ),
-  Drink(
-    id: 1,
-    name: "Vulkan Helles",
-    icon: const Icon(Icons.local_drink),
-    price: 0.70,
-  ),
-  Drink(
-    id: 1,
-    name: "Freibier",
-    icon: const Icon(Icons.local_drink),
-    price: 0.70,
-  ),
-  Drink(
-    id: 1,
-    name: "Paulaner Spezi",
-    icon: const Icon(Icons.local_drink),
-    price: 1.0,
-  ),
-  Drink(
-    id: 1,
-    name: "24er Kiste Bier",
-    icon: const Icon(Icons.local_drink),
-    price: 20.90,
-  ),
-];
