@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 
 class DrinkScreen extends StatefulWidget {
@@ -28,7 +29,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
             if (snapshot.hasData) {
               List<Widget> drinkCards = [];
               snapshot.data!.forEach(
-                    (element) {
+                (element) {
                   drinkCards.add(
                     MaterialButton(
                       shape: const RoundedRectangleBorder(
@@ -46,7 +47,10 @@ class _DrinkScreenState extends State<DrinkScreen> {
                             ),
                           ),
                           Text(
-                            element.price.toStringAsFixed(2).replaceAll('.', ',') + " €",
+                            element.price
+                                    .toStringAsFixed(2)
+                                    .replaceAll('.', ',') +
+                                " €",
                             style: const TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           )
@@ -72,12 +76,9 @@ class _DrinkScreenState extends State<DrinkScreen> {
                 children: drinkCards,
               );
             } else {
-              return Center(
-                child:  CircularProgressIndicator()
-              );
+              return Center(child: CircularProgressIndicator());
             }
-          }
-      ),
+          }),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
@@ -90,31 +91,19 @@ class _DrinkScreenState extends State<DrinkScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-
   }
 
   Future<List<Drink>> fetchDrinks() async {
     //load files
     final directory = await getApplicationDocumentsDirectory();
-    final path = await directory.path;
-    final loginFile = await File('$path/loginInformation.txt');
-    final drinksFile = await File('$path/drinks.txt');
+    final path = directory.path;
+    final drinksFile = File('$path/drinks.txt');
 
     //try to fetch data from server
     try {
-      final loginInformation = jsonDecode(await loginFile.readAsString());
-      final token = loginInformation['token'];
-      final response = await http.get(
-          Uri.parse('http://api.dpsg-gladbach.de:3000/api/drink'),
-          headers: <String, String>{
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token'
-          }
-      );
-      developer.log(response.statusCode.toString());
-      if(response.statusCode == 200){
-        //save new data at local storage if successful
-        drinksFile.writeAsString(response.body);
+      final response = await GetIt.instance<Backend>().get('/drink');
+      if (response != null) {
+        await drinksFile.writeAsString(jsonEncode(response));
       }
     } catch (e) {
       developer.log(e.toString());
@@ -125,17 +114,12 @@ class _DrinkScreenState extends State<DrinkScreen> {
     final drinksJson = await jsonDecode(drinksString);
 
     List<Drink> drinks = [];
-    drinksJson.forEach((drink) =>
-        drinks.add(
-        new Drink(
-            id: drink['id'].toInt(),
-            name: drink['name'].toString(),
-            icon: Icon(Icons.local_drink),
-            price: drink['cost'].toDouble()
-        ))
-
-    );
-
+    drinksJson.forEach((drink) => drinks.add(new Drink(
+        id: drink['id'].toInt(),
+        name: drink['name'].toString(),
+        icon: Icon(Icons.local_drink),
+        price: drink['cost'].toDouble())));
+    return drinks;
     return Future<List<Drink>>.value(drinks);
   }
 }

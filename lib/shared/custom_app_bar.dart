@@ -1,16 +1,35 @@
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends AppBar {
-  CustomAppBar({Key? key, required this.appBarTitle}) : super(key: key);
+  CustomAppBar({Key? key, required this.appBarTitle, this.onIconPress})
+      : super(key: key);
 
   String appBarTitle;
+  Function? onIconPress;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
 }
 
-class _CustomAppBarState extends State<CustomAppBar> {
+class _CustomAppBarState extends State<CustomAppBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 350),
+      vsync: this,
+    );
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppBar(
@@ -19,10 +38,12 @@ class _CustomAppBarState extends State<CustomAppBar> {
         tag: 'icon_hero',
         child: TextButton(
           onPressed: () {
-            Navigator.pop(context);
+            _controller.forward().then((value) => {_controller.reset()});
+            widget.onIconPress?.call();
           },
-          child: Image(
-            image: AssetImage('assets/icon_2500px.png'),
+          child: RotationTransition(
+            turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
+            child: Image(image: AssetImage('assets/icon_2500px.png')),
           ),
         ),
       ),

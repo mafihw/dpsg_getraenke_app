@@ -1,6 +1,9 @@
+import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
 
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
@@ -65,7 +68,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ListTile(
         leading: Icon(Icons.logout),
         title: const Text('Abmelden'),
-        onTap: () {},
+        onTap: () {
+          GetIt.instance<Backend>().logout();
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+              (Route<dynamic> route) => false);
+        },
       ),
     ];
     return listTiles;
