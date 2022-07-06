@@ -131,7 +131,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             onTap: () async {
                               Uri url = Uri.parse(
                                   // TODO: Richtige paypal.me Adresse einfügen!!!!!!!!!!!!!!!!!!!!!!!!
-                                  'https://paypal.me/blozom/${(-snapshot.data!.balance)}');
+                                  'https://paypal.me/blozom/${(-snapshot.data!.balance).toString().replaceAll('.', ',')}');
                               if (await canLaunchUrl(url)) {
                                 await launchUrl(url,
                                     mode: LaunchMode.externalApplication);
@@ -186,24 +186,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     //try to fetch data from server
     try {
-      String loggedInUserId = GetIt.instance<Backend>().loggedInUser!.id;
+      String? loggedInUserId = GetIt.instance<Backend>().loggedInUser?.id;
+      if (loggedInUserId == null) throw Error();
       final response =
           await GetIt.instance<Backend>().get('/user/$loggedInUserId');
       if (response != null) {
         await userFile.writeAsString(jsonEncode(response));
-        print("before");
         user = User.fromJson(response);
-        print("after");
       }
     } catch (e) {
       developer.log(e.toString());
     }
 
     //load user from local storage
-    if (user == null) {
+    if (user == null && await userFile.exists()) {
       final userString = await userFile.readAsString();
       final userJson = await jsonDecode(userString);
       user = User.fromJson(userJson);
+    } else if (user == null) {
+      user = User(
+          id: 'o', role: 'role', email: 'email', name: 'Error', balance: 0);
     }
 
     return user;

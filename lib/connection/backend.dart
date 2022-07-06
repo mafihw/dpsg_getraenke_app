@@ -29,6 +29,7 @@ class Backend {
       token = loginInformation['token'];
       if (token != null) {
         isLoggedIn = true;
+        loggedInUser = User.fromJson(loginInformation['user']);
         headers = {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -38,7 +39,6 @@ class Backend {
       developer.log('No login file. User not logged in.');
     }
 
-    loggedInUser = User.fromJson(loginInformation['user']);
     isInitialized = true;
   }
 
@@ -69,7 +69,7 @@ class Backend {
       developer.log(response.body);
       if (response.statusCode == 200) {
         loginFile?.writeAsString(response.body);
-        init();
+        await init();
         return true;
       } else {
         return false;
@@ -78,8 +78,8 @@ class Backend {
   }
 
   void logout() {
-    directory!.list().forEach((element) {
-      element.delete(recursive: true);
+    directory!.list().forEach((element) async {
+      await element.delete(recursive: true);
     });
     loginInformation = null;
     isLoggedIn = false;
