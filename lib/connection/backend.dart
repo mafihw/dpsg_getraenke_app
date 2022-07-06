@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'dart:developer' as developer;
+import 'package:dpsg_app/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -10,10 +11,10 @@ class Backend {
   String apiurl = 'http://api.dpsg-gladbach.de:3000';
   bool isLoggedIn = false;
   bool isInitialized = false;
-  dynamic loginInfo;
   Directory? directory;
   String? path;
   dynamic loginInformation;
+  User? loggedInUser;
   dynamic token;
   File? loginFile;
   late Map<String, String> headers;
@@ -36,6 +37,8 @@ class Backend {
     } catch (e) {
       developer.log('No login file. User not logged in.');
     }
+
+    loggedInUser = User.fromJson(loginInformation['user']);
     isInitialized = true;
   }
 
@@ -78,7 +81,7 @@ class Backend {
     directory!.list().forEach((element) {
       element.delete(recursive: true);
     });
-    loginInfo = null;
+    loginInformation = null;
     isLoggedIn = false;
   }
 }

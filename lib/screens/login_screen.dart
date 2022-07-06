@@ -10,7 +10,6 @@ import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key? key}) : super(key: key);
-  bool currentlyLoggingIn = false;
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -18,6 +17,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailTextController = TextEditingController();
   final TextEditingController passwordTextController = TextEditingController();
+
+  bool currentlyLoggingIn = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,10 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   OutlinedButton(onPressed: () {}, child: Text('Registrieren')),
                   ElevatedButton(
                     onPressed: () async {
-                      if (!widget.currentlyLoggingIn) {
+                      if (!currentlyLoggingIn) {
                         FocusManager.instance.primaryFocus?.unfocus();
                         setState(() {
-                          widget.currentlyLoggingIn = true;
+                          currentlyLoggingIn = true;
                         });
                         if (await GetIt.instance<Backend>().login(
                             emailTextController.text,
@@ -77,18 +78,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               MaterialPageRoute(
                                   builder: (context) => HomeScreen()),
                               (route) => false);
+                          setState(() {
+                            currentlyLoggingIn = false;
+                          });
                         } else {
                           const snackBar = SnackBar(
                             content: Text('Login fehlgeschlagen!'),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                          setState(() {
+                            currentlyLoggingIn = false;
+                          });
                         }
-                        setState(() {
-                          widget.currentlyLoggingIn = false;
-                        });
                       }
                     },
-                    child: widget.currentlyLoggingIn
+                    child: currentlyLoggingIn
                         ? SizedBox(
                             height: 25,
                             width: 25,

@@ -21,9 +21,9 @@ class User {
     final role = data['roleId'] as String;
     final email = data['email'] as String;
     final name = data['name'] as String;
-    final balance = double.parse(data['balance']);
-    final weight = double.parse(data['weight']);
-    final gender = data['gender'] as String;
+    final balance = double.parse(data['balance'].toString());
+    final weight = double.tryParse(data['weight'].toString());
+    final gender = data['gender'];
     return User(
         id: id,
         role: role,
