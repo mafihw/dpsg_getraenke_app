@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 
+import '../screens/users_screen.dart';
+
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
 
@@ -63,7 +65,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ListTile(
         leading: Icon(FontAwesomeIcons.lockOpen),
         title: const Text('Verwaltung'),
-        onTap: () {},
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const UserAdministrationScreen(),
+            ),
+          );
+        },
       ),
       ListTile(
         leading: Icon(Icons.logout),
