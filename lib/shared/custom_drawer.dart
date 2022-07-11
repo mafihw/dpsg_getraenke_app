@@ -62,18 +62,29 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Einstellungen'),
         onTap: () {},
       ),
-      ListTile(
+      ExpansionTile(
+        title: Text("Verwaltung"),
         leading: Icon(FontAwesomeIcons.lockOpen),
-        title: const Text('Verwaltung'),
-        onTap: () {
-          Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const UserAdministrationScreen(),
-            ),
-          );
-        },
+        children: [
+          ListTile(
+            leading: Icon(Icons.manage_accounts),
+            title: const Text('Nutzer'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserAdministrationScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(FontAwesomeIcons.wineBottle),
+            title: const Text('Getränke'),
+            onTap: () {},
+          ),
+        ],
       ),
       ListTile(
         leading: Icon(Icons.logout),
