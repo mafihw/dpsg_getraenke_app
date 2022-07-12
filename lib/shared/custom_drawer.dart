@@ -1,5 +1,6 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
+import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -45,7 +46,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ListTile(
         leading: Icon(Icons.history),
         title: const Text('Kürzliche Buchungen'),
-        onTap: () {},
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PurchasesScreen(),
+              ),
+            );
+          },
       ),
       ListTile(
         leading: Icon(Icons.fingerprint),

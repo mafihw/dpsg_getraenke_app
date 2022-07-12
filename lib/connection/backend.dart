@@ -57,6 +57,26 @@ class Backend {
     }
   }
 
+  Future<dynamic> post(String uri, String body) async {
+    try {
+      final url = Uri.parse('$apiurl/api$uri');
+      developer.log('POST: url:${url} body: ${body}');
+      final response = await http
+          .post(
+            url,
+            headers: headers,
+            body: body)
+          .timeout(const Duration(seconds: 10));
+      developer.log(response.statusCode.toString());
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      developer.log(e.toString());
+      rethrow;
+    }
+  }
+
   Future<bool> login(String email, String password) async {
     if (!isInitialized) {
       return false;

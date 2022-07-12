@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink.dart';
+import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
@@ -199,6 +200,7 @@ class BuyDialog extends StatelessWidget {
                 ),
                 ElevatedButton(
                     onPressed: () {
+                      purchaseDrink(GetIt.instance<Backend>().loggedInUser!.id, drink, amountSelected);
                       Navigator.pop(context);
                     },
                     child: const Text("Bestätigen"))
@@ -208,5 +210,26 @@ class BuyDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void purchaseDrink(String userId, Drink drink, int amount) async {
+    final body = {
+    "uuid": userId,
+    "drinkid": drink.id,
+    "amount": amount
+    };
+
+    final response = await GetIt.instance<Backend>().post(
+        '/purchase',
+        jsonEncode(body)
+    );
+    final lastPurchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), name: drink.name);
+
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    final drinksFile = File('$path/lastPurchase.txt');
+    developer.log(jsonEncode(lastPurchase.toJson()));
+    drinksFile.writeAsString(jsonEncode(lastPurchase.toJson()));
+
   }
 }
