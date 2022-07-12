@@ -88,7 +88,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           style: TextStyle(fontSize: 18),
                         ),
                         Text(
-                          lastPurchase == null ? '-' : '${lastPurchase.amount}x ${lastPurchase.name} für ${lastPurchase.cost.toStringAsFixed(2).replaceAll('.', ',')}€',
+                          lastPurchase == null ? '-' : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${lastPurchase.cost.toStringAsFixed(2).replaceAll('.', ',')}€',
                           style: TextStyle(fontSize: 18),
                         )
                       ],

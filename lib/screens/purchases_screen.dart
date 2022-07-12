@@ -29,11 +29,15 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         builder: (context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasData) {
             List<Widget> purchasesCards = [];
+            List<Purchase> purchases = [];
             snapshot.data!.forEach((element) {
               Purchase? purchase;
               purchase = Purchase.fromJson(element);
               developer.log(element.toString());
-
+              purchases.add(purchase);
+            });
+            purchases.sort((a,b) => b.date.compareTo(a.date));
+            purchases.forEach((purchase) {
               purchasesCards.add(
                 buildCard(
                   child: Row(
@@ -46,7 +50,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${purchase.amount} * ${purchase.drinkId}',
+                            '${purchase.amount} x ${purchase.drinkName}',
                             style: TextStyle(fontSize: 20),
                           ),
                           Text(
@@ -54,7 +58,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                             style: TextStyle(fontSize: 14),
                           ),
                           Text(
-                            '${purchase.cost.toStringAsFixed(2).replaceAll('.', ',')} €',
+                            '${(purchase.cost * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
                             style: TextStyle(fontSize: 14),
                           )
                         ],

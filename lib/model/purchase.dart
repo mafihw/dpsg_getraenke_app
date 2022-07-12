@@ -5,7 +5,8 @@ class Purchase {
   int amount;
   double cost;
   DateTime date;
-  String? name;
+  String? drinkName;
+  String? userName;
 
   Purchase(
       {required this.id,
@@ -14,7 +15,8 @@ class Purchase {
       required this.amount,
       required this.cost,
       required this.date,
-      this.name});
+      this.drinkName,
+      this.userName});
 
   factory Purchase.fromJson(Map<String, dynamic> data) {
     final id = data['id'] as int;
@@ -23,7 +25,8 @@ class Purchase {
     final amount = data['amount'] as int;
     final cost = double.parse(data['cost'].toString());
     final date = DateTime.parse(data['date']);
-    final name = data['name'];
+    final drinkName = data['drinkName'];
+    final userName = data['userName'];
     return Purchase(
         id: id,
         drinkId: drinkId,
@@ -31,7 +34,8 @@ class Purchase {
         amount: amount,
         cost: cost,
         date: date,
-        name: name);
+        drinkName: drinkName,
+        userName: userName);
   }
 
   Map toJson() => {
@@ -41,6 +45,7 @@ class Purchase {
     'amount': amount,
     'cost': cost,
     'date': date.toString(),
-    'name': name,
+    'drinkName': drinkName,
+    'userName': userName
   };
 }

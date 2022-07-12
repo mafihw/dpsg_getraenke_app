@@ -223,7 +223,7 @@ class BuyDialog extends StatelessWidget {
         '/purchase',
         jsonEncode(body)
     );
-    final lastPurchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), name: drink.name);
+    final lastPurchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), drinkName: drink.name);
 
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
