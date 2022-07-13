@@ -1,10 +1,10 @@
+import 'dart:async';
+
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
-import 'dart:developer' as developer;
-
 import '../model/purchase.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
@@ -21,7 +21,6 @@ class PurchasesScreen extends StatefulWidget {
 class _PurchasesScreenState extends State<PurchasesScreen> {
   @override
   Widget build(BuildContext context) {
-    final String userId = GetIt.instance<Backend>().loggedInUser!.id;
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Buchungen"),
       drawer: CustomDrawer(),
@@ -33,7 +32,6 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             snapshot.data!.forEach((element) {
               Purchase? purchase;
               purchase = Purchase.fromJson(element);
-              developer.log(element.toString());
               purchases.add(purchase);
             });
             purchases.sort((a,b) => b.date.compareTo(a.date));
@@ -99,7 +97,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             }
           }
         },
-        future: GetIt.instance<Backend>().get('/purchase?userId=${userId}'),
+        future: getPurchases(),
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
@@ -115,6 +113,19 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       resizeToAvoidBottomInset: false,
     );
   }
+
+  Future<dynamic> getPurchases() async{
+    final String userId = GetIt.instance<Backend>().loggedInUser!.id;
+    if (await GetIt.instance<Backend>().checkPurchases()) {
+      return Future.delayed(Duration(milliseconds: 500), () {
+        return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
+      });
+    } else {
+      return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
+    }
+
+
+}
 
   Widget buildCard({required Row child, required Function onTap}) {
     return Padding(

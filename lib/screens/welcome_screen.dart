@@ -27,12 +27,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return FutureBuilder(
       builder: (context, AsyncSnapshot<WelcomeScreenData> snapshot) {
         if (snapshot.hasData) {
-          developer.log('1');
           final user = snapshot.data!.user;
           final lastPurchase = snapshot.data!.lastPurchase;
           int daysUntilLastBooking = lastPurchase == null ? 0 : DateTime.now().difference(lastPurchase.date).inDays;
-          developer.log(daysUntilLastBooking.toString());
-          developer.log('2');
           return Container(
             color: kBackgroundColor,
             child: SingleChildScrollView(
@@ -94,7 +91,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ],
                     ),
                     onTap: () {
-                      print("letzte Buchung");
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -219,7 +215,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       final path = directory.path;
       final drinksFile = File('$path/lastPurchase.txt');
       final lastPurchaseString = await drinksFile.readAsString();
-      developer.log(path);
       final lastPurchaseData = jsonDecode(lastPurchaseString.toString());
       return Purchase.fromJson(lastPurchaseData);
     } catch (error) {

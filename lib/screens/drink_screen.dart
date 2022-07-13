@@ -216,20 +216,39 @@ class BuyDialog extends StatelessWidget {
     final body = {
     "uuid": userId,
     "drinkid": drink.id,
-    "amount": amount
+    "amount": amount,
+    "date": DateTime.now().toString()
     };
+    final purchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), drinkName: drink.name);
 
-    final response = await GetIt.instance<Backend>().post(
-        '/purchase',
-        jsonEncode(body)
-    );
-    final lastPurchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), drinkName: drink.name);
+    if(await GetIt.instance<Backend>().checkConnection()) {
+      try {
+        await GetIt.instance<Backend>().post(
+            '/purchase',
+            jsonEncode(body)
+        );
+      } catch(error) {
+        developer.log(error.toString());
+      }
+    } else {
+      List<Purchase> notSubmittedPurchases = [];
+      final directory = await getApplicationDocumentsDirectory();
+      final path = directory.path;
+      final drinksFile = File('$path/unDonePurchases.txt');
+      if (await drinksFile.exists()) {
+        List.from(jsonDecode(await drinksFile.readAsString())).
+        forEach((element) {
+          notSubmittedPurchases.add(Purchase.fromJson(element));
+        });
+      };
+      notSubmittedPurchases.add(purchase);
+      drinksFile.writeAsString(jsonEncode(notSubmittedPurchases).toString());
+    }
 
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
     final drinksFile = File('$path/lastPurchase.txt');
-    developer.log(jsonEncode(lastPurchase.toJson()));
-    drinksFile.writeAsString(jsonEncode(lastPurchase.toJson()));
+    drinksFile.writeAsString(jsonEncode(purchase.toJson()));
 
   }
 }

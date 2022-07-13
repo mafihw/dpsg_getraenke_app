@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
+import '../model/purchase.dart';
+
 class Backend {
   String apiurl = 'http://api.dpsg-gladbach.de:3000';
   bool isLoggedIn = false;
@@ -47,7 +49,7 @@ class Backend {
       final response = await http
           .get(Uri.parse('$apiurl/api$uri'), headers: headers)
           .timeout(const Duration(seconds: 10));
-      developer.log(response.statusCode.toString());
+      developer.log(response.statusCode.toString() + '  ' + uri);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
@@ -67,7 +69,7 @@ class Backend {
             headers: headers,
             body: body)
           .timeout(const Duration(seconds: 10));
-      developer.log(response.statusCode.toString());
+      developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
@@ -103,5 +105,52 @@ class Backend {
     });
     loginInformation = null;
     isLoggedIn = false;
+  }
+
+  Future<bool> checkConnection() async {
+    try {
+      final result = await InternetAddress.lookup("api.dpsg-gladbach.de");
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      return false;
+    }
+  }
+
+  Future<bool> checkPurchases() async {
+    bool purchasesSend = false;
+    if (await checkConnection()) {
+      final directory = await getApplicationDocumentsDirectory();
+      final path = directory.path;
+      final drinksFile = File('$path/unDonePurchases.txt');
+      if (await drinksFile.exists()) {
+        purchasesSend = true;
+        List.from(jsonDecode(await drinksFile.readAsString())).
+        forEach((element) async {
+          Purchase.fromJson(element);
+          final body = {
+            "uuid": element["userId"],
+            "drinkid": element["drinkId"],
+            "amount": element["amount"],
+            "date": element["date"]
+          };
+          developer.log('send Purchase to server');
+          try {
+            await post(
+                '/purchase',
+                jsonEncode(body)
+            );
+          } catch(error) {
+            developer.log(error.toString());
+          }
+        });
+        drinksFile.delete();
+      };
+
+    }
+    return purchasesSend;
   }
 }
