@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 
+import '../screens/users_screen.dart';
+
 class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key}) : super(key: key);
 
@@ -60,10 +62,29 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Einstellungen'),
         onTap: () {},
       ),
-      ListTile(
+      ExpansionTile(
+        title: Text("Verwaltung"),
         leading: Icon(FontAwesomeIcons.lockOpen),
-        title: const Text('Verwaltung'),
-        onTap: () {},
+        children: [
+          ListTile(
+            leading: Icon(Icons.manage_accounts),
+            title: const Text('Nutzer'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserAdministrationScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(FontAwesomeIcons.wineBottle),
+            title: const Text('Getränke'),
+            onTap: () {},
+          ),
+        ],
       ),
       ListTile(
         leading: Icon(Icons.logout),
