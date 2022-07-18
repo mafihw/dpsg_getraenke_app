@@ -43,7 +43,7 @@ class User {
 }
 
 Future<User> fetchUser() async {
-  String id = GetIt.I<Backend>().loggedInUser!.id;
+  String id = GetIt.I<Backend>().loggedInUserId!;
   //load files
   final directory = await getApplicationDocumentsDirectory();
   final path = directory.path;

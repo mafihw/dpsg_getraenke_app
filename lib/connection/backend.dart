@@ -15,6 +15,7 @@ class Backend {
   Directory? directory;
   String? path;
   dynamic loginInformation;
+  String? loggedInUserId;
   User? loggedInUser;
   dynamic token;
   File? loginFile;
@@ -28,8 +29,10 @@ class Backend {
       loginFile = File('$path/loginInformation.txt');
       loginInformation = jsonDecode(await loginFile!.readAsString());
       token = loginInformation['token'];
+      loggedInUserId = loginInformation['user']['id'];
       if (token != null) {
         isLoggedIn = true;
+        isInitialized = true;
         await refreshData();
         headers = {
           'Content-Type': 'application/json',
@@ -69,7 +72,7 @@ class Backend {
       developer.log(response.statusCode.toString());
       developer.log(response.body);
       if (response.statusCode == 200) {
-        loginFile?.writeAsString(response.body);
+        await loginFile?.writeAsString(response.body);
         await init();
         return true;
       } else {

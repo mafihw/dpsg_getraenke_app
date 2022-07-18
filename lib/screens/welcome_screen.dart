@@ -176,38 +176,4 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       ),
     );
   }
-
-  Future<User> fetchUser() async {
-    //load files
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final userFile = File('$path/user.txt');
-    User? user;
-
-    //try to fetch data from server
-    try {
-      String? loggedInUserId = GetIt.instance<Backend>().loggedInUser?.id;
-      if (loggedInUserId == null) throw Error();
-      final response =
-          await GetIt.instance<Backend>().get('/user/$loggedInUserId');
-      if (response != null) {
-        await userFile.writeAsString(jsonEncode(response));
-        user = User.fromJson(response);
-      }
-    } catch (e) {
-      developer.log(e.toString());
-    }
-
-    //load user from local storage
-    if (user == null && await userFile.exists()) {
-      final userString = await userFile.readAsString();
-      final userJson = await jsonDecode(userString);
-      user = User.fromJson(userJson);
-    } else if (user == null) {
-      user = User(
-          id: 'o', role: 'role', email: 'email', name: 'Error', balance: 0);
-    }
-
-    return user;
-  }
 }

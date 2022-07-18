@@ -45,8 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
       screen = FutureBuilder<bool>(
         future: GetIt.I<Backend>().refreshData(),
         builder: ((context, snapshot) {
-          String role = GetIt.I<Backend>().loggedInUser!.role;
-          if (role != 'none') {
+          if (GetIt.I<Backend>().loggedInUser!.role != 'none') {
             return HomeScreen();
           } else {
             return NotVerifiedScreen();
