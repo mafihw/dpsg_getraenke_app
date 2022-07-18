@@ -1,15 +1,9 @@
-import 'dart:io';
-import 'dart:convert';
-import 'dart:developer' as developer;
-import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:path_provider/path_provider.dart';
 
 class DrinkScreen extends StatefulWidget {
   const DrinkScreen({Key? key}) : super(key: key);
@@ -92,34 +86,6 @@ class _DrinkScreenState extends State<DrinkScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-
-  Future<List<Drink>> fetchDrinks() async {
-    //load files
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final drinksFile = File('$path/drinks.txt');
-
-    //try to fetch data from server
-    try {
-      final response = await GetIt.instance<Backend>().get('/drink');
-      if (response != null) {
-        await drinksFile.writeAsString(jsonEncode(response));
-      }
-    } catch (e) {
-      developer.log(e.toString());
-    }
-
-    //load drinks from local storage
-    final drinksString = await drinksFile.readAsString();
-    final drinksJson = await jsonDecode(drinksString);
-
-    List<Drink> drinks = [];
-    drinksJson.forEach((drinkJson) {
-      final drink = Drink.fromJson(drinkJson);
-      if (drink.active) drinks.add(drink);
-    });
-    return drinks;
   }
 }
 

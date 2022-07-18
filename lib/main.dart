@@ -1,6 +1,7 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
+import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -39,8 +40,24 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    Widget screen;
+    if (GetIt.instance<Backend>().isLoggedIn) {
+      screen = FutureBuilder<bool>(
+        future: GetIt.I<Backend>().refreshData(),
+        builder: ((context, snapshot) {
+          String role = GetIt.I<Backend>().loggedInUser!.role;
+          if (role != 'none') {
+            return HomeScreen();
+          } else {
+            return NotVerifiedScreen();
+          }
+        }),
+      );
+    } else {
+      screen = LoginScreen();
+    }
     return MaterialApp(
-      home: GetIt.instance<Backend>().isLoggedIn ? HomeScreen() : LoginScreen(),
+      home: screen,
       theme: ThemeData(colorScheme: kColorScheme),
     );
   }

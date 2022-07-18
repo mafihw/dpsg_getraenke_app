@@ -1,11 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'home_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -19,7 +15,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController nameTextController = TextEditingController();
   final TextEditingController emailTextController = TextEditingController();
   final TextEditingController passwordTextController = TextEditingController();
-  final TextEditingController confirmPasswordTextController = TextEditingController();
+  final TextEditingController confirmPasswordTextController =
+      TextEditingController();
   final PageController pageController = PageController();
 
   late FocusNode nameFocusNode = FocusNode();
@@ -39,10 +36,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             body: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20),
-                child:
-                SingleChildScrollView(
-                    child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20),
+                child: SingleChildScrollView(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
                       const Hero(
                         tag: 'icon_hero',
                         child: Image(
@@ -84,8 +83,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Name',
                               ),
-                              onEditingComplete: (){
-                                pageController.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutSine);
+                              onEditingComplete: () {
+                                pageController.nextPage(
+                                    duration: const Duration(milliseconds: 600),
+                                    curve: Curves.easeInOutSine);
                               },
                             ),
                             TextField(
@@ -95,8 +96,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Email',
                               ),
-                              onEditingComplete: (){
-                                pageController.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutSine);
+                              onEditingComplete: () {
+                                pageController.nextPage(
+                                    duration: const Duration(milliseconds: 600),
+                                    curve: Curves.easeInOutSine);
                               },
                             ),
                             TextField(
@@ -106,8 +109,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Passwort',
                               ),
-                              onEditingComplete: (){
-                                pageController.nextPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutSine);
+                              onEditingComplete: () {
+                                pageController.nextPage(
+                                    duration: const Duration(milliseconds: 600),
+                                    curve: Curves.easeInOutSine);
                               },
                             ),
                             TextField(
@@ -139,22 +144,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 setState(() {
                                   currentlyLoggingIn = true;
                                 });
-                                if (await GetIt.instance<Backend>().login(
-                                    emailTextController.text,
-                                    passwordTextController.text)) {
-                                  Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => HomeScreen()),
-                                          (route) => false);
+                                if (await GetIt.instance<Backend>().register(
+                                  emailTextController.text,
+                                  passwordTextController.text,
+                                  nameTextController.text,
+                                )) {
+                                  if (GetIt.instance<Backend>()
+                                          .loggedInUser!
+                                          .role !=
+                                      'none') {
+                                    Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => HomeScreen()),
+                                        (route) => false);
+                                  } else {
+                                    Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                NotVerifiedScreen(true)),
+                                        (route) => false);
+                                  }
                                   setState(() {
                                     currentlyLoggingIn = false;
                                   });
                                 } else {
                                   const snackBar = SnackBar(
-                                    content: Text('Login fehlgeschlagen!'),
+                                    content:
+                                        Text('Registrierung fehlgeschlagen!'),
                                   );
-                                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(snackBar);
                                   setState(() {
                                     currentlyLoggingIn = false;
                                   });
@@ -163,10 +184,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             },
                             child: currentlyLoggingIn
                                 ? SizedBox(
-                                height: 25,
-                                width: 25,
-                                child: CircularProgressIndicator(
-                                    color: Colors.blue.shade800))
+                                    height: 25,
+                                    width: 25,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.blue.shade800))
                                 : const Text('Registrieren'),
                           ),
                         ],
@@ -174,41 +195,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       const SizedBox(
                         height: 50,
                       ),
-                    ])
-                ),
+                    ])),
               ),
             )),
         onWillPop: () {
           return backButtonPressed();
-        }
-    );
+        });
   }
 
   Future<bool> backButtonPressed() {
-    if(pageController.page == 0){
+    if (pageController.page == 0) {
       return Future.value(true);
     } else {
-      pageController.previousPage(duration: const Duration(milliseconds: 600), curve: Curves.easeInOutSine);
+      pageController.previousPage(
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOutSine);
       return Future.value(false);
-    }
-  }
-
-  void login(String email, String password) async {
-    final response = await http.post(
-        Uri.parse('http://api.dpsg-gladbach.de:3000/auth/login'),
-        headers: <String, String>{'Content-Type': 'application/json'},
-        body:
-            jsonEncode(<String, String>{'email': email, 'password': password}));
-    developer.log(response.statusCode.toString());
-    developer.log(response.body);
-    if (response.statusCode == 200) {
-      final directory = await getApplicationDocumentsDirectory();
-      final path = await directory.path;
-      final file = await File('$path/loginInformation.txt');
-
-      file.writeAsString(response.body);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const HomeScreen()));
     }
   }
 }

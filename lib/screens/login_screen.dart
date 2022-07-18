@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -64,14 +65,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RegistrationScreen(),
-                        ),
-                      );
-                  },
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RegistrationScreen(),
+                          ),
+                        );
+                      },
                       child: Text('Registrieren')),
                   ElevatedButton(
                     onPressed: () async {
@@ -83,11 +84,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (await GetIt.instance<Backend>().login(
                             emailTextController.text,
                             passwordTextController.text)) {
-                          Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => HomeScreen()),
-                              (route) => false);
+                          await GetIt.instance<Backend>().refreshData();
+                          if (GetIt.instance<Backend>().loggedInUser!.role !=
+                              'none') {
+                            Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => HomeScreen()),
+                                (route) => false);
+                          } else {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: ((context) =>
+                                        NotVerifiedScreen())));
+                          }
                           setState(() {
                             currentlyLoggingIn = false;
                           });
@@ -115,24 +126,5 @@ class _LoginScreenState extends State<LoginScreen> {
             ]),
           ),
         ));
-  }
-
-  void login(String email, String password) async {
-    final response = await http.post(
-        Uri.parse('http://api.dpsg-gladbach.de:3000/auth/login'),
-        headers: <String, String>{'Content-Type': 'application/json'},
-        body:
-            jsonEncode(<String, String>{'email': email, 'password': password}));
-    developer.log(response.statusCode.toString());
-    developer.log(response.body);
-    if (response.statusCode == 200) {
-      final directory = await getApplicationDocumentsDirectory();
-      final path = await directory.path;
-      final file = await File('$path/loginInformation.txt');
-
-      file.writeAsString(response.body);
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const HomeScreen()));
-    }
   }
 }

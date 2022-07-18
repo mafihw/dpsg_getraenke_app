@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'dart:developer' as developer;
+import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,7 +30,7 @@ class Backend {
       token = loginInformation['token'];
       if (token != null) {
         isLoggedIn = true;
-        loggedInUser = User.fromJson(loginInformation['user']);
+        await refreshData();
         headers = {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -77,11 +78,48 @@ class Backend {
     }
   }
 
+  Future<bool> register(String email, String password, String name) async {
+    if (!isInitialized) {
+      return false;
+    } else {
+      final response = await http.post(Uri.parse('$apiurl/auth/register'),
+          headers: <String, String>{'Content-Type': 'application/json'},
+          body: jsonEncode(<String, String>{
+            'email': email,
+            'password': password,
+            'name': name
+          }));
+      developer.log(response.statusCode.toString());
+      developer.log(response.body);
+      if (response.statusCode == 201) {
+        return await login(email, password);
+      } else {
+        return false;
+      }
+    }
+  }
+
   void logout() {
     directory!.list().forEach((element) async {
       await element.delete(recursive: true);
     });
     loginInformation = null;
+    loggedInUser = null;
     isLoggedIn = false;
+  }
+
+  Future<bool> refreshData() async {
+    if (!isInitialized || !isLoggedIn) {
+      return false;
+    } else {
+      try {
+        await fetchDrinks();
+        loggedInUser = await fetchUser();
+        return true;
+      } catch (e) {
+        developer.log(e.toString());
+        return false;
+      }
+    }
   }
 }
