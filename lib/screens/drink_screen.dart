@@ -1,3 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:developer' as developer;
+
+import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/shared/colors.dart';
@@ -5,6 +10,8 @@ import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DrinkScreen extends StatefulWidget {
   const DrinkScreen({Key? key}) : super(key: key);
@@ -166,7 +173,8 @@ class BuyDialog extends StatelessWidget {
                 ),
                 ElevatedButton(
                     onPressed: () {
-                      purchaseDrink(GetIt.instance<Backend>().loggedInUser!.id, drink, amountSelected);
+                      purchaseDrink(GetIt.instance<Backend>().loggedInUser!.id,
+                          drink, amountSelected);
                       Navigator.pop(context);
                     },
                     child: const Text("Bestätigen"))
@@ -180,20 +188,24 @@ class BuyDialog extends StatelessWidget {
 
   void purchaseDrink(String userId, Drink drink, int amount) async {
     final body = {
-    "uuid": userId,
-    "drinkid": drink.id,
-    "amount": amount,
-    "date": DateTime.now().toString()
+      "uuid": userId,
+      "drinkid": drink.id,
+      "amount": amount,
+      "date": DateTime.now().toString()
     };
-    final purchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), drinkName: drink.name);
+    final purchase = Purchase(
+        id: 0,
+        drinkId: drink.id,
+        userId: userId,
+        amount: amount,
+        cost: amount * drink.price,
+        date: DateTime.now(),
+        drinkName: drink.name);
 
-    if(await GetIt.instance<Backend>().checkConnection()) {
+    if (await GetIt.instance<Backend>().checkConnection()) {
       try {
-        await GetIt.instance<Backend>().post(
-            '/purchase',
-            jsonEncode(body)
-        );
-      } catch(error) {
+        await GetIt.instance<Backend>().post('/purchase', jsonEncode(body));
+      } catch (error) {
         developer.log(error.toString());
       }
     } else {
@@ -202,11 +214,12 @@ class BuyDialog extends StatelessWidget {
       final path = directory.path;
       final drinksFile = File('$path/unDonePurchases.txt');
       if (await drinksFile.exists()) {
-        List.from(jsonDecode(await drinksFile.readAsString())).
-        forEach((element) {
+        List.from(jsonDecode(await drinksFile.readAsString()))
+            .forEach((element) {
           notSubmittedPurchases.add(Purchase.fromJson(element));
         });
-      };
+      }
+      ;
       notSubmittedPurchases.add(purchase);
       drinksFile.writeAsString(jsonEncode(notSubmittedPurchases).toString());
     }
@@ -215,6 +228,5 @@ class BuyDialog extends StatelessWidget {
     final path = directory.path;
     final drinksFile = File('$path/lastPurchase.txt');
     drinksFile.writeAsString(jsonEncode(purchase.toJson()));
-
   }
 }
