@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -22,8 +24,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      builder: (context, AsyncSnapshot<User> snapshot) {
+      builder: (context, AsyncSnapshot<WelcomeScreenData> snapshot) {
         if (snapshot.hasData) {
+          final user = snapshot.data!.user;
+          final lastPurchase = snapshot.data!.lastPurchase;
+          int daysUntilLastBooking = lastPurchase == null
+              ? 0
+              : DateTime.now().difference(lastPurchase.date).inDays;
           return Container(
             color: kBackgroundColor,
             child: SingleChildScrollView(
@@ -35,7 +42,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: Column(
                         children: [
                           Text(
-                            'Hallo ${snapshot.data!.name}',
+                            'Hallo ${user.name}',
                             style: TextStyle(fontSize: 24),
                           ),
                           Text(
@@ -55,7 +62,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           style: TextStyle(fontSize: 24),
                         ),
                         Text(
-                          '${snapshot.data!.balance.toStringAsFixed(2).replaceAll('.', ',')} €',
+                          '${user.balance.toStringAsFixed(2).replaceAll('.', ',')} €',
                           style: TextStyle(fontSize: 48),
                         )
                       ],
@@ -75,17 +82,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           height: 8,
                         ),
                         Text(
-                          'Vor 12 Tagen:',
+                          daysUntilLastBooking == 0
+                              ? 'Heute'
+                              : daysUntilLastBooking == 1
+                                  ? 'Gestern'
+                                  : ' Vor ${daysUntilLastBooking} Tagen',
                           style: TextStyle(fontSize: 18),
                         ),
                         Text(
-                          '3x Paulaner Spezi für 3 €',
+                          lastPurchase == null
+                              ? '-'
+                              : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${lastPurchase.cost.toStringAsFixed(2).replaceAll('.', ',')}€',
                           style: TextStyle(fontSize: 18),
                         )
                       ],
                     ),
                     onTap: () {
-                      print("letzte Buchung");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PurchasesScreen(),
+                        ),
+                      );
                     },
                   ),
                   IntrinsicHeight(
@@ -131,7 +149,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             onTap: () async {
                               Uri url = Uri.parse(
                                   // TODO: Richtige paypal.me Adresse einfügen!!!!!!!!!!!!!!!!!!!!!!!!
-                                  'https://paypal.me/blozom/${(-snapshot.data!.balance).toString().replaceAll('.', ',')}');
+                                  'https://paypal.me/blozom/${(user.balance).toString().replaceAll('.', ',')}');
                               if (await canLaunchUrl(url)) {
                                 await launchUrl(url,
                                     mode: LaunchMode.externalApplication);
@@ -149,12 +167,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           );
         } else {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
+          if (snapshot.hasError) {
+            return Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                  Icon(Icons.error, size: 150),
+                  SizedBox(height: 20),
+                  SizedBox(
+                      width: 250,
+                      child: Text(
+                          'Userdaten konnten nicht geladen werden: ${snapshot.error}',
+                          style: TextStyle(fontSize: 25),
+                          textAlign: TextAlign.center))
+                ]));
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
         }
       },
-      future: fetchUser(),
+      future: fetchWelcomeScreenData(),
     );
   }
 
@@ -176,4 +211,64 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       ),
     );
   }
+
+  Future<WelcomeScreenData> fetchWelcomeScreenData() async {
+    return WelcomeScreenData(
+        user: await fetchUser(), lastPurchase: await fetchLastPurchase());
+  }
+
+  Future<Purchase?> fetchLastPurchase() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final path = directory.path;
+      final drinksFile = File('$path/lastPurchase.txt');
+      final lastPurchaseString = await drinksFile.readAsString();
+      final lastPurchaseData = jsonDecode(lastPurchaseString.toString());
+      return Purchase.fromJson(lastPurchaseData);
+    } catch (error) {
+      developer.log(error.toString());
+      return null;
+    }
+  }
+
+  Future<User> fetchUser() async {
+    //load files
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    final userFile = File('$path/user.txt');
+    User? user;
+
+    //try to fetch data from server
+    try {
+      String? loggedInUserId = GetIt.instance<Backend>().loggedInUser?.id;
+      if (loggedInUserId == null) throw Error();
+      final response =
+          await GetIt.instance<Backend>().get('/user/$loggedInUserId');
+      if (response != null) {
+        await userFile.writeAsString(jsonEncode(response));
+        user = User.fromJson(response);
+      }
+    } catch (e) {
+      developer.log(e.toString());
+    }
+
+    //load user from local storage
+    if (user == null && await userFile.exists()) {
+      final userString = await userFile.readAsString();
+      final userJson = await jsonDecode(userString);
+      user = User.fromJson(userJson);
+    } else if (user == null) {
+      user = User(
+          id: 'o', role: 'role', email: 'email', name: 'Error', balance: 0);
+    }
+
+    return user;
+  }
+}
+
+class WelcomeScreenData {
+  User user;
+  Purchase? lastPurchase;
+
+  WelcomeScreenData({required this.user, this.lastPurchase});
 }
