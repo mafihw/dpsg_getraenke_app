@@ -1,3 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:developer' as developer;
+import 'package:dpsg_app/connection/backend.dart';
+import 'package:get_it/get_it.dart';
+import 'package:path_provider/path_provider.dart';
+
 class User {
   String id;
   String role;
@@ -33,4 +40,27 @@ class User {
         weight: weight,
         gender: gender);
   }
+}
+
+Future<User> fetchUser() async {
+  String id = GetIt.I<Backend>().loggedInUserId!;
+  //load files
+  final directory = await getApplicationDocumentsDirectory();
+  final path = directory.path;
+  final userFile = File('$path/user.txt');
+
+  //try to fetch data from server
+  try {
+    final response = await GetIt.instance<Backend>().get('/user/$id');
+    if (response != null) {
+      await userFile.writeAsString(jsonEncode(response));
+    }
+  } catch (e) {
+    developer.log(e.toString());
+  }
+
+  //load user from local storage
+  final userString = await userFile.readAsString();
+  final userJson = await jsonDecode(userString);
+  return User.fromJson(userJson);
 }

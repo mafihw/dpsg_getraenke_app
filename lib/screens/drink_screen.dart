@@ -1,6 +1,7 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:developer' as developer;
+
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/purchase.dart';
@@ -94,34 +95,6 @@ class _DrinkScreenState extends State<DrinkScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
-
-  Future<List<Drink>> fetchDrinks() async {
-    //load files
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final drinksFile = File('$path/drinks.txt');
-
-    //try to fetch data from server
-    try {
-      final response = await GetIt.instance<Backend>().get('/drink');
-      if (response != null) {
-        await drinksFile.writeAsString(jsonEncode(response));
-      }
-    } catch (e) {
-      developer.log(e.toString());
-    }
-
-    //load drinks from local storage
-    final drinksString = await drinksFile.readAsString();
-    final drinksJson = await jsonDecode(drinksString);
-
-    List<Drink> drinks = [];
-    drinksJson.forEach((drinkJson) {
-      final drink = Drink.fromJson(drinkJson);
-      if (drink.active) drinks.add(drink);
-    });
-    return drinks;
-  }
 }
 
 class BuyDialog extends StatelessWidget {
@@ -200,7 +173,8 @@ class BuyDialog extends StatelessWidget {
                 ),
                 ElevatedButton(
                     onPressed: () {
-                      purchaseDrink(GetIt.instance<Backend>().loggedInUser!.id, drink, amountSelected);
+                      purchaseDrink(GetIt.instance<Backend>().loggedInUser!.id,
+                          drink, amountSelected);
                       Navigator.pop(context);
                     },
                     child: const Text("Bestätigen"))
@@ -214,20 +188,24 @@ class BuyDialog extends StatelessWidget {
 
   void purchaseDrink(String userId, Drink drink, int amount) async {
     final body = {
-    "uuid": userId,
-    "drinkid": drink.id,
-    "amount": amount,
-    "date": DateTime.now().toString()
+      "uuid": userId,
+      "drinkid": drink.id,
+      "amount": amount,
+      "date": DateTime.now().toString()
     };
-    final purchase = Purchase(id: 0, drinkId: drink.id, userId: userId, amount: amount, cost: amount * drink.price, date: DateTime.now(), drinkName: drink.name);
+    final purchase = Purchase(
+        id: 0,
+        drinkId: drink.id,
+        userId: userId,
+        amount: amount,
+        cost: amount * drink.price,
+        date: DateTime.now(),
+        drinkName: drink.name);
 
-    if(await GetIt.instance<Backend>().checkConnection()) {
+    if (await GetIt.instance<Backend>().checkConnection()) {
       try {
-        await GetIt.instance<Backend>().post(
-            '/purchase',
-            jsonEncode(body)
-        );
-      } catch(error) {
+        await GetIt.instance<Backend>().post('/purchase', jsonEncode(body));
+      } catch (error) {
         developer.log(error.toString());
       }
     } else {
@@ -236,11 +214,12 @@ class BuyDialog extends StatelessWidget {
       final path = directory.path;
       final drinksFile = File('$path/unDonePurchases.txt');
       if (await drinksFile.exists()) {
-        List.from(jsonDecode(await drinksFile.readAsString())).
-        forEach((element) {
+        List.from(jsonDecode(await drinksFile.readAsString()))
+            .forEach((element) {
           notSubmittedPurchases.add(Purchase.fromJson(element));
         });
-      };
+      }
+      ;
       notSubmittedPurchases.add(purchase);
       drinksFile.writeAsString(jsonEncode(notSubmittedPurchases).toString());
     }
@@ -249,6 +228,5 @@ class BuyDialog extends StatelessWidget {
     final path = directory.path;
     final drinksFile = File('$path/lastPurchase.txt');
     drinksFile.writeAsString(jsonEncode(purchase.toJson()));
-
   }
 }

@@ -21,7 +21,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -29,7 +28,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         if (snapshot.hasData) {
           final user = snapshot.data!.user;
           final lastPurchase = snapshot.data!.lastPurchase;
-          int daysUntilLastBooking = lastPurchase == null ? 0 : DateTime.now().difference(lastPurchase.date).inDays;
+          int daysUntilLastBooking = lastPurchase == null
+              ? 0
+              : DateTime.now().difference(lastPurchase.date).inDays;
           return Container(
             color: kBackgroundColor,
             child: SingleChildScrollView(
@@ -81,11 +82,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           height: 8,
                         ),
                         Text(
-                          daysUntilLastBooking == 0 ? 'Heute' : daysUntilLastBooking == 1 ? 'Gestern' : ' Vor ${daysUntilLastBooking} Tagen',
+                          daysUntilLastBooking == 0
+                              ? 'Heute'
+                              : daysUntilLastBooking == 1
+                                  ? 'Gestern'
+                                  : ' Vor ${daysUntilLastBooking} Tagen',
                           style: TextStyle(fontSize: 18),
                         ),
                         Text(
-                          lastPurchase == null ? '-' : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${lastPurchase.cost.toStringAsFixed(2).replaceAll('.', ',')}€',
+                          lastPurchase == null
+                              ? '-'
+                              : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${lastPurchase.cost.toStringAsFixed(2).replaceAll('.', ',')}€',
                           style: TextStyle(fontSize: 18),
                         )
                       ],
@@ -160,26 +167,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           );
         } else {
-            if (snapshot.hasError){
-              return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error, size: 150),
-                        SizedBox(height: 20),
-                        SizedBox(
-                            width: 250,
-                            child: Text('Userdaten konnten nicht geladen werden: ${snapshot.error}',
-                                style: TextStyle(fontSize: 25),
-                                textAlign: TextAlign.center))
-                      ]));
-
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+          if (snapshot.hasError) {
+            return Center(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                  Icon(Icons.error, size: 150),
+                  SizedBox(height: 20),
+                  SizedBox(
+                      width: 250,
+                      child: Text(
+                          'Userdaten konnten nicht geladen werden: ${snapshot.error}',
+                          style: TextStyle(fontSize: 25),
+                          textAlign: TextAlign.center))
+                ]));
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
         }
       },
       future: fetchWelcomeScreenData(),
@@ -206,7 +213,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Future<WelcomeScreenData> fetchWelcomeScreenData() async {
-    return WelcomeScreenData(user: await fetchUser(), lastPurchase: await fetchLastPurchase());
+    return WelcomeScreenData(
+        user: await fetchUser(), lastPurchase: await fetchLastPurchase());
   }
 
   Future<Purchase?> fetchLastPurchase() async {
@@ -263,10 +271,5 @@ class WelcomeScreenData {
   User user;
   Purchase? lastPurchase;
 
-  WelcomeScreenData(
-    {
-      required this.user,
-      this.lastPurchase
-    }
-    );
+  WelcomeScreenData({required this.user, this.lastPurchase});
 }

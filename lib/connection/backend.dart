@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'dart:developer' as developer;
+import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,6 +18,7 @@ class Backend {
   Directory? directory;
   String? path;
   dynamic loginInformation;
+  String? loggedInUserId;
   User? loggedInUser;
   dynamic token;
   File? loginFile;
@@ -30,9 +32,11 @@ class Backend {
       loginFile = File('$path/loginInformation.txt');
       loginInformation = jsonDecode(await loginFile!.readAsString());
       token = loginInformation['token'];
+      loggedInUserId = loginInformation['user']['id'];
       if (token != null) {
         isLoggedIn = true;
-        loggedInUser = User.fromJson(loginInformation['user']);
+        isInitialized = true;
+        await refreshData();
         headers = {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -94,9 +98,30 @@ class Backend {
       developer.log(response.statusCode.toString());
       developer.log(response.body);
       if (response.statusCode == 200) {
-        loginFile?.writeAsString(response.body);
+        await loginFile?.writeAsString(response.body);
         await init();
         return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  Future<bool> register(String email, String password, String name) async {
+    if (!isInitialized) {
+      return false;
+    } else {
+      final response = await http.post(Uri.parse('$apiurl/auth/register'),
+          headers: <String, String>{'Content-Type': 'application/json'},
+          body: jsonEncode(<String, String>{
+            'email': email,
+            'password': password,
+            'name': name
+          }));
+      developer.log(response.statusCode.toString());
+      developer.log(response.body);
+      if (response.statusCode == 201) {
+        return await login(email, password);
       } else {
         return false;
       }
@@ -108,7 +133,23 @@ class Backend {
       await element.delete(recursive: true);
     });
     loginInformation = null;
+    loggedInUser = null;
     isLoggedIn = false;
+  }
+
+  Future<bool> refreshData() async {
+    if (!isInitialized || !isLoggedIn) {
+      return false;
+    } else {
+      try {
+        await fetchDrinks();
+        loggedInUser = await fetchUser();
+        return true;
+      } catch (e) {
+        developer.log(e.toString());
+        return false;
+      }
+    }
   }
 
   Future<bool> checkConnection() async {
@@ -132,8 +173,8 @@ class Backend {
       final drinksFile = File('$path/unDonePurchases.txt');
       if (await drinksFile.exists()) {
         purchasesSend = true;
-        List.from(jsonDecode(await drinksFile.readAsString())).
-        forEach((element) async {
+        List.from(jsonDecode(await drinksFile.readAsString()))
+            .forEach((element) async {
           Purchase.fromJson(element);
           final body = {
             "uuid": element["userId"],
@@ -143,17 +184,14 @@ class Backend {
           };
           developer.log('send Purchase to server');
           try {
-            await post(
-                '/purchase',
-                jsonEncode(body)
-            );
-          } catch(error) {
+            await post('/purchase', jsonEncode(body));
+          } catch (error) {
             developer.log(error.toString());
           }
         });
         drinksFile.delete();
-      };
-
+      }
+      ;
     }
     return purchasesSend;
   }
