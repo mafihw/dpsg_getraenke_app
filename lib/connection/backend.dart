@@ -7,6 +7,7 @@ import 'package:dpsg_app/model/user.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decode/jwt_decode.dart';
 
 import '../model/purchase.dart';
 
@@ -51,7 +52,7 @@ class Backend {
   Future<dynamic> get(String uri) async {
     try {
       final response = await http
-          .get(Uri.parse('$apiurl/api$uri'), headers: headers)
+          .get(Uri.parse('$apiurl/api$uri'), headers: await getHeader())
           .timeout(const Duration(seconds: 10));
       developer.log(response.statusCode.toString() + '  ' + uri);
       if (response.statusCode == 200) {
@@ -68,7 +69,10 @@ class Backend {
       final url = Uri.parse('$apiurl/api$uri');
       developer.log('POST: url:${url} body: ${body}');
       final response = await http
-          .post(url, headers: headers, body: body)
+          .post(
+            url,
+            headers: await getHeader(),
+            body: body)
           .timeout(const Duration(seconds: 10));
       developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
@@ -80,7 +84,10 @@ class Backend {
     }
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String? email, String? password) async {
+    if (email == null || password == null) {
+      return false;
+    }
     if (!isInitialized) {
       return false;
     } else {
@@ -187,5 +194,18 @@ class Backend {
       ;
     }
     return purchasesSend;
+  }
+
+  Future<Map<String, String>> getHeader() async {
+    Map<String, dynamic> payload = Jwt.parseJwt(token);
+    if(payload.containsKey('exp') && (payload['exp'] > DateTime.now().millisecondsSinceEpoch)) {
+      return headers;
+    } else {
+      //refresh token
+      developer.log('Refreshing token');
+      //TODO add token refresh
+      await this.login(loggedInUser?.email, 'password');
+      return headers;
+    }
   }
 }
