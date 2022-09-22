@@ -18,6 +18,7 @@ class UserAdministrationScreen extends StatefulWidget {
 }
 
 class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
+  User? selectedUser = null;
   final TextEditingController _searchTextController = TextEditingController();
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               developer.log(element.toString());
               Icon iconEnabledStatus;
 
-              //TODO: activated if user enabled field exists
+              //TODO: activate if user enabled field exists
               iconEnabledStatus = Icon(Icons.check_circle_outline);
               /*
                     if(user.enabled){
@@ -77,7 +78,43 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                         )
                       ],
                     ),
-                    onTap: () {}));
+                    onTap: () {},
+                    onLongPress: () {
+                      setState(() {
+                        selectedUser = user;
+                      });
+                      showModalBottomSheet(
+                          context: context,
+                          builder: (context) => Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: IconButton(
+                                          onPressed: () {
+                                            selectedUser = null;
+                                            Navigator.pop(context);
+                                          },
+                                          icon: Icon(Icons.close)
+                                      )
+                                  )
+                                ],
+                                mainAxisAlignment: MainAxisAlignment.end,
+                              ),
+                              Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: ElevatedButton(
+                                      onPressed: () => developer.log('DO SOMETHING'),
+                                      child: const Text('Button')
+                                  )
+                              )
+
+                            ]
+                          )
+                      );
+                    })
+                );
               }
             });
             return Column(
@@ -140,28 +177,34 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: selectedUser == null ? FloatingActionButton.extended(
         backgroundColor: kSecondaryColor,
         onPressed: () {
           Navigator.pop(context);
         },
         icon: const Icon(Icons.arrow_back),
         label: const Text("Zurück"),
-      ),
+      ) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       resizeToAvoidBottomInset: false,
     );
   }
 
-  Widget buildCard({required Row child, required Function onTap}) {
+  Widget buildCard({required Row child, required Function onTap, required Function onLongPress}) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         color: kMainColor,
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: child,
+        child: InkWell(
+          onTap: () => onTap(),
+          onLongPress: () => onLongPress(),
+          customBorder:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: child,
+          ),
         ),
       ),
     );

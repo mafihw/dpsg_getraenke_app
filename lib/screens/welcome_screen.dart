@@ -210,6 +210,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Future<Purchase?> fetchLastPurchase() async {
+    //TODO fetch from db if no last purchase was found locally
     try {
       final directory = await getApplicationDocumentsDirectory();
       final path = directory.path;
