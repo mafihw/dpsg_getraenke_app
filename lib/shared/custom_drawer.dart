@@ -1,5 +1,6 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
+import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
@@ -52,14 +53,22 @@ class _CustomDrawerState extends State<CustomDrawer> {
             context,
             MaterialPageRoute(
               builder: (context) => const PurchasesScreen(),
-              ),
-            );
-          },
+            ),
+          );
+        },
       ),
       ListTile(
         leading: Icon(Icons.fingerprint),
         title: const Text('Profil'),
-        onTap: () {},
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MyProfileScreen(),
+            ),
+          );
+        },
       ),
       ListTile(
         leading: Icon(FontAwesomeIcons.syringe),

@@ -14,8 +14,7 @@ class PurchasesScreen extends StatefulWidget {
   const PurchasesScreen({Key? key}) : super(key: key);
 
   @override
-  State<PurchasesScreen> createState() =>
-      _PurchasesScreenState();
+  State<PurchasesScreen> createState() => _PurchasesScreenState();
 }
 
 class _PurchasesScreenState extends State<PurchasesScreen> {
@@ -34,16 +33,14 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               purchase = Purchase.fromJson(element);
               purchases.add(purchase);
             });
-            purchases.sort((a,b) => b.date.compareTo(a.date));
+            purchases.sort((a, b) => b.date.compareTo(a.date));
             purchases.forEach((purchase) {
-              purchasesCards.add(
-                buildCard(
+              purchasesCards.add(buildCard(
                   child: Row(
                     children: [
                       Padding(
                           padding: EdgeInsets.only(left: 5, right: 10),
-                          child: Icon(Icons.local_drink)
-                      ),
+                          child: Icon(Icons.local_drink)),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -63,18 +60,15 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       )
                     ],
                   ),
-                  onTap: () {}
-                )
-              );
+                  onTap: () {}));
             });
-            return
-                SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [...purchasesCards],
-                  ),
-                );
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [...purchasesCards],
+              ),
+            );
           } else {
             if (snapshot.hasError) {
               return Center(
@@ -114,18 +108,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     );
   }
 
-  Future<dynamic> getPurchases() async{
+  Future<dynamic> getPurchases() async {
     final String userId = GetIt.instance<Backend>().loggedInUser!.id;
-    if (await GetIt.instance<Backend>().checkPurchases()) {
-      return Future.delayed(Duration(milliseconds: 500), () {
-        return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
-      });
-    } else {
-      return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
-    }
-
-
-}
+    await GetIt.instance<Backend>().checkPurchases();
+    return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
+  }
 
   Widget buildCard({required Row child, required Function onTap}) {
     return Padding(

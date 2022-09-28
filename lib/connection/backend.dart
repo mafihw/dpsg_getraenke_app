@@ -69,12 +69,44 @@ class Backend {
       final url = Uri.parse('$apiurl/api$uri');
       developer.log('POST: url:${url} body: ${body}');
       final response = await http
-          .post(
-            url,
-            headers: await getHeader(),
-            body: body)
+          .post(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: 10));
       developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      developer.log(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<dynamic> patch(String uri, String body) async {
+    try {
+      final url = Uri.parse('$apiurl/api$uri');
+      developer.log('PATCH: url:$url');
+      final response = await http
+          .patch(url, headers: await getHeader(), body: body)
+          .timeout(const Duration(seconds: 10));
+      developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (e) {
+      developer.log(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<dynamic> delete(String uri, String? body) async {
+    try {
+      final url = Uri.parse('$apiurl/api$uri');
+      developer.log('DELETE: url:$url body: $body');
+      final response = await http
+          .delete(url, headers: await getHeader(), body: body)
+          .timeout(const Duration(seconds: 10));
+      developer.log(
+          response.statusCode.toString() + '  ' + uri + '  ' + (body ?? ''));
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
@@ -166,15 +198,14 @@ class Backend {
   }
 
   Future<bool> checkPurchases() async {
-    bool purchasesSend = false;
-    if (await checkConnection()) {
-      final directory = await getApplicationDocumentsDirectory();
-      final path = directory.path;
-      final drinksFile = File('$path/unDonePurchases.txt');
-      if (await drinksFile.exists()) {
-        purchasesSend = true;
-        List.from(jsonDecode(await drinksFile.readAsString()))
-            .forEach((element) async {
+    bool purchasesSent = false;
+    final directory = await getApplicationDocumentsDirectory();
+    final path = directory.path;
+    final purchasesFile = File('$path/unDonePurchases.txt');
+    if (await purchasesFile.exists()) {
+      if (await checkConnection()) {
+        for (var element
+            in List.from(jsonDecode(await purchasesFile.readAsString()))) {
           Purchase.fromJson(element);
           final body = {
             "uuid": element["userId"],
@@ -182,30 +213,36 @@ class Backend {
             "amount": element["amount"],
             "date": element["date"]
           };
-          developer.log('send Purchase to server');
+          developer.log('Sending purchase to server');
           try {
             await post('/purchase', jsonEncode(body));
+            purchasesSent = true;
+            await Future.delayed(const Duration(milliseconds: 500));
+            developer.log('Successfully sent purchase to server');
           } catch (error) {
-            developer.log(error.toString());
+            developer.log(
+                'Error while sending purchase to server: ' + error.toString());
           }
-        });
-        drinksFile.delete();
+        }
+        purchasesFile.delete();
       }
-      ;
+    } else {
+      purchasesSent = true;
     }
-    return purchasesSend;
+
+    return purchasesSent;
   }
 
   Future<Map<String, String>> getHeader() async {
     Map<String, dynamic> payload = Jwt.parseJwt(token);
-    if(payload.containsKey('exp') && (payload['exp'] > DateTime.now().millisecondsSinceEpoch)) {
-      return headers;
-    } else {
+    //if(payload.containsKey('exp') && (payload['exp'] > DateTime.now().millisecondsSinceEpoch)) {
+    return headers;
+    /*} else {
       //refresh token
       developer.log('Refreshing token');
       //TODO add token refresh
       await this.login(loggedInUser?.email, 'password');
       return headers;
-    }
+    }*/
   }
 }
