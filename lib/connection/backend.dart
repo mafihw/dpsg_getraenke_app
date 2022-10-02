@@ -36,11 +36,11 @@ class Backend {
       if (token != null) {
         isLoggedIn = true;
         isInitialized = true;
-        await refreshData();
         headers = {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
         };
+        await refreshData();
       }
     } catch (e) {
       developer.log('No login file. User not logged in.');
