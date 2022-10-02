@@ -45,29 +45,35 @@ class _CustomDrawerState extends State<CustomDrawer> {
   List<Widget> addListTilesToDrawer() {
     final listTiles = <Widget>[
       ListTile(
+        leading: Icon(Icons.home),
+        title: const Text('Übersicht'),
+        onTap: () {
+          Navigator.pop(context);
+
+          Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
+        },
+      ),
+      ListTile(
         leading: Icon(Icons.history),
         title: const Text('Kürzliche Buchungen'),
         onTap: () {
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PurchasesScreen(),
-            ),
-          );
+
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => PurchasesScreen()),
+              (Route<dynamic> route) => route.isFirst);
         },
       ),
       ListTile(
         leading: Icon(Icons.fingerprint),
         title: const Text('Profil'),
-        onTap: () {
+        onTap: () async {
+          await Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => MyProfileScreen()),
+              (Route<dynamic> route) => route.isFirst);
           Navigator.pop(context);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MyProfileScreen(),
-            ),
-          );
         },
       ),
       ListTile(
@@ -89,12 +95,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
             title: const Text('Nutzer'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserAdministrationScreen(),
-                ),
-              );
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UserAdministrationScreen()),
+                  (Route<dynamic> route) => route.isFirst);
             },
           ),
           ListTile(

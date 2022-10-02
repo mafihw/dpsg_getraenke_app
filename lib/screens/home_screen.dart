@@ -38,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
         label: const Text("Getränk buchen"),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      onDrawerChanged: (_) => setState(() {}),
     );
   }
 }
