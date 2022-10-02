@@ -58,6 +58,14 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   final _passwordCheckController = TextEditingController();
   String oldPassword = '';
 
+  var validBorder = const UnderlineInputBorder(
+    borderSide: BorderSide(color: Colors.white, width: 1.0),
+  );
+
+  var invalidBorder = const UnderlineInputBorder(
+    borderSide: BorderSide(color: Colors.red, width: 1.0),
+  );
+
   bool _nameValid = true;
   bool _mailValid = true;
   bool _passwordValid = true;
@@ -93,10 +101,21 @@ class UserProfileScreenState extends State<UserProfileScreen> {
     _passwordCheckController.clear();
   }
 
+  bool validation() {
+    _nameValid = _nameController.text.isNotEmpty;
+    _mailValid = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(_mailController.text);
+    _passwordValid = _passwordController.text.length >= 8 ||
+        _passwordController.text.isEmpty;
+    _passwordCheckValid =
+        _passwordCheckController.text == _passwordController.text;
+    return _nameValid && _mailValid && _passwordValid && _passwordCheckValid;
+  }
+
   @override
   Widget build(BuildContext context) {
-    _allValid =
-        _nameValid && _mailValid && _passwordValid && _passwordCheckValid;
+    _allValid = validation();
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Nutzerverwaltung"),
       drawer: const CustomDrawer(),
@@ -114,7 +133,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                       }
                       try {
                         bool passwordCorrect = false;
-                        if (editsOwnAccount!) {
+                        if (editsOwnAccount! && oldPassword.isNotEmpty) {
                           passwordCorrect = await GetIt.I<Backend>()
                               .login(widget.currentUser.email, oldPassword);
                         }
@@ -168,59 +187,79 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                   TextField(
                     autofocus: true,
                     controller: _nameController,
-                    decoration: const InputDecoration(helperText: 'Name'),
+                    decoration: InputDecoration(
+                      helperText: 'Name',
+                      focusedBorder: _nameValid ? validBorder : invalidBorder,
+                      enabledBorder: _nameValid ? validBorder : invalidBorder,
+                    ),
                     textInputAction: TextInputAction.next,
                     readOnly: !editMode,
                     onChanged: (value) {
-                      _nameValid = value.isNotEmpty;
+                      setState(() {
+                        validation();
+                      });
                     },
                   ),
                   TextField(
                     controller: _mailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(helperText: 'Email'),
+                    decoration: InputDecoration(
+                      helperText: 'Email',
+                      focusedBorder: _mailValid ? validBorder : invalidBorder,
+                      enabledBorder: _mailValid ? validBorder : invalidBorder,
+                    ),
                     textInputAction: TextInputAction.next,
                     readOnly: !editMode,
                     onChanged: (value) {
-                      _mailValid = RegExp(
-                              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                          .hasMatch(value);
+                      setState(() {
+                        validation();
+                      });
                     },
                   ),
                   TextField(
                     obscureText: true,
                     controller: _passwordController,
-                    decoration: const InputDecoration(
-                        helperText: 'Passwort',
-                        hintText: 'Unverändert',
-                        hintStyle: TextStyle(fontSize: 10)),
+                    decoration: InputDecoration(
+                      helperText: 'Passwort',
+                      hintText: 'Unverändert',
+                      hintStyle: const TextStyle(fontSize: 10),
+                      focusedBorder:
+                          _passwordValid ? validBorder : invalidBorder,
+                      enabledBorder:
+                          _passwordValid ? validBorder : invalidBorder,
+                    ),
                     textInputAction: TextInputAction.next,
                     readOnly: !editMode,
                     onChanged: (value) {
                       setState(() {
-                        _passwordValid = value.length >= 8 || value.isEmpty;
-                        _passwordCheckValid = _passwordCheckController.text ==
-                            _passwordController.text;
+                        validation();
                       });
                     },
                     onSubmitted: (value) {
                       if (value.isNotEmpty) FocusScope.of(context).nextFocus();
                     },
                   ),
-                  Visibility(
-                    visible: _passwordController.text.isNotEmpty && editMode,
-                    child: TextField(
-                      obscureText: true,
-                      controller: _passwordCheckController,
-                      decoration: const InputDecoration(
-                        helperText: 'Neues Passwort bestätigen',
+                  Focus(
+                    child: Visibility(
+                      visible: _passwordController.text.isNotEmpty && editMode,
+                      child: TextField(
+                        obscureText: true,
+                        controller: _passwordCheckController,
+                        decoration: InputDecoration(
+                          helperText: 'Neues Passwort bestätigen',
+                          focusedBorder:
+                              _passwordCheckValid ? validBorder : invalidBorder,
+                          enabledBorder:
+                              _passwordCheckValid ? validBorder : invalidBorder,
+                        ),
+                        textInputAction: TextInputAction.done,
+                        readOnly: !editMode,
+                        onChanged: (value) {
+                          setState(() {
+                            validation();
+                          });
+                        },
                       ),
-                      textInputAction: TextInputAction.done,
-                      readOnly: !editMode,
-                      onChanged: (value) {
-                        _passwordCheckValid = _passwordCheckController.value ==
-                            _passwordController.value;
-                      },
                     ),
                   ),
                 ],
@@ -387,7 +426,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text('Passwort ändern'),
+            title: const Text('Profil ändern'),
             content: Column(mainAxisSize: MainAxisSize.min, children: [
               const Text(
                   'Um die Aktion zu bestätigen, gib bitte dein aktuelles Passwort ein.'),
