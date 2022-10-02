@@ -62,7 +62,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           style: TextStyle(fontSize: 24),
                         ),
                         Text(
-                          '${user.balance.toStringAsFixed(2).replaceAll('.', ',')} €',
+                          '${(user.balance / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
                           style: TextStyle(fontSize: 48),
                         )
                       ],
@@ -92,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         Text(
                           lastPurchase == null
                               ? '-'
-                              : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${lastPurchase.cost.toStringAsFixed(2).replaceAll('.', ',')}€',
+                              : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
                           style: TextStyle(fontSize: 18),
                         )
                       ],
@@ -149,7 +149,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             onTap: () async {
                               Uri url = Uri.parse(
                                   // TODO: Richtige paypal.me Adresse einfügen!!!!!!!!!!!!!!!!!!!!!!!!
-                                  'https://paypal.me/blozom/${(user.balance).toString().replaceAll('.', ',')}');
+                                  'https://paypal.me/blozom/${(-user.balance / 100).toString().replaceAll('.', ',')}');
                               if (await canLaunchUrl(url)) {
                                 await launchUrl(url,
                                     mode: LaunchMode.externalApplication);

@@ -50,7 +50,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                             ),
                           ),
                           Text(
-                            element.price
+                            (element.price / 100)
                                     .toStringAsFixed(2)
                                     .replaceAll('.', ',') +
                                 " €",

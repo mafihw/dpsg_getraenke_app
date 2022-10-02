@@ -53,7 +53,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                             style: TextStyle(fontSize: 14),
                           ),
                           Text(
-                            '${(purchase.cost * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
+                            '${((purchase.cost / 100) * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
                             style: TextStyle(fontSize: 14),
                           )
                         ],
@@ -80,7 +80,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                     SizedBox(height: 20),
                     SizedBox(
                         width: 250,
-                        child: Text('Anscheinend ist gerade niemand da...',
+                        child: Text('Du hast bisher noch nichts gekauft ...',
                             style: TextStyle(fontSize: 25),
                             textAlign: TextAlign.center))
                   ]));
