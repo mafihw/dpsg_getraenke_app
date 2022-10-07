@@ -35,7 +35,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     Widget screen;
-    if (GetIt.instance<Backend>().isLoggedIn) {
+    if (GetIt.instance<Backend>().isLoggedIn &&
+        GetIt.I<Backend>().loggedInUser != null) {
       screen = FutureBuilder<bool>(
         future: GetIt.I<Backend>().refreshData(),
         builder: ((context, snapshot) {
@@ -47,6 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }),
       );
     } else {
+      GetIt.I<Backend>().logout();
       screen = LoginScreen();
     }
     return MaterialApp(
