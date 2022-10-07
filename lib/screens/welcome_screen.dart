@@ -147,15 +147,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ],
                             ),
                             onTap: () async {
-                              Uri url = Uri.parse(
-                                  // TODO: Richtige paypal.me Adresse einfügen!!!!!!!!!!!!!!!!!!!!!!!!
-                                  'https://paypal.me/blozom/${(-user.balance / 100).toString().replaceAll('.', ',')}');
-                              if (await canLaunchUrl(url)) {
-                                await launchUrl(url,
-                                    mode: LaunchMode.externalApplication);
-                              } else {
-                                developer.log("url $url cant be launched");
-                              }
+                              await _openPaypal(-user.balance / 100);
                             },
                           ),
                         ),
@@ -264,6 +256,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
 
     return user;
+  }
+
+  Future<void> _openPaypal(double amount) async {
+    Uri url = Uri.parse(
+        'https://paypal.me/Bierkasse1947/${amount.toString().replaceAll('.', ',')}');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      developer.log("url $url cant be launched");
+    }
   }
 }
 
