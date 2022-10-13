@@ -234,15 +234,73 @@ class Backend {
   }
 
   Future<Map<String, String>> getHeader() async {
-    Map<String, dynamic> payload = Jwt.parseJwt(token);
-    //if(payload.containsKey('exp') && (payload['exp'] > DateTime.now().millisecondsSinceEpoch)) {
+    if(checkTokenValidity()) {
     return headers;
-    /*} else {
-      //refresh token
-      developer.log('Refreshing token');
-      //TODO add token refresh
-      await this.login(loggedInUser?.email, 'password');
+    } else {
+      developer.log('Token has to be refreshed');
       return headers;
-    }*/
+    }
+  }
+
+  bool checkTokenValidity() {
+    Map<String, dynamic> payload = Jwt.parseJwt(token);
+    if(payload.containsKey('exp') && (payload['exp'] * 1000 > DateTime.now().add(Duration(days: 1)).millisecondsSinceEpoch)) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+  void refreshToken(context) {
+    final password = _showPasswordDialog(context);
+    final email = loggedInUser?.email;
+    if (password != null && email != null) {
+      this.login(email, password);
+    }
+  }
+
+  String? _showPasswordDialog(BuildContext context) {
+    TextEditingController _textFieldController = new TextEditingController();
+    String? userInput = null;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Passwort eingeben'),
+            content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Accout muss neu validiert werden. Bitte Passwort erneut eingeben."),
+                  SizedBox(height: 10),
+                  TextField(
+                    onChanged: (value) {
+                      userInput = value;
+                    },
+                    controller: _textFieldController,
+                    decoration: InputDecoration(hintText: "Passwort"),
+                    obscureText: true,
+                  )
+                ],
+              ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
+                  userInput = null;
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () {
+                    Navigator.pop(context);
+                    return;
+                },
+              ),
+            ],
+          );
+        });
+    return userInput;
   }
 }

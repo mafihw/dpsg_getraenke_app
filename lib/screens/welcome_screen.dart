@@ -20,160 +20,26 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>  {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(!GetIt.instance<Backend>().checkTokenValidity() && await GetIt.instance<Backend>().checkConnection()){
+        GetIt.instance<Backend>().refreshToken(context);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       builder: (context, AsyncSnapshot<WelcomeScreenData> snapshot) {
         if (snapshot.hasData) {
-          final user = snapshot.data!.user;
-          final lastPurchase = snapshot.data!.lastPurchase;
-          int daysUntilLastBooking = lastPurchase == null
-              ? 0
-              : DateTime.now().difference(lastPurchase.date).inDays;
-          return Container(
-            color: kBackgroundColor,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  buildCard(
-                      child: Column(
-                        children: [
-                          Text(
-                            'Hallo ${user.name}',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          Text(
-                            'Willkommen zurück!',
-                            style: TextStyle(fontSize: 18),
-                          )
-                        ],
-                      ),
-                      onTap: () {
-                        print("Profil");
-                      }),
-                  buildCard(
-                    child: Column(
-                      children: [
-                        Text(
-                          'Dein Kontostand:',
-                          style: TextStyle(fontSize: 24),
-                        ),
-                        Text(
-                          '${(user.balance / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
-                          style: TextStyle(fontSize: 48),
-                        )
-                      ],
-                    ),
-                    onTap: () {
-                      print("Bezahlen");
-                    },
-                  ),
-                  buildCard(
-                    child: Column(
-                      children: [
-                        Text(
-                          'Letzte Buchung:',
-                          style: TextStyle(fontSize: 24),
-                        ),
-                        SizedBox(
-                          height: 8,
-                        ),
-                        Text(
-                          daysUntilLastBooking == 0
-                              ? 'Heute'
-                              : daysUntilLastBooking == 1
-                                  ? 'Gestern'
-                                  : ' Vor ${daysUntilLastBooking} Tagen',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                        Text(
-                          lastPurchase == null
-                              ? '-'
-                              : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
-                          style: TextStyle(fontSize: 18),
-                        )
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PurchasesScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  IntrinsicHeight(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: buildCard(
-                              child: Column(
-                                children: [
-                                  Text('Schnellwahltaste',
-                                      style: TextStyle(fontSize: 16)),
-                                  Icon(
-                                    Icons.add,
-                                    size: 48,
-                                  ),
-                                  Text('1x Bier buchen'),
-                                ],
-                              ),
-                              onTap: () {
-                                print("BIERBUCHEN");
-                              }),
-                        ),
-                        Expanded(
-                          child: buildCard(
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Bezahlen',
-                                  style: TextStyle(fontSize: 24),
-                                ),
-                                SizedBox(
-                                  height: 8,
-                                ),
-                                Icon(
-                                  FontAwesomeIcons.paypal,
-                                  size: 48,
-                                ),
-                              ],
-                            ),
-                            onTap: () async {
-                              await _openPaypal(-user.balance / 100);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          );
+          return processSnapshotData(snapshot);
         } else {
           if (snapshot.hasError) {
-            return Center(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                  Icon(Icons.error, size: 150),
-                  SizedBox(height: 20),
-                  SizedBox(
-                      width: 250,
-                      child: Text(
-                          'Userdaten konnten nicht geladen werden: ${snapshot.error}',
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center))
-                ]));
+            return processSnapshotError(snapshot);
           } else {
             return Center(
               child: CircularProgressIndicator(),
@@ -181,7 +47,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           }
         }
       },
-      future: fetchWelcomeScreenData(),
+      future: fetchWelcomeScreenData(context),
     );
   }
 
@@ -204,9 +70,163 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Future<WelcomeScreenData> fetchWelcomeScreenData() async {
+  Future<WelcomeScreenData> fetchWelcomeScreenData(context) async {
     return WelcomeScreenData(
         user: await fetchUser(), lastPurchase: await fetchLastPurchase());
+  }
+
+  Container processSnapshotData(snapshot) {
+    final user = snapshot.data!.user;
+    final lastPurchase = snapshot.data!.lastPurchase;
+    int daysUntilLastBooking = lastPurchase == null
+        ? 0
+        : DateTime.now().difference(lastPurchase.date).inDays;
+    return Container(
+      color: kBackgroundColor,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            buildCard(
+                child: Column(
+                  children: [
+                    Text(
+                      'Hallo ${user.name}',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                    Text(
+                      'Willkommen zurück!',
+                      style: TextStyle(fontSize: 18),
+                    )
+                  ],
+                ),
+                onTap: () {
+                  print("Profil");
+                }),
+            buildCard(
+              child: Column(
+                children: [
+                  Text(
+                    'Dein Kontostand:',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  Text(
+                    '${(user.balance / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
+                    style: TextStyle(fontSize: 48),
+                  )
+                ],
+              ),
+              onTap: () {
+                print("Bezahlen");
+              },
+            ),
+            buildCard(
+              child: Column(
+                children: [
+                  Text(
+                    'Letzte Buchung:',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  Text(
+                    daysUntilLastBooking == 0
+                        ? 'Heute'
+                        : daysUntilLastBooking == 1
+                        ? 'Gestern'
+                        : ' Vor ${daysUntilLastBooking} Tagen',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  Text(
+                    lastPurchase == null
+                        ? '-'
+                        : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
+                    style: TextStyle(fontSize: 18),
+                  )
+                ],
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PurchasesScreen(),
+                  ),
+                );
+              },
+            ),
+            IntrinsicHeight(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: buildCard(
+                        child: Column(
+                          children: [
+                            Text('Schnellwahltaste',
+                                style: TextStyle(fontSize: 16)),
+                            Icon(
+                              Icons.add,
+                              size: 48,
+                            ),
+                            Text('1x Bier buchen'),
+                          ],
+                        ),
+                        onTap: () {
+                          print("BIERBUCHEN");
+                        }),
+                  ),
+                  Expanded(
+                    child: buildCard(
+                      child: Column(
+                        children: [
+                          Text(
+                            'Bezahlen',
+                            style: TextStyle(fontSize: 24),
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          Icon(
+                            FontAwesomeIcons.paypal,
+                            size: 48,
+                          ),
+                        ],
+                      ),
+                      onTap: () async {
+                        await _openPaypal(-user.balance / 100);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+ Center processSnapshotError(snapshot) {
+    return Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(Icons.error, size: 150),
+              SizedBox(height: 20),
+              SizedBox(
+                  width: 250,
+                  child: Text(
+                      'Userdaten konnten nicht geladen werden: ${snapshot.error}',
+                      style: TextStyle(fontSize: 25),
+                      textAlign: TextAlign.center))
+            ]
+        )
+    );
   }
 
   Future<Purchase?> fetchLastPurchase() async {

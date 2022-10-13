@@ -35,8 +35,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     Widget screen;
-    if (GetIt.instance<Backend>().isLoggedIn &&
-        GetIt.I<Backend>().loggedInUser != null) {
+    var backend = GetIt.instance<Backend>();
+    if (backend.isLoggedIn &&
+        backend.loggedInUser != null) {
       screen = FutureBuilder<bool>(
         future: GetIt.I<Backend>().refreshData(),
         builder: ((context, snapshot) {
