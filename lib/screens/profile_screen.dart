@@ -376,7 +376,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                       }
                       if (!editsOwnAccount! || passwordCorrect) {
                         if (!editsOwnAccount! ||
-                            await GetIt.instance<Backend>().checkPurchases()) {
+                            await GetIt.instance<Backend>().sentLocalPurchasesToServer()) {
                           await GetIt.instance<Backend>()
                               .delete('/user/${widget.currentUser.id}', null);
                           if (editsOwnAccount!) {

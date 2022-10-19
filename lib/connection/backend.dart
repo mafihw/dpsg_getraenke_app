@@ -197,7 +197,7 @@ class Backend {
     }
   }
 
-  Future<bool> checkPurchases() async {
+  Future<bool> sentLocalPurchasesToServer() async {
     bool purchasesSent = false;
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
@@ -229,7 +229,6 @@ class Backend {
     } else {
       purchasesSent = true;
     }
-
     return purchasesSent;
   }
 
@@ -251,18 +250,18 @@ class Backend {
       }
     }
 
-  void refreshToken(context) {
-    final password = _showPasswordDialog(context);
+  Future<void> refreshToken(context) async {
+    final password = await _showPasswordDialog(context);
     final email = loggedInUser?.email;
     if (password != null && email != null) {
       this.login(email, password);
     }
   }
 
-  String? _showPasswordDialog(BuildContext context) {
+  Future<String?> _showPasswordDialog(BuildContext context) async {
     TextEditingController _textFieldController = new TextEditingController();
     String? userInput = null;
-    showDialog(
+    await showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
