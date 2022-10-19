@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/colors.dart';
+import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:get_it/get_it.dart';
 import 'dart:developer' as developer;
 
@@ -51,7 +56,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                   user.email
                       .toLowerCase()
                       .contains(_searchTextController.text.toLowerCase())) {
-                userCards.add(buildCard(
+                userCards.add(buildUserCard(
                     child: Row(
                       children: [
                         IconButton(
@@ -78,41 +83,8 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                         )
                       ],
                     ),
-                    onTap: () {},
-                    onLongPress: () {
-                      setState(() {
-                        selectedUser = user;
-                      });
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (context) => Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: IconButton(
-                                          onPressed: () {
-                                            selectedUser = null;
-                                            Navigator.pop(context);
-                                          },
-                                          icon: Icon(Icons.close)
-                                      )
-                                  )
-                                ],
-                                mainAxisAlignment: MainAxisAlignment.end,
-                              ),
-                              Padding(
-                                  padding: const EdgeInsets.all(20.0),
-                                  child: ElevatedButton(
-                                      onPressed: () => developer.log('DO SOMETHING'),
-                                      child: const Text('Button')
-                                  )
-                              )
-
-                            ]
-                          )
-                      );
+                    onTap: () {
+                      showCustomModalSheet(user!);
                     })
                 );
               }
@@ -190,7 +162,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     );
   }
 
-  Widget buildCard({required Row child, required Function onTap, required Function onLongPress}) {
+  Widget buildUserCard({required Row child, required Function onTap}) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
@@ -198,7 +170,6 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         color: kMainColor,
         child: InkWell(
           onTap: () => onTap(),
-          onLongPress: () => onLongPress(),
           customBorder:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
@@ -208,5 +179,127 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         ),
       ),
     );
+  }
+
+  Widget buildSettingCard({required IconData icon, required String name, required Function onTap}) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: kMainColor,
+        child: InkWell(
+          onTap: () => onTap(),
+          customBorder:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Icon(icon, size: 40),
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: Text(
+                        name,
+                        style: TextStyle(fontSize: 20),
+                        textAlign: TextAlign.center
+                    )
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  showCustomModalSheet(User user) {
+    showModalBottomSheet(
+      backgroundColor: kBackgroundColor,
+      context: context,
+      builder: (context) => Column(
+          children: [
+            Row(
+              children: [
+                Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: IconButton(
+                        onPressed: () {
+                          selectedUser = null;
+                          Navigator.pop(context);
+                        },
+                        icon: Icon(Icons.close)
+                    )
+                )
+              ],
+              mainAxisAlignment: MainAxisAlignment.end,
+            ),
+            buildSettingCard(
+              icon: Icons.euro,
+              name: 'Geld buchen',
+              onTap: () {
+                GeldBuchen(user);
+              },
+            ),
+            buildSettingCard(
+              icon: Icons.euro,
+              name: 'Rolle zuweisen',
+              onTap: () {},
+            )
+          ]
+      )
+    );
+  }
+
+  Future<void> GeldBuchen (User user) async {
+    MoneyMaskedTextController _MoneyMaskedTextController = new MoneyMaskedTextController(decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlertDialog(
+            title: Text('Geld buchen', style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Einzahlung:", style: TextStyle(fontSize: 20)),
+                SizedBox(
+                  width: 100,
+                  child: TextField(
+                    style: TextStyle(fontSize: 20),
+                    textAlign: TextAlign.right,
+                    controller: _MoneyMaskedTextController,
+                    keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
+                      TextInputFormatter.withFunction(
+                            (oldValue, newValue) => newValue.copyWith(
+                          text: newValue.text.replaceAll('.', ','),
+                        ),
+                      ),
+                    ],
+                  )
+                )
+              ],
+            ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () async {
+                  final body = { 'uuid': user.id, 'value': _MoneyMaskedTextController.numberValue * 100 };
+                  await GetIt.I<Backend>().post('/payment', jsonEncode(body));
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+            ],
+          );
+        });
   }
 }
