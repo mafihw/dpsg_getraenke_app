@@ -15,12 +15,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  void _update() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
       appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke'),
-      drawer: CustomDrawer(),
+      drawer: CustomDrawer(updateHomeScreen: _update),
       body: WelcomeScreen(),
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
@@ -38,7 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
         label: const Text("Getränk buchen"),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      onDrawerChanged: (_) => setState(() {}),
+      //TODO: remove if has no important function
+      //onDrawerChanged: (_) => setState(() {}),
     );
   }
 }

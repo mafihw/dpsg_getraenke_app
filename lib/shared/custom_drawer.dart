@@ -10,13 +10,19 @@ import 'package:get_it/get_it.dart';
 import '../screens/users_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
-  const CustomDrawer({Key? key}) : super(key: key);
+  final updateHomeScreen;
+
+  const CustomDrawer({Key? key, this.updateHomeScreen}) : super(key: key);
 
   @override
-  State<CustomDrawer> createState() => _CustomDrawerState();
+  State<CustomDrawer> createState() => _CustomDrawerState(updateHomeScreen: updateHomeScreen);
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
+  final updateHomeScreen;
+
+  _CustomDrawerState({this.updateHomeScreen});
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -93,13 +99,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ListTile(
             leading: Icon(Icons.manage_accounts),
             title: const Text('Nutzer'),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              Navigator.pushAndRemoveUntil(
+              await Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
                       builder: (context) => UserAdministrationScreen()),
                   (Route<dynamic> route) => route.isFirst);
+              updateHomeScreen();
             },
           ),
           ListTile(
