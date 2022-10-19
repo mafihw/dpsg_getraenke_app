@@ -21,13 +21,18 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen>  {
+
+  User? currentUser = null;
+  final Purchase? lastPurchase = null;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if(!GetIt.instance<Backend>().checkTokenValidity() && await GetIt.instance<Backend>().checkConnection()){
-        GetIt.instance<Backend>().refreshToken(context);
+        await GetIt.instance<Backend>().refreshToken(context);
       }
+      await updateUserFromServer();
     });
   }
 
@@ -210,7 +215,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
     );
   }
 
- Center processSnapshotError(snapshot) {
+  Center processSnapshotError(snapshot) {
     return Center(
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -244,38 +249,49 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
     }
   }
 
-  Future<User> fetchUser() async {
-    //load files
+  Future<User> getUser() async {
+    if (currentUser == null){
+      //load files
+      final directory = await getApplicationDocumentsDirectory();
+      final path = directory.path;
+      final userFile = File('$path/user.txt');
+
+      //load user from local storage
+      if (await userFile.exists()) {
+        final userString = await userFile.readAsString();
+        final userJson = await jsonDecode(userString);
+        currentUser = User.fromJson(userJson);
+      } else  {
+        //load user from server
+        await updateUserFromServer();
+      }
+
+      if (currentUser == null) {
+        throw new Exception("Kein User gefunden");
+      }
+    }
+
+    return currentUser!;
+  }
+
+  Future<void> updateUserFromServer() async {
+
     final directory = await getApplicationDocumentsDirectory();
     final path = directory.path;
     final userFile = File('$path/user.txt');
-    User? user;
-
     //try to fetch data from server
     try {
       String? loggedInUserId = GetIt.instance<Backend>().loggedInUser?.id;
       if (loggedInUserId == null) throw Error();
       final response =
-          await GetIt.instance<Backend>().get('/user/$loggedInUserId');
+      await GetIt.instance<Backend>().get('/user/$loggedInUserId');
       if (response != null) {
         await userFile.writeAsString(jsonEncode(response));
-        user = User.fromJson(response);
+        currentUser = User.fromJson(response);
       }
     } catch (e) {
       developer.log(e.toString());
     }
-
-    //load user from local storage
-    if (user == null && await userFile.exists()) {
-      final userString = await userFile.readAsString();
-      final userJson = await jsonDecode(userString);
-      user = User.fromJson(userJson);
-    } else if (user == null) {
-      user = User(
-          id: 'o', role: 'role', email: 'email', name: 'Error', balance: 0);
-    }
-
-    return user;
   }
 
   Future<void> _openPaypal(double amount) async {
