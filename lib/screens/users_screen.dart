@@ -215,39 +215,39 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
 
   showCustomModalSheet(User user) {
     showModalBottomSheet(
+      isScrollControlled: true,
       backgroundColor: kBackgroundColor,
       context: context,
-      builder: (context) => Column(
+      builder: (context) =>
+        Wrap(
           children: [
-            Row(
-              children: [
-                Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: IconButton(
-                        onPressed: () {
-                          selectedUser = null;
-                          Navigator.pop(context);
-                        },
-                        icon: Icon(Icons.close)
-                    )
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.end,
+            Center(
+              child: Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Text(user.name, style: TextStyle(fontSize: 30))
+              ),
+            ),
+            const Padding(
+                padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                child: Divider(thickness: 2)
             ),
             buildSettingCard(
               icon: Icons.euro,
-              name: 'Geld buchen',
+              name: 'Zahlung buchen',
               onTap: () {
                 GeldBuchen(user);
               },
             ),
             buildSettingCard(
-              icon: Icons.euro,
-              name: 'Rolle zuweisen',
-              onTap: () {},
-            )
+              icon: Icons.note_alt_outlined,
+              name: 'Rolle ändern',
+              onTap: () {
+                RolleAendern(user);
+              },
+            ),
+            SizedBox(height: 15),
           ]
-      )
+        ),
     );
   }
 
@@ -263,21 +263,21 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               children: [
                 const Text("Einzahlung:", style: TextStyle(fontSize: 20)),
                 SizedBox(
-                  width: 100,
-                  child: TextField(
-                    style: TextStyle(fontSize: 20),
-                    textAlign: TextAlign.right,
-                    controller: _MoneyMaskedTextController,
-                    keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
-                      TextInputFormatter.withFunction(
-                            (oldValue, newValue) => newValue.copyWith(
-                          text: newValue.text.replaceAll('.', ','),
+                    width: 100,
+                    child: TextField(
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.right,
+                      controller: _MoneyMaskedTextController,
+                      keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
+                        TextInputFormatter.withFunction(
+                              (oldValue, newValue) => newValue.copyWith(
+                            text: newValue.text.replaceAll('.', ','),
+                          ),
                         ),
-                      ),
-                    ],
-                  )
+                      ],
+                    )
                 )
               ],
             ),
@@ -300,6 +300,62 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               ),
             ],
           );
-        });
+        }
+    );
+  }
+
+  Future<void> RolleAendern (User user) async {
+    String? userRole = user.role;
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return CustomStatefulAlertDialog(
+            title: Text('Rolle ändern', style: TextStyle(fontSize: 25),
+                textAlign: TextAlign.center),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Rolle:", style: TextStyle(fontSize: 20)),
+                DropdownButton(
+                    value: userRole,
+                    dropdownColor: kMainColor,
+                    alignment: AlignmentDirectional.topStart,
+                    items: <DropdownMenuItem<String>>[
+                      DropdownMenuItem(child: Text('Admin'), value: 'admin'),
+                      DropdownMenuItem(child: Text('User'), value: 'user'),
+                      DropdownMenuItem(
+                          child: Text('Deaktiviert'), value: 'none')
+                    ],
+                    onChanged: (String? value) {
+                      setState(() {
+                        userRole = value;
+                      });
+                    }
+                )
+              ],
+            ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () async {
+                  final body = { 'roleId': userRole };
+                  await GetIt.I<Backend>().post(
+                      '/user' + user.id, jsonEncode(body));
+                  setState(() {});
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+            ],
+          );
+        }
+    );
   }
 }

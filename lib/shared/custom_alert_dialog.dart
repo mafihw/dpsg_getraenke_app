@@ -12,3 +12,41 @@ AlertDialog CustomAlertDialog({required Widget? title, required Widget? content,
     actionsAlignment: MainAxisAlignment.spaceBetween,
   );
 }
+
+class CustomStatefulAlertDialog extends StatefulWidget {
+  Widget? title;
+  Widget? content;
+  List<Widget>? actions;
+
+  CustomStatefulAlertDialog(
+      {
+        Key? key,
+        required Widget? title,
+        required Widget? content,
+        required actions
+      }) : super(key: key);
+
+  @override
+  State<CustomStatefulAlertDialog> createState() => _CustomStatefulAlertDialogState(
+      title: title,
+      content: content,
+      actions: actions);
+}
+
+class _CustomStatefulAlertDialogState extends State<CustomStatefulAlertDialog> {
+  Widget? title;
+  Widget? content;
+  List<Widget>? actions;
+
+  _CustomStatefulAlertDialogState(
+  {
+    required Widget? title,
+    required Widget? content,
+    required actions
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomAlertDialog(title: title, content: content, actions: actions);
+  }
+}

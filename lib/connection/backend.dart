@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:developer' as developer;
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -264,7 +265,7 @@ class Backend {
     await showDialog(
         context: context,
         builder: (context) {
-          return AlertDialog(
+          return CustomAlertDialog(
             title: Text('Passwort eingeben'),
             content: Column(
                 mainAxisSize: MainAxisSize.min,
