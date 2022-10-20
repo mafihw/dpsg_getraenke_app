@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,11 @@ class UserAdministrationScreen extends StatefulWidget {
 class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
   User? selectedUser = null;
   final TextEditingController _searchTextController = TextEditingController();
+
+  void performRebuild() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -239,10 +245,15 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               },
             ),
             buildSettingCard(
-              icon: Icons.note_alt_outlined,
-              name: 'Rolle ändern',
-              onTap: () {
-                RolleAendern(user);
+              icon: Icons.person_outline,
+              name: 'Profil anzeigen',
+              onTap: () async{
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserProfileScreen(currentUser: user, rebuild: performRebuild))
+                );
+                Navigator.pop(context);
+                setState(() {});
               },
             ),
             SizedBox(height: 15),
@@ -294,61 +305,6 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 onPressed: () async {
                   final body = { 'uuid': user.id, 'value': _MoneyMaskedTextController.numberValue * 100 };
                   await GetIt.I<Backend>().post('/payment', jsonEncode(body));
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-            ],
-          );
-        }
-    );
-  }
-
-  Future<void> RolleAendern (User user) async {
-    String? userRole = user.role;
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return CustomStatefulAlertDialog(
-            title: Text('Rolle ändern', style: TextStyle(fontSize: 25),
-                textAlign: TextAlign.center),
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Rolle:", style: TextStyle(fontSize: 20)),
-                DropdownButton(
-                    value: userRole,
-                    dropdownColor: kMainColor,
-                    alignment: AlignmentDirectional.topStart,
-                    items: <DropdownMenuItem<String>>[
-                      DropdownMenuItem(child: Text('Admin'), value: 'admin'),
-                      DropdownMenuItem(child: Text('User'), value: 'user'),
-                      DropdownMenuItem(
-                          child: Text('Deaktiviert'), value: 'none')
-                    ],
-                    onChanged: (String? value) {
-                      setState(() {
-                        userRole = value;
-                      });
-                    }
-                )
-              ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () async {
-                  final body = { 'roleId': userRole };
-                  await GetIt.I<Backend>().post(
-                      '/user' + user.id, jsonEncode(body));
-                  setState(() {});
                   Navigator.pop(context);
                   return;
                 },

@@ -51,6 +51,7 @@ class UserProfileScreen extends StatefulWidget {
 class UserProfileScreenState extends State<UserProfileScreen> {
   bool editMode = false;
   User? changedUser;
+  String? userRole;
 
   final _nameController = TextEditingController();
   final _mailController = TextEditingController();
@@ -99,6 +100,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
     _mailController.text = changedUser!.email;
     _passwordController.clear();
     _passwordCheckController.clear();
+    userRole = changedUser!.role;
   }
 
   bool validation() {
@@ -262,6 +264,30 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     ),
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Rolle'
+                      ),
+                      DropdownButton(
+                          value: userRole,
+                          dropdownColor: kMainColor,
+                          alignment: AlignmentDirectional.topStart,
+                          items: <DropdownMenuItem<String>>[
+                            DropdownMenuItem(child: Text('Admin'), value: 'admin'),
+                            DropdownMenuItem(child: Text('User'), value: 'user'),
+                            DropdownMenuItem(
+                                child: Text('Deaktiviert'), value: 'none')
+                          ],
+                          onChanged: editsOwnAccount! || !editMode ? null : (String? value) {
+                            setState(() {
+                              userRole = value;
+                            });
+                          }
+                      ),
+                    ],
+                  )
                 ],
               ),
               Row(
@@ -299,14 +325,17 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<bool> _save() async {
     String body = '{';
-    body += _nameController.text.isNotEmpty
+    body += _nameController.text.isNotEmpty && (_nameController.text != widget.currentUser.name)
         ? '\n"name": "${_nameController.text}",'
         : '';
-    body += _mailController.text.isNotEmpty
+    body += _mailController.text.isNotEmpty && (_mailController.text != widget.currentUser.email)
         ? '\n"email": "${_mailController.text}",'
         : '';
     body += _passwordController.text.isNotEmpty
         ? '\n"password": "${_passwordController.text}",'
+        : '';
+    body += userRole != widget.currentUser.role
+        ? '\n"roleId": "${userRole}",'
         : '';
     if (body.lastIndexOf(',') > 0) {
       body = body.substring(0, body.lastIndexOf(','));
