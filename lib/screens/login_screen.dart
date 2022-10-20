@@ -1,13 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
-import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
+import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -24,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: kBackgroundColor,
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text('Login'),

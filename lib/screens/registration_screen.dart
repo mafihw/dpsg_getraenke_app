@@ -1,5 +1,6 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
+import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'home_screen.dart';
@@ -17,200 +18,223 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController passwordTextController = TextEditingController();
   final TextEditingController confirmPasswordTextController =
       TextEditingController();
-  final PageController pageController = PageController();
 
   late FocusNode nameFocusNode = FocusNode();
   late FocusNode emailFocusNode = FocusNode();
   late FocusNode passwordFocusNode = FocusNode();
   late FocusNode confirmPasswordFocusNode = FocusNode();
 
+  bool _nameValid = true;
+  bool _mailValid = true;
+  bool _passwordValid = true;
+  bool _passwordCheckValid = true;
+
+  var validBorder = const OutlineInputBorder(
+    borderSide: BorderSide(color: Colors.white, width: 1.0),
+  );
+
+  var invalidBorder = const OutlineInputBorder(
+    borderSide: BorderSide(color: Colors.red, width: 1.0),
+  );
+
   bool currentlyLoggingIn = false;
+
+  bool validation() {
+    return nameTextController.text.isNotEmpty &&
+            RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                .hasMatch(emailTextController.text) &&
+            passwordTextController.text.length >= 8  &&
+            confirmPasswordTextController.text == passwordTextController.text;
+  }
+
+  bool validateName() {
+    _nameValid = nameTextController.text.isNotEmpty;
+    return _nameValid;
+  }
+
+  bool validateMail() {
+    _mailValid = RegExp(
+            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+        .hasMatch(emailTextController.text);
+    return _mailValid;
+  }
+
+  bool validatePassword() {
+    _passwordValid = passwordTextController.text.length >= 8 ||
+        passwordTextController.text.isEmpty;
+    return _passwordValid;
+  }
+
+  bool validatePasswordConfirm() {
+    _passwordCheckValid =
+        confirmPasswordTextController.text == passwordTextController.text;
+    return _passwordCheckValid;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        child: Scaffold(
-            resizeToAvoidBottomInset: true,
-            appBar: AppBar(
-              title: const Text('Registrierung'),
-            ),
-            body: Center(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20),
-                child: SingleChildScrollView(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                      const Hero(
-                        tag: 'icon_hero',
-                        child: Image(
-                          image: AssetImage('assets/icon_2500px.png'),
-                          height: 150.0,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      SizedBox(
-                        height: 50,
-                        child: PageView(
-                          /// [PageView.scrollDirection] defaults to [Axis.horizontal].
-                          /// Use [Axis.vertical] to scroll vertically.
-                          controller: pageController,
-                          onPageChanged: (page) {
-                            switch (page) {
-                              case (0):
-                                nameFocusNode.requestFocus();
-                                break;
-                              case (1):
-                                emailFocusNode.requestFocus();
-                                break;
-                              case (2):
-                                passwordFocusNode.requestFocus();
-                                break;
-                              case (3):
-                                confirmPasswordFocusNode.requestFocus();
-                                break;
-                            }
+    return Scaffold(
+        backgroundColor: kBackgroundColor,
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: const Text('Registrierung'),
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  const Hero(
+                    tag: 'icon_hero',
+                    child: Image(
+                      image: AssetImage('assets/icon_2500px.png'),
+                      height: 150.0,
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  TextField(
+                    textInputAction: TextInputAction.next,
+                    controller: nameTextController,
+                    keyboardType: TextInputType.name,
+                    autofocus: true,
+                    focusNode: nameFocusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      focusedBorder: _nameValid ? validBorder : invalidBorder,
+                      enabledBorder: _nameValid ? validBorder : invalidBorder,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        validateName();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    textInputAction: TextInputAction.next,
+                    controller: emailTextController,
+                    keyboardType: TextInputType.emailAddress,
+                    focusNode: emailFocusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      focusedBorder: _mailValid ? validBorder : invalidBorder,
+                      enabledBorder: _mailValid ? validBorder : invalidBorder,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        validateMail();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    textInputAction: TextInputAction.next,
+                    controller: passwordTextController,
+                    obscureText: true,
+                    focusNode: passwordFocusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Passwort',
+                      focusedBorder:
+                          _passwordValid ? validBorder : invalidBorder,
+                      enabledBorder:
+                          _passwordValid ? validBorder : invalidBorder,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        validatePassword();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    textInputAction: TextInputAction.done,
+                    controller: confirmPasswordTextController,
+                    obscureText: true,
+                    focusNode: confirmPasswordFocusNode,
+                    decoration: InputDecoration(
+                      labelText: 'Passwort wiederholen',
+                      focusedBorder:
+                          _passwordCheckValid ? validBorder : invalidBorder,
+                      enabledBorder:
+                          _passwordCheckValid ? validBorder : invalidBorder,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        validatePasswordConfirm();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      OutlinedButton(
+                          onPressed: () {
+                            backButtonPressed();
                           },
-                          children: <Widget>[
-                            TextField(
-                              controller: nameTextController,
-                              keyboardType: TextInputType.name,
-                              autofocus: true,
-                              focusNode: nameFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Name',
-                              ),
-                              onEditingComplete: () {
-                                pageController.nextPage(
-                                    duration: const Duration(milliseconds: 600),
-                                    curve: Curves.easeInOutSine);
-                              },
-                            ),
-                            TextField(
-                              controller: emailTextController,
-                              keyboardType: TextInputType.emailAddress,
-                              focusNode: emailFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                              ),
-                              onEditingComplete: () {
-                                pageController.nextPage(
-                                    duration: const Duration(milliseconds: 600),
-                                    curve: Curves.easeInOutSine);
-                              },
-                            ),
-                            TextField(
-                              controller: passwordTextController,
-                              obscureText: true,
-                              focusNode: passwordFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Passwort',
-                              ),
-                              onEditingComplete: () {
-                                pageController.nextPage(
-                                    duration: const Duration(milliseconds: 600),
-                                    curve: Curves.easeInOutSine);
-                              },
-                            ),
-                            TextField(
-                              controller: confirmPasswordTextController,
-                              obscureText: true,
-                              focusNode: confirmPasswordFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Passwort wiederholen',
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          OutlinedButton(
-                              onPressed: () {
-                                backButtonPressed();
-                              },
-                              child: Text('zurück')),
-                          ElevatedButton(
-                            onPressed: () async {
-                              if (!currentlyLoggingIn) {
-                                FocusManager.instance.primaryFocus?.unfocus();
-                                setState(() {
-                                  currentlyLoggingIn = true;
-                                });
-                                if (await GetIt.instance<Backend>().register(
-                                  emailTextController.text,
-                                  passwordTextController.text,
-                                  nameTextController.text,
-                                )) {
-                                  if (GetIt.instance<Backend>()
-                                          .loggedInUser!
-                                          .role !=
-                                      'none') {
-                                    Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => HomeScreen()),
-                                        (route) => false);
-                                  } else {
-                                    Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                NotVerifiedScreen(true)),
-                                        (route) => false);
-                                  }
-                                  setState(() {
-                                    currentlyLoggingIn = false;
-                                  });
-                                } else {
-                                  const snackBar = SnackBar(
-                                    content:
-                                        Text('Registrierung fehlgeschlagen!'),
-                                  );
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(snackBar);
-                                  setState(() {
-                                    currentlyLoggingIn = false;
-                                  });
-                                }
+                          child: Text('zurück')),
+                      ElevatedButton(
+                        onPressed: validation() ? () async {
+                          if (!currentlyLoggingIn) {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            setState(() {
+                              currentlyLoggingIn = true;
+                            });
+                            if (await GetIt.instance<Backend>().register(
+                              emailTextController.text,
+                              passwordTextController.text,
+                              nameTextController.text,
+                            )) {
+                              if (GetIt.instance<Backend>()
+                                      .loggedInUser!
+                                      .role !=
+                                  'none') {
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => HomeScreen()),
+                                    (route) => false);
+                              } else {
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            NotVerifiedScreen(true)),
+                                    (route) => false);
                               }
-                            },
-                            child: currentlyLoggingIn
-                                ? SizedBox(
-                                    height: 25,
-                                    width: 25,
-                                    child: CircularProgressIndicator(
-                                        color: Colors.blue.shade800))
-                                : const Text('Registrieren'),
-                          ),
-                        ],
+                              setState(() {
+                                currentlyLoggingIn = false;
+                              });
+                            } else {
+                              const snackBar = SnackBar(
+                                content: Text('Registrierung fehlgeschlagen!'),
+                              );
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(snackBar);
+                              setState(() {
+                                currentlyLoggingIn = false;
+                              });
+                            }
+                          }
+                        } : null,
+                        child: currentlyLoggingIn
+                            ? SizedBox(
+                                height: 25,
+                                width: 25,
+                                child: CircularProgressIndicator(
+                                    color: Colors.blue.shade800))
+                            : const Text('Registrieren'),
                       ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                    ])),
-              ),
-            )),
-        onWillPop: () {
-          return backButtonPressed();
-        });
+                    ],
+                  )
+                ]),
+          ),
+        ));
   }
 
   Future<bool> backButtonPressed() {
-    if (pageController.page == 0) {
-      return Future.value(true);
-    } else {
-      pageController.previousPage(
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOutSine);
-      return Future.value(false);
-    }
+    return Future.value(false);
   }
 }
