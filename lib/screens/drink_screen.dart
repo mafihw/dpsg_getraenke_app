@@ -129,7 +129,7 @@ class BuyDialog extends StatelessWidget {
                       height: 45,
                       child: IconButton(
                           onPressed: () {
-                            if (amountSelected > 0) {
+                            if (amountSelected > 1) {
                               _controller.text = (--amountSelected).toString();
                             }
                           },
