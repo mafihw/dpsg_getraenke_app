@@ -80,6 +80,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               MaterialPageRoute(builder: (context) => MyProfileScreen()),
               (Route<dynamic> route) => route.isFirst);
           Navigator.pop(context);
+          updateHomeScreen();
         },
       ),
       ListTile(

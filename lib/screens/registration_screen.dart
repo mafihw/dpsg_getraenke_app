@@ -174,7 +174,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           onPressed: () {
                             backButtonPressed();
                           },
-                          child: Text('zurück')),
+                          child: Text('Zurück')),
                       ElevatedButton(
                         onPressed: validation() ? () async {
                           if (!currentlyLoggingIn) {
@@ -235,6 +235,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   Future<bool> backButtonPressed() {
+    Navigator.pop(context);
     return Future.value(false);
   }
 }
