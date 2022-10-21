@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke'),
+      appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke', onIconPress: _update,),
       drawer: CustomDrawer(updateHomeScreen: _update),
       body: WelcomeScreen(),
       bottomNavigationBar: CustomBottomBar(),
