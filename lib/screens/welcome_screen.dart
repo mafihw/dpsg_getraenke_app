@@ -28,8 +28,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if(!GetIt.instance<Backend>().checkTokenValidity() && await GetIt.instance<Backend>().checkConnection()){
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+      if (!GetIt.instance<Backend>().checkTokenValidity() &&
+          await GetIt.instance<Backend>().checkConnection()) {
         await GetIt.instance<Backend>().refreshToken(context);
       }
       await updateUserFromServer();

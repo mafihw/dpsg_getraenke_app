@@ -137,8 +137,20 @@ class BuyDialog extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: _controller,
+                      maxLength: 2,
                       onChanged: (amount) {
-                        amountSelected = int.parse(amount);
+                        int? newValue = int.tryParse(amount);
+                        if (newValue != null) {
+                          amountSelected = int.parse(amount);
+                        } else {
+                          if (amount.isNotEmpty) {
+                            _controller.text = amountSelected.toString();
+                            _controller.selection = TextSelection.fromPosition(
+                                TextPosition(offset: _controller.text.length));
+                          } else {
+                            amountSelected = 1;
+                          }
+                        }
                       },
                       onSubmitted: (String? input) {
                         Navigator.of(context)
@@ -146,14 +158,16 @@ class BuyDialog extends StatelessWidget {
                       },
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                          hintText: '1', labelText: "Anzahl"),
+                          hintText: '1', labelText: "Anzahl", counterText: ""),
                     ),
                   ),
                   SizedBox(
                       height: 45,
                       child: IconButton(
                           onPressed: () {
-                            _controller.text = (++amountSelected).toString();
+                            if (amountSelected < 99) {
+                              _controller.text = (++amountSelected).toString();
+                            }
                           },
                           icon: Icon(Icons.add_circle_outline))),
                 ],
