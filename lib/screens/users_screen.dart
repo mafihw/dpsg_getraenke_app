@@ -310,8 +310,13 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               ElevatedButton(
                 child: Text('Bestätigen'),
                 onPressed: () async {
-                  final body = { 'uuid': user.id, 'value': _MoneyMaskedTextController.numberValue * 100 };
-                  await GetIt.I<Backend>().post('/payment', jsonEncode(body));
+                  if (_MoneyMaskedTextController.numberValue > 0) {
+                    final body = {
+                      'uuid': user.id,
+                      'value': _MoneyMaskedTextController.numberValue * 100
+                    };
+                    await GetIt.I<Backend>().post('/payment', jsonEncode(body));
+                  }
                   Navigator.pop(context);
                   return;
                 },
