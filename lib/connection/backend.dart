@@ -58,6 +58,8 @@ class Backend {
       developer.log(response.statusCode.toString() + '  ' + uri);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
       developer.log(e.toString());
@@ -75,6 +77,8 @@ class Backend {
       developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
       developer.log(e.toString());
@@ -92,6 +96,8 @@ class Backend {
       developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
       developer.log(e.toString());
@@ -110,6 +116,8 @@ class Backend {
           response.statusCode.toString() + '  ' + uri + '  ' + (body ?? ''));
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
       developer.log(e.toString());

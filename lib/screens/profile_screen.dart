@@ -130,23 +130,43 @@ class UserProfileScreenState extends State<UserProfileScreen> {
               disabledElevation: 0,
               onPressed: _allValid && editMode
                   ? () async {
+                    bool? success;
                       if (editsOwnAccount!) {
                         oldPassword = await _enterOldPassword();
                       }
+                      showDialog(
+                        // Progress indicator while saving
+                        barrierDismissible: false,
+                        context: context,
+                        builder: ((context) => WillPopScope(
+                          onWillPop: () async => false,
+                          child: const Expanded(child: Center(child: CircularProgressIndicator()))
+                        )),
+                      );
                       try {
                         bool passwordCorrect = false;
                         if (editsOwnAccount! && oldPassword.isNotEmpty) {
                           passwordCorrect = await GetIt.I<Backend>()
                               .login(widget.currentUser.email, oldPassword);
+                          success = passwordCorrect;
                         }
                         if (!editsOwnAccount! || passwordCorrect) {
-                          _save();
+                          success = await _save();
                         }
                       } catch (e) {
+                        success = false;
                         developer.log(e.toString());
-                        _displayError('Fehler beim Speichern!');
                       }
-                    }
+                      if(success != null && success) {
+                        Navigator.pop(context);
+                        _displayError('Speichern erfolgreich!');
+                      } else if(success != null) {
+                        Navigator.pop(context);
+                        _displayError('Fehler beim Speichern!');
+                      } else {
+                        Navigator.pop(context);
+                      }
+                  }
                   : !_allValid && editMode
                       ? null
                       : () {
@@ -364,14 +384,12 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         widget.rebuild();
         restoreDefaults();
       });
-      _displayError('Speichern erfolgreich!');
       return true;
     } catch (e) {
       developer.log(e.toString());
       setState(() {
         restoreDefaults();
       });
-      _displayError('Fehler beim Speichern!');
       return false;
     }
   }
