@@ -13,7 +13,7 @@ import 'package:jwt_decode/jwt_decode.dart';
 import '../model/purchase.dart';
 
 class Backend {
-  String apiurl = 'http://api.dpsg-gladbach.de:3000';
+  String apiurl = 'https://api.dpsg-gladbach.de:3001';
   bool isLoggedIn = false;
   bool isInitialized = false;
   Directory? directory;
@@ -302,5 +302,14 @@ class Backend {
           );
         });
     return userInput;
+  }
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 void main() async {
+  HttpOverrides.global = MyHttpOverrides();
   GetIt.instance.registerSingleton<Backend>(Backend());
   await GetIt.instance<Backend>().init();
   runApp(const MyApp());
