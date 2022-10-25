@@ -3,13 +3,13 @@ import 'dart:convert';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
+import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:get_it/get_it.dart';
-import 'dart:developer' as developer;
 
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
@@ -43,7 +43,6 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
             snapshot.data!.forEach((element) {
               User? user;
               user = User.fromJson(element);
-              developer.log(element.toString());
               Icon iconEnabledStatus;
 
               //TODO: activate if user enabled field exists
@@ -74,7 +73,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Name: ${user.name}',
+                              user.name,
                               style: TextStyle(fontSize: 20),
                             ),
                             Text(
@@ -251,6 +250,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 GeldBuchen(user);
               },
             ),
+            buildSettingCard(icon: Icons.shopping_cart, name: 'Käufe anzeigen', onTap: () async {
+              await Navigator.push(context, MaterialPageRoute(builder: ((context) => PurchasesScreen(user: user))));
+              Navigator.pop(context);
+            }),
             buildSettingCard(
               icon: Icons.person_outline,
               name: 'Profil anzeigen',

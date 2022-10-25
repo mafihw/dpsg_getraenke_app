@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -11,8 +12,8 @@ import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
 
 class PurchasesScreen extends StatefulWidget {
-  const PurchasesScreen({Key? key}) : super(key: key);
-
+  PurchasesScreen({Key? key, this.user}) : super(key: key);
+  User? user;
   @override
   State<PurchasesScreen> createState() => _PurchasesScreenState();
 }
@@ -91,7 +92,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             }
           }
         },
-        future: getPurchases(),
+        future: getPurchases(widget.user),
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
@@ -108,8 +109,8 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     );
   }
 
-  Future<dynamic> getPurchases() async {
-    final String userId = GetIt.instance<Backend>().loggedInUser!.id;
+  Future<dynamic> getPurchases([User? user]) async {
+    final String userId = user != null ? user.id :GetIt.instance<Backend>().loggedInUser!.id;
     await GetIt.instance<Backend>().sentLocalPurchasesToServer();
     return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
   }
