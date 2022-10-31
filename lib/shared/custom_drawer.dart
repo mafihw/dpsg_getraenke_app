@@ -1,4 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/screens/drinks_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
@@ -113,7 +114,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
           ListTile(
             leading: Icon(FontAwesomeIcons.wineBottle),
             title: const Text('Getränke'),
-            onTap: () {},
+            onTap: () async {
+              Navigator.pop(context);
+              await Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => DrinkAdministrationScreen()),
+                      (Route<dynamic> route) => route.isFirst);
+              updateHomeScreen();
+            },
           ),
         ],
       ),

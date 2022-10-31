@@ -12,8 +12,10 @@ import 'package:jwt_decode/jwt_decode.dart';
 
 import '../model/purchase.dart';
 
+const bool usingLocalDatabase = false;
+
 class Backend {
-  String apiurl = 'https://api.dpsg-gladbach.de:3001';
+  String apiurl = usingLocalDatabase ? 'http://192.168.178.32:3000' : 'https://api.dpsg-gladbach.de:3001';
   bool isLoggedIn = false;
   bool isInitialized = false;
   Directory? directory;
@@ -132,18 +134,23 @@ class Backend {
     if (!isInitialized) {
       return false;
     } else {
-      final response = await http.post(Uri.parse('$apiurl/auth/login'),
+      try {
+        final response = await http.post(Uri.parse('$apiurl/auth/login'), //final response = await http.post(Uri.parse('$apiurl/auth/login'),
           headers: <String, String>{'Content-Type': 'application/json'},
           body: jsonEncode(
               <String, String>{'email': email, 'password': password}));
-      developer.log(response.statusCode.toString());
-      developer.log(response.body);
-      if (response.statusCode == 200) {
-        await loginFile?.writeAsString(response.body);
-        await init();
-        return true;
-      } else {
-        return false;
+        developer.log(response.statusCode.toString());
+        developer.log(response.body);
+        if (response.statusCode == 200) {
+          await loginFile?.writeAsString(response.body);
+          await init();
+          return true;
+        } else {
+          return false;
+        }
+      } catch (e) {
+        developer.log(e.toString());
+        rethrow;
       }
     }
   }
