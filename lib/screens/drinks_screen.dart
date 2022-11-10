@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import '../model/drink.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
+import 'inventory_drink_screen.dart';
 
 class DrinkAdministrationScreen extends StatefulWidget {
   const DrinkAdministrationScreen({Key? key}) : super(key: key);
@@ -106,8 +106,21 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         ...drinkCards,
+                        IconButton(
+                            icon: Icon(
+                              Icons.add_circle_outline_outlined,
+                              size: 40,
+                            ),
+                            onPressed: () {
+                              const snackBar = SnackBar(
+                                content: Text('Add new Drink'),
+                              );
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(snackBar);
+                              setState(() {});
+                            }),
                         SizedBox(
-                          height: 20,
+                          height: 30,
                         )
                       ],
                     ),
@@ -221,27 +234,42 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           icon: Icons.euro,
           name: 'Preis ändern',
           onTap: () {
-            const snackBar = SnackBar(
-              content: Text('Preis ändern'),
-            );
-            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            changePrice(drink);
+            setState(() {});
           },
         ),
         buildSettingCard(
             icon: Icons.shopping_cart,
             name: 'Einkauf hinzufügen',
             onTap: () {
-              const snackBar = SnackBar(
-                content: Text('Einkauf hinzufügen'),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              addNewDrinks(drink);
+              setState(() {});
+            }),
+        buildSettingCard(
+            icon: Icons.add_home_outlined,
+            name: 'Bestand eintragen',
+            onTap: () {
+              addNewStock(drink);
+              setState(() {});
+            }),
+        buildSettingCard(
+            icon: Icons.warehouse_rounded,
+            name: 'Bestandsverlauf anzeigen',
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          InventoryDrinkScreen(drink: drink)));
+              setState(() {});
             }),
         SizedBox(height: 15),
       ]),
     );
   }
 
-  Future<void> GeldBuchen(User user) async {
+  Future<void> changePrice(Drink drink) async {
     MoneyMaskedTextController _MoneyMaskedTextController =
         new MoneyMaskedTextController(
             decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
@@ -249,12 +277,12 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
         context: context,
         builder: (context) {
           return CustomAlertDialog(
-            title: Text('Geld buchen',
+            title: Text('Preis ändern',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Einzahlung:", style: TextStyle(fontSize: 20)),
+                const Text("Neuer Preis:", style: TextStyle(fontSize: 20)),
                 SizedBox(
                     width: 100,
                     child: TextField(
@@ -286,15 +314,132 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
               ElevatedButton(
                 child: Text('Bestätigen'),
                 onPressed: () async {
-                  if (_MoneyMaskedTextController.numberValue > 0) {
-                    final body = {
-                      'uuid': user.id,
-                      'value': _MoneyMaskedTextController.numberValue * 100
-                    };
-                    await GetIt.I<Backend>().post('/payment', jsonEncode(body));
+                  try {
+                    if (_MoneyMaskedTextController.numberValue > 0) {
+                      final body = {
+                        'cost': _MoneyMaskedTextController.numberValue * 100
+                      };
+                      await GetIt.I<Backend>()
+                          .put('/drink/${drink.id}', jsonEncode(body));
+                    }
+                  } finally {
+                    Navigator.pop(context);
+                    return;
                   }
+                },
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<void> addNewDrinks(Drink drink) async {
+    TextEditingController _TextEditingController = new TextEditingController();
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlertDialog(
+            title: Text('Einkauf hinzufügen',
+                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Menge:", style: TextStyle(fontSize: 20)),
+                SizedBox(
+                    width: 100,
+                    child: TextFormField(
+                      autofocus: true,
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.right,
+                      controller: _TextEditingController,
+                      keyboardType: TextInputType.numberWithOptions(
+                          signed: false, decimal: false),
+                      autovalidateMode: AutovalidateMode.always,
+                      decoration: InputDecoration(suffixText: 'Fl.'),
+                    ))
+              ],
+            ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
                   Navigator.pop(context);
                   return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () async {
+                  try {
+                    if (int.parse(_TextEditingController.text) > 0) {
+                      final body = {
+                        'drinkId': drink.id,
+                        'amount': int.parse(_TextEditingController.text)
+                      };
+                      await GetIt.I<Backend>()
+                          .post('/newDrinks', jsonEncode(body));
+                    }
+                  } finally {
+                    Navigator.pop(context);
+                    return;
+                  }
+                },
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<void> addNewStock(Drink drink) async {
+    TextEditingController _TextEditingController = new TextEditingController();
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlertDialog(
+            title: Text('Bestand eintragen',
+                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Menge:", style: TextStyle(fontSize: 20)),
+                SizedBox(
+                    width: 100,
+                    child: TextFormField(
+                      autofocus: true,
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.right,
+                      controller: _TextEditingController,
+                      keyboardType: TextInputType.numberWithOptions(
+                          signed: false, decimal: false),
+                      autovalidateMode: AutovalidateMode.always,
+                      decoration: InputDecoration(suffixText: 'Fl.'),
+                    ))
+              ],
+            ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () async {
+                  try {
+                    if (int.parse(_TextEditingController.text) > 0) {
+                      final body = {
+                        'amount': int.parse(_TextEditingController.text)
+                      };
+                      await GetIt.I<Backend>().post(
+                          '/inventory/' + drink.id.toString(),
+                          jsonEncode(body));
+                    }
+                  } finally {
+                    Navigator.pop(context);
+                    return;
+                  }
                 },
               ),
             ],
