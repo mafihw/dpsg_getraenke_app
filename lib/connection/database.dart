@@ -268,4 +268,42 @@ class LocalDB {
     }
     return null;
   }
+
+  Future<bool> setSettingByKey(String key, String value) async {
+    if (isInitialized && _loggedInUserId != null) {
+      Map<String, dynamic> entry = {
+        'userId': _loggedInUserId,
+        'key': key,
+        'value': value,
+      };
+      database!.insert('settings', entry,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<String?> getSettingByKey(String key) async {
+    if (isInitialized && _loggedInUserId != null) {
+      var value = await database!.query('settings',
+          columns: ['value'],
+          where: 'userId = ? AND key = ?',
+          whereArgs: [_loggedInUserId, key]);
+      if (value.isNotEmpty) {
+        return value.first.values.first.toString();
+      }
+    }
+    return null;
+  }
+
+  Future<bool> removeSettingByKey(String key) async {
+    if (isInitialized && _loggedInUserId != null) {
+      return await database!.delete('settings',
+              where: 'userId = ? AND key = ?',
+              whereArgs: [_loggedInUserId, key]) >
+          0;
+    }
+    return false;
+  }
 }

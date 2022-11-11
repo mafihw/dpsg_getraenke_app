@@ -25,12 +25,15 @@ class _DrinkScreenState extends State<DrinkScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Getränke"),
       drawer: CustomDrawer(),
-      body: FutureBuilder<List<Drink>>(
-          future: fetchDrinks(),
-          builder: (context, AsyncSnapshot<List<Drink>> snapshot) {
+      body: FutureBuilder(
+          future: Future.wait([
+            fetchDrinks(),
+            GetIt.I<LocalDB>().getSettingByKey('shortcutDrink')
+          ]),
+          builder: (context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
               List<Widget> drinkCards = [];
-              snapshot.data!.forEach(
+              snapshot.data![0].forEach(
                 (element) {
                   if (element.active && !element.deleted) {
                     drinkCards.add(
@@ -38,25 +41,46 @@ class _DrinkScreenState extends State<DrinkScreen> {
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(22)),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Icon(Icons.add),
-                            Text(
-                              element.name,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 18,
+                            Visibility(
+                              visible:
+                                  element.id.toString() == snapshot.data![1],
+                              child: const Align(
+                                alignment: Alignment.topRight,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 12.0, horizontal: 0),
+                                  child: Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                  ),
+                                ),
                               ),
                             ),
-                            Text(
-                              (element.cost / 100)
-                                      .toStringAsFixed(2)
-                                      .replaceAll('.', ',') +
-                                  " €",
-                              style: const TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold),
-                            )
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Icon(Icons.add),
+                                Text(
+                                  element.name,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                Text(
+                                  (element.cost / 100)
+                                          .toStringAsFixed(2)
+                                          .replaceAll('.', ',') +
+                                      " €",
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold),
+                                )
+                              ],
+                            ),
                           ],
                         ),
                         onPressed: (() {
@@ -66,6 +90,11 @@ class _DrinkScreenState extends State<DrinkScreen> {
                                 return BuyDialog(element);
                               });
                         }),
+                        onLongPress: () async {
+                          await GetIt.I<LocalDB>().setSettingByKey(
+                              'shortcutDrink', element.id.toString());
+                          setState(() {});
+                        },
                         color: kMainColor,
                       ),
                     );
@@ -200,32 +229,33 @@ class BuyDialog extends StatelessWidget {
       ),
     );
   }
+}
 
-  void purchaseDrink(String userId, Drink drink, int amount) async {
-    final body = {
-      "uuid": userId,
-      "drinkid": drink.id,
-      "amount": amount,
-      "date": DateTime.now().toString()
-    };
-    final purchase = Purchase(
-        id: 0,
-        drinkId: drink.id,
-        userId: userId,
-        amount: amount,
-        cost: amount * drink.cost,
-        date: DateTime.now(),
-        drinkName: drink.name);
+Future<void> purchaseDrink(String userId, Drink drink, int amount) async {
+  final body = {
+    "uuid": userId,
+    "drinkid": drink.id,
+    "amount": amount,
+    "date": DateTime.now().toString()
+  };
+  final purchase = Purchase(
+      id: 0,
+      drinkId: drink.id,
+      userId: userId,
+      amount: amount,
+      cost: amount * drink.cost,
+      date: DateTime.now(),
+      drinkName: drink.name);
 
-    if (await GetIt.instance<Backend>().checkConnection()) {
-      try {
-        await GetIt.instance<Backend>().post('/purchase', jsonEncode(body));
-      } catch (error) {
-        developer.log(error.toString());
-      }
-    } else {
-      await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
+  if (await GetIt.instance<Backend>().checkConnection()) {
+    try {
+      await GetIt.instance<Backend>().post('/purchase', jsonEncode(body));
       await GetIt.instance<LocalDB>().setLastPurchase(purchase);
+    } catch (error) {
+      developer.log(error.toString());
     }
+  } else {
+    await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
+    await GetIt.instance<LocalDB>().setLastPurchase(purchase);
   }
 }

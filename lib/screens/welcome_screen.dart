@@ -1,7 +1,9 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +55,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget buildCard({required Column child, required Function onTap}) {
+  Widget buildCard(
+      {required Widget child,
+      required Function onTap,
+      Function()? onLongPress}) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
@@ -61,6 +66,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         color: kMainColor,
         child: InkWell(
           onTap: () => onTap(),
+          onLongPress: onLongPress,
           customBorder:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
@@ -74,15 +80,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<WelcomeScreenData> fetchWelcomeScreenData(context) async {
     return WelcomeScreenData(
-        lastPurchase: await fetchLastPurchase(),
-        user: await fetchUser(),
-        unsentPurchasesCost: await calculateUnsentPurchasesCost());
+      lastPurchase: await fetchLastPurchase(),
+      user: await fetchUser(),
+      unsentPurchasesCost: await calculateUnsentPurchasesCost(),
+      shortcutDrink: await _getCurrentlySelectedShortcutDrink(),
+    );
   }
 
   Container processSnapshotData(snapshot) {
     final user = snapshot.data!.user;
     final lastPurchase = snapshot.data!.lastPurchase;
     final unsentPurchasesCost = snapshot.data!.unsentPurchasesCost;
+    final Drink? shortcutDrink = snapshot.data!.shortcutDrink;
     int daysUntilLastBooking = lastPurchase == null
         ? 0
         : DateTime.now().difference(lastPurchase.date).inDays;
@@ -170,19 +179,32 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Expanded(
                     child: buildCard(
                         child: Column(
-                          children: const [
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
                             Text('Schnellwahltaste',
                                 style: TextStyle(fontSize: 16)),
                             Icon(
                               Icons.add,
                               size: 48,
                             ),
-                            Text('1x Bier buchen'),
+                            shortcutDrink != null
+                                ? Text(
+                                    '1x ${shortcutDrink.name} buchen',
+                                    textAlign: TextAlign.center,
+                                  )
+                                : Text(
+                                    'Lange gedrückt halten zum Auswählen',
+                                    textAlign: TextAlign.center,
+                                  ),
                           ],
                         ),
-                        onTap: () {
-                          print("BIERBUCHEN");
-                        }),
+                        onTap: () async {
+                          if (shortcutDrink != null) {
+                            await purchaseDrink(user.id, shortcutDrink, 1);
+                            setState(() {});
+                          }
+                        },
+                        onLongPress: openShortcutSelector),
                   ),
                   Expanded(
                     child: buildCard(
@@ -213,6 +235,32 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         ),
       ),
     );
+  }
+
+  openShortcutSelector() async {
+    List<Drink> drinks = (await fetchDrinks())
+        .where((element) => element.active && !element.deleted)
+        .toList();
+    String? selected =
+        await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
+    await showDialog(
+        context: context,
+        builder: (context) =>
+            ShortcutSelector(available: drinks, currentlySelectedId: selected));
+    setState(() {});
+  }
+
+  Future<Drink?> _getCurrentlySelectedShortcutDrink() async {
+    String? id = await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
+    if (id != null) {
+      var drinks = await fetchDrinks();
+      for (Drink drink in drinks) {
+        if (drink.id.toString() == id) {
+          return drink;
+        }
+      }
+    }
+    return null;
   }
 
   Center processSnapshotError(snapshot) {
@@ -276,10 +324,76 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 }
 
+class ShortcutSelector extends StatefulWidget {
+  ShortcutSelector(
+      {Key? key, required this.available, this.currentlySelectedId})
+      : super(key: key);
+  List<Drink> available;
+  String? currentlySelectedId;
+  @override
+  State<ShortcutSelector> createState() => _ShortcutSelectorState();
+}
+
+class _ShortcutSelectorState extends State<ShortcutSelector> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Schnellwahltaste'),
+      content: Container(
+        width: double.maxFinite,
+        child: ListView.builder(
+          itemCount: widget.available.length,
+          itemBuilder: ((context, index) {
+            return CheckboxListTile(
+                title: Text(widget.available[index].name),
+                value: widget.available[index].id.toString() ==
+                    widget.currentlySelectedId,
+                onChanged: (_) {
+                  setState(() {
+                    if (widget.available[index].id.toString() ==
+                        widget.currentlySelectedId) {
+                      widget.currentlySelectedId = null;
+                    } else {
+                      widget.currentlySelectedId =
+                          widget.available[index].id.toString();
+                    }
+                  });
+                });
+          }),
+        ),
+      ),
+      actions: [
+        OutlinedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: Icon(Icons.cancel),
+            label: Text('Abbrechen')),
+        ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              if (widget.currentlySelectedId != null) {
+                GetIt.I<LocalDB>().setSettingByKey(
+                    'shortcutDrink', widget.currentlySelectedId.toString());
+              } else {
+                GetIt.I<LocalDB>().removeSettingByKey('shortcutDrink');
+              }
+            },
+            icon: Icon(Icons.save),
+            label: Text('Speichern')),
+      ],
+    );
+  }
+}
+
 class WelcomeScreenData {
   User user;
   Purchase? lastPurchase;
   int unsentPurchasesCost;
+  Drink? shortcutDrink;
   WelcomeScreenData(
-      {required this.user, this.lastPurchase, this.unsentPurchasesCost = 0});
+      {required this.user,
+      this.lastPurchase,
+      this.unsentPurchasesCost = 0,
+      this.shortcutDrink});
 }
