@@ -19,6 +19,7 @@ class Backend {
   String apiurl = usingLocalAPI
       ? 'http://192.168.178.32:3000'
       : 'https://api.dpsg-gladbach.de:3001';
+  static const int timeoutDuration = 30;
   bool isLoggedIn = false;
   bool isInitialized = false;
   Directory? directory;
@@ -61,7 +62,7 @@ class Backend {
     try {
       final response = await http
           .get(Uri.parse('$apiurl/api$uri'), headers: await getHeader())
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: timeoutDuration));
       developer.log(response.statusCode.toString() + '  ' + uri);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -80,7 +81,7 @@ class Backend {
       developer.log('POST: url:$url body: $body');
       final response = await http
           .post(url, headers: await getHeader(), body: body)
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: timeoutDuration));
       developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -99,7 +100,26 @@ class Backend {
       developer.log('PATCH: url:$url');
       final response = await http
           .patch(url, headers: await getHeader(), body: body)
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: timeoutDuration));
+      developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception('HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      developer.log(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<dynamic> put(String uri, String body) async {
+    try {
+      final url = Uri.parse('$apiurl/api$uri');
+      developer.log('PUT: url:$url');
+      final response = await http
+          .put(url, headers: await getHeader(), body: body)
+          .timeout(const Duration(seconds: timeoutDuration));
       developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -118,7 +138,7 @@ class Backend {
       developer.log('DELETE: url:$url body: $body');
       final response = await http
           .delete(url, headers: await getHeader(), body: body)
-          .timeout(const Duration(seconds: 10));
+          .timeout(const Duration(seconds: timeoutDuration));
       developer.log(
           response.statusCode.toString() + '  ' + uri + '  ' + (body ?? ''));
       if (response.statusCode == 200) {
@@ -140,9 +160,7 @@ class Backend {
       return false;
     } else {
       try {
-        final response = await http.post(
-            Uri.parse(
-                '$apiurl/auth/login'), //final response = await http.post(Uri.parse('$apiurl/auth/login'),
+        final response = await http.post(Uri.parse('$apiurl/auth/login'),
             headers: <String, String>{'Content-Type': 'application/json'},
             body: jsonEncode(
                 <String, String>{'email': email, 'password': password}));
