@@ -110,8 +110,9 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   }
 
   Future<dynamic> getPurchases([User? user]) async {
-    final String userId = user != null ? user.id :GetIt.instance<Backend>().loggedInUser!.id;
-    await GetIt.instance<Backend>().sentLocalPurchasesToServer();
+    final String userId =
+        user != null ? user.id : GetIt.instance<Backend>().loggedInUser!.id;
+    await GetIt.instance<Backend>().sendLocalPurchasesToServer();
     return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
   }
 

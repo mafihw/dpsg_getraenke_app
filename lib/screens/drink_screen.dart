@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:developer' as developer;
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/shared/colors.dart';
@@ -11,7 +11,6 @@ import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:path_provider/path_provider.dart';
 
 class DrinkScreen extends StatefulWidget {
   const DrinkScreen({Key? key}) : super(key: key);
@@ -33,42 +32,44 @@ class _DrinkScreenState extends State<DrinkScreen> {
               List<Widget> drinkCards = [];
               snapshot.data!.forEach(
                 (element) {
-                  drinkCards.add(
-                    MaterialButton(
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(22)),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.add),
-                          Text(
-                            element.name,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 18,
+                  if (element.active && !element.deleted) {
+                    drinkCards.add(
+                      MaterialButton(
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(22)),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Icon(Icons.add),
+                            Text(
+                              element.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 18,
+                              ),
                             ),
-                          ),
-                          Text(
-                            (element.price / 100)
-                                    .toStringAsFixed(2)
-                                    .replaceAll('.', ',') +
-                                " €",
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.bold),
-                          )
-                        ],
+                            Text(
+                              (element.cost / 100)
+                                      .toStringAsFixed(2)
+                                      .replaceAll('.', ',') +
+                                  " €",
+                              style: const TextStyle(
+                                  fontSize: 24, fontWeight: FontWeight.bold),
+                            )
+                          ],
+                        ),
+                        onPressed: (() {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return BuyDialog(element);
+                              });
+                        }),
+                        color: kMainColor,
                       ),
-                      onPressed: (() {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return BuyDialog(element);
-                            });
-                      }),
-                      color: kMainColor,
-                    ),
-                  );
+                    );
+                  }
                 },
               );
               return GridView.count(
@@ -212,7 +213,7 @@ class BuyDialog extends StatelessWidget {
         drinkId: drink.id,
         userId: userId,
         amount: amount,
-        cost: amount * drink.price,
+        cost: amount * drink.cost,
         date: DateTime.now(),
         drinkName: drink.name);
 
@@ -223,24 +224,8 @@ class BuyDialog extends StatelessWidget {
         developer.log(error.toString());
       }
     } else {
-      List<Purchase> notSubmittedPurchases = [];
-      final directory = await getApplicationDocumentsDirectory();
-      final path = directory.path;
-      final drinksFile = File('$path/unDonePurchases.txt');
-      if (await drinksFile.exists()) {
-        List.from(jsonDecode(await drinksFile.readAsString()))
-            .forEach((element) {
-          notSubmittedPurchases.add(Purchase.fromJson(element));
-        });
-      }
-      ;
-      notSubmittedPurchases.add(purchase);
-      drinksFile.writeAsString(jsonEncode(notSubmittedPurchases).toString());
+      await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
+      await GetIt.instance<LocalDB>().setLastPurchase(purchase);
     }
-
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final drinksFile = File('$path/lastPurchase.txt');
-    drinksFile.writeAsString(jsonEncode(purchase.toJson()));
   }
 }

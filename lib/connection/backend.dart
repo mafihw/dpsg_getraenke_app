@@ -2,20 +2,23 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'dart:developer' as developer;
+import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
 
 import '../model/purchase.dart';
 
-const bool usingLocalDatabase = false;
+const bool usingLocalAPI = false;
 
 class Backend {
-  String apiurl = usingLocalDatabase ? 'http://192.168.178.32:3000' : 'https://api.dpsg-gladbach.de:3001';
+  String apiurl = usingLocalAPI
+      ? 'http://192.168.178.32:3000'
+      : 'https://api.dpsg-gladbach.de:3001';
   bool isLoggedIn = false;
   bool isInitialized = false;
   Directory? directory;
@@ -23,30 +26,32 @@ class Backend {
   dynamic loginInformation;
   String? loggedInUserId;
   User? loggedInUser;
-  dynamic token;
+  String? token;
   File? loginFile;
   late Map<String, String> headers;
+  LocalDB? localStorage;
 
   Future<void> init() async {
     try {
-      WidgetsFlutterBinding.ensureInitialized();
-      directory = await getApplicationDocumentsDirectory();
-      path = directory!.path;
-      loginFile = File('$path/loginInformation.txt');
-      loginInformation = jsonDecode(await loginFile!.readAsString());
-      token = loginInformation['token'];
-      loggedInUserId = loginInformation['user']['id'];
-      if (token != null) {
-        isLoggedIn = true;
-        isInitialized = true;
-        headers = {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
-        };
-        await refreshData();
+      localStorage = GetIt.I<LocalDB>();
+      loggedInUserId = await localStorage!.getLoggedInUserId();
+      isLoggedIn = loggedInUserId != null;
+      if (isLoggedIn) {
+        Map<String, dynamic>? loginInformation =
+            await localStorage!.getLoginInformation();
+        if (loginInformation != null) {
+          loggedInUser = loginInformation['user'];
+          token = loginInformation['token'];
+          isInitialized = true;
+          headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          };
+          await refreshData();
+        }
       }
     } catch (e) {
-      developer.log('No login file. User not logged in.');
+      developer.log('User not logged in.');
     }
 
     isInitialized = true;
@@ -72,7 +77,7 @@ class Backend {
   Future<dynamic> post(String uri, String body) async {
     try {
       final url = Uri.parse('$apiurl/api$uri');
-      developer.log('POST: url:${url} body: ${body}');
+      developer.log('POST: url:$url body: $body');
       final response = await http
           .post(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: 10));
@@ -135,22 +140,33 @@ class Backend {
       return false;
     } else {
       try {
-        final response = await http.post(Uri.parse('$apiurl/auth/login'), //final response = await http.post(Uri.parse('$apiurl/auth/login'),
-          headers: <String, String>{'Content-Type': 'application/json'},
-          body: jsonEncode(
-              <String, String>{'email': email, 'password': password}));
+        final response = await http.post(
+            Uri.parse(
+                '$apiurl/auth/login'), //final response = await http.post(Uri.parse('$apiurl/auth/login'),
+            headers: <String, String>{'Content-Type': 'application/json'},
+            body: jsonEncode(
+                <String, String>{'email': email, 'password': password}));
         developer.log(response.statusCode.toString());
         developer.log(response.body);
         if (response.statusCode == 200) {
-          await loginFile?.writeAsString(response.body);
-          await init();
-          return true;
+          //await loginFile?.writeAsString(response.body);
+          loggedInUser = User.fromJson(json.decode(response.body)['user']);
+          token = json.decode(response.body)['token'];
+          if (loggedInUser != null && token != null) {
+            loggedInUserId = loggedInUser!.id;
+            await localStorage!.setLoggedInUserId(loggedInUser!.id);
+            await localStorage!.saveLoginInformation(loggedInUser!, token);
+            await init();
+            return true;
+          } else {
+            return false;
+          }
         } else {
           return false;
         }
       } catch (e) {
         developer.log(e.toString());
-        rethrow;
+        return false;
       }
     }
   }
@@ -177,9 +193,11 @@ class Backend {
   }
 
   void logout() {
-    directory!.list().forEach((element) async {
+    /*directory!.list().forEach((element) async {
       await element.delete(recursive: true);
-    });
+    });*/
+    localStorage!.removeLoggedInUserId();
+    localStorage!.removeAllUnsentPurchases();
     loginInformation = null;
     loggedInUser = null;
     isLoggedIn = false;
@@ -213,44 +231,38 @@ class Backend {
     }
   }
 
-  Future<bool> sentLocalPurchasesToServer() async {
+  Future<bool> sendLocalPurchasesToServer() async {
     bool purchasesSent = false;
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final purchasesFile = File('$path/unDonePurchases.txt');
-    if (await purchasesFile.exists()) {
-      if (await checkConnection()) {
-        for (var element
-            in List.from(jsonDecode(await purchasesFile.readAsString()))) {
-          Purchase.fromJson(element);
-          final body = {
-            "uuid": element["userId"],
-            "drinkid": element["drinkId"],
-            "amount": element["amount"],
-            "date": element["date"]
-          };
-          developer.log('Sending purchase to server');
-          try {
-            await post('/purchase', jsonEncode(body));
-            purchasesSent = true;
-            await Future.delayed(const Duration(milliseconds: 500));
-            developer.log('Successfully sent purchase to server');
-          } catch (error) {
-            developer.log(
-                'Error while sending purchase to server: ' + error.toString());
-          }
+    if (await checkConnection()) {
+      List<Purchase> unsentPurchases =
+          await GetIt.instance<LocalDB>().getUnsentPurchases();
+      for (var element in unsentPurchases) {
+        final body = {
+          "uuid": element.userId,
+          "drinkid": element.drinkId,
+          "amount": element.amount,
+          "date": element.date.toIso8601String(),
+        };
+        developer.log('Sending purchase to server');
+        try {
+          await post('/purchase', jsonEncode(body));
+          purchasesSent = true;
+          await GetIt.instance<LocalDB>().removeUnsentPurchase(element);
+          await Future.delayed(const Duration(milliseconds: 500));
+          developer.log('Successfully sent purchase to server');
+        } catch (error) {
+          developer.log(
+              'Error while sending purchase to server: ' + error.toString());
         }
-        purchasesFile.delete();
       }
-    } else {
-      purchasesSent = true;
+      if (unsentPurchases.isEmpty) purchasesSent = true;
     }
     return purchasesSent;
   }
 
   Future<Map<String, String>> getHeader() async {
-    if(checkTokenValidity()) {
-    return headers;
+    if (checkTokenValidity()) {
+      return headers;
     } else {
       developer.log('Token has to be refreshed');
       return headers;
@@ -258,13 +270,17 @@ class Backend {
   }
 
   bool checkTokenValidity() {
-    Map<String, dynamic> payload = Jwt.parseJwt(token);
-    if(payload.containsKey('exp') && (payload['exp'] * 1000 > DateTime.now().add(Duration(days: 1)).millisecondsSinceEpoch)) {
-        return true;
-      } else {
-        return false;
-      }
+    Map<String, dynamic> payload = Jwt.parseJwt(token!);
+    if (payload.containsKey('exp') &&
+        (payload['exp'] * 1000 >
+            DateTime.now()
+                .add(const Duration(days: 1))
+                .millisecondsSinceEpoch)) {
+      return true;
+    } else {
+      return false;
     }
+  }
 
   Future<void> refreshToken(context) async {
     final password = await _showPasswordDialog(context);
@@ -283,20 +299,21 @@ class Backend {
           return CustomAlertDialog(
             title: Text('Passwort eingeben'),
             content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Accout muss neu validiert werden. Bitte Passwort erneut eingeben."),
-                  SizedBox(height: 10),
-                  TextField(
-                    onChanged: (value) {
-                      userInput = value;
-                    },
-                    controller: _textFieldController,
-                    decoration: InputDecoration(hintText: "Passwort"),
-                    obscureText: true,
-                  )
-                ],
-              ),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                    "Account muss neu validiert werden. Bitte Passwort erneut eingeben."),
+                SizedBox(height: 10),
+                TextField(
+                  onChanged: (value) {
+                    userInput = value;
+                  },
+                  controller: _textFieldController,
+                  decoration: InputDecoration(hintText: "Passwort"),
+                  obscureText: true,
+                )
+              ],
+            ),
             actions: <Widget>[
               OutlinedButton(
                 child: Text('Abbrechen'),
@@ -309,8 +326,8 @@ class Backend {
               ElevatedButton(
                 child: Text('Bestätigen'),
                 onPressed: () {
-                    Navigator.pop(context);
-                    return;
+                  Navigator.pop(context);
+                  return;
                 },
               ),
             ],

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
@@ -9,8 +10,11 @@ import 'package:get_it/get_it.dart';
 
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
+  WidgetsFlutterBinding.ensureInitialized();
+  GetIt.instance.registerSingleton<LocalDB>(LocalDB());
   GetIt.instance.registerSingleton<Backend>(Backend());
-  await GetIt.instance<Backend>().init();
+  await GetIt.I<LocalDB>().init();
+  await GetIt.I<Backend>().init();
   runApp(const MyApp());
 }
 
@@ -38,8 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     Widget screen;
     var backend = GetIt.instance<Backend>();
-    if (backend.isLoggedIn &&
-        backend.loggedInUser != null) {
+    if (backend.isLoggedIn && backend.loggedInUser != null) {
       screen = FutureBuilder<bool>(
         future: GetIt.I<Backend>().refreshData(),
         builder: ((context, snapshot) {

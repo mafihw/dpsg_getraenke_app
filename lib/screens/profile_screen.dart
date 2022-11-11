@@ -130,7 +130,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
               disabledElevation: 0,
               onPressed: _allValid && editMode
                   ? () async {
-                    bool? success;
+                      bool? success;
                       if (editsOwnAccount!) {
                         oldPassword = await _enterOldPassword();
                       }
@@ -139,9 +139,10 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                         barrierDismissible: false,
                         context: context,
                         builder: ((context) => WillPopScope(
-                          onWillPop: () async => false,
-                          child: const Expanded(child: Center(child: CircularProgressIndicator()))
-                        )),
+                            onWillPop: () async => false,
+                            child: const Expanded(
+                                child: Center(
+                                    child: CircularProgressIndicator())))),
                       );
                       try {
                         bool passwordCorrect = false;
@@ -157,16 +158,16 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                         success = false;
                         developer.log(e.toString());
                       }
-                      if(success != null && success) {
+                      if (success != null && success) {
                         Navigator.pop(context);
                         _displayError('Speichern erfolgreich!');
-                      } else if(success != null) {
+                      } else if (success != null) {
                         Navigator.pop(context);
                         _displayError('Fehler beim Speichern!');
                       } else {
                         Navigator.pop(context);
                       }
-                  }
+                    }
                   : !_allValid && editMode
                       ? null
                       : () {
@@ -287,25 +288,26 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Rolle'
-                      ),
+                      const Text('Rolle'),
                       DropdownButton(
                           value: userRole,
                           dropdownColor: kMainColor,
                           alignment: AlignmentDirectional.topStart,
                           items: <DropdownMenuItem<String>>[
-                            DropdownMenuItem(child: Text('Admin'), value: 'admin'),
-                            DropdownMenuItem(child: Text('User'), value: 'user'),
+                            DropdownMenuItem(
+                                child: Text('Admin'), value: 'admin'),
+                            DropdownMenuItem(
+                                child: Text('User'), value: 'user'),
                             DropdownMenuItem(
                                 child: Text('Deaktiviert'), value: 'none')
                           ],
-                          onChanged: editsOwnAccount! || !editMode ? null : (String? value) {
-                            setState(() {
-                              userRole = value;
-                            });
-                          }
-                      ),
+                          onChanged: editsOwnAccount! || !editMode
+                              ? null
+                              : (String? value) {
+                                  setState(() {
+                                    userRole = value;
+                                  });
+                                }),
                     ],
                   )
                 ],
@@ -345,18 +347,19 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<bool> _save() async {
     String body = '{';
-    body += _nameController.text.isNotEmpty && (_nameController.text != widget.currentUser.name)
+    body += _nameController.text.isNotEmpty &&
+            (_nameController.text != widget.currentUser.name)
         ? '\n"name": "${_nameController.text}",'
         : '';
-    body += _mailController.text.isNotEmpty && (_mailController.text != widget.currentUser.email)
+    body += _mailController.text.isNotEmpty &&
+            (_mailController.text != widget.currentUser.email)
         ? '\n"email": "${_mailController.text}",'
         : '';
     body += _passwordController.text.isNotEmpty
         ? '\n"password": "${_passwordController.text}",'
         : '';
-    body += userRole != widget.currentUser.role
-        ? '\n"roleId": "${userRole}",'
-        : '';
+    body +=
+        userRole != widget.currentUser.role ? '\n"roleId": "${userRole}",' : '';
     if (body.lastIndexOf(',') > 0) {
       body = body.substring(0, body.lastIndexOf(','));
     }
@@ -423,7 +426,8 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                       }
                       if (!editsOwnAccount! || passwordCorrect) {
                         if (!editsOwnAccount! ||
-                            await GetIt.instance<Backend>().sentLocalPurchasesToServer()) {
+                            await GetIt.instance<Backend>()
+                                .sendLocalPurchasesToServer()) {
                           await GetIt.instance<Backend>()
                               .delete('/user/${widget.currentUser.id}', null);
                           if (editsOwnAccount!) {

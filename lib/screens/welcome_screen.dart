@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
@@ -9,7 +7,6 @@ import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
 
@@ -20,20 +17,19 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen>  {
-
-  User? currentUser = null;
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  User? currentUser;
   final Purchase? lastPurchase = null;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
       if (!GetIt.instance<Backend>().checkTokenValidity() &&
           await GetIt.instance<Backend>().checkConnection()) {
         await GetIt.instance<Backend>().refreshToken(context);
       }
-      await updateUserFromServer();
+      await fetchUser();
     });
   }
 
@@ -47,7 +43,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
           if (snapshot.hasError) {
             return processSnapshotError(snapshot);
           } else {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           }
@@ -78,12 +74,15 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
 
   Future<WelcomeScreenData> fetchWelcomeScreenData(context) async {
     return WelcomeScreenData(
-        user: await fetchUser(), lastPurchase: await fetchLastPurchase());
+        lastPurchase: await fetchLastPurchase(),
+        user: await fetchUser(),
+        unsentPurchasesCost: await calculateUnsentPurchasesCost());
   }
 
   Container processSnapshotData(snapshot) {
     final user = snapshot.data!.user;
     final lastPurchase = snapshot.data!.lastPurchase;
+    final unsentPurchasesCost = snapshot.data!.unsentPurchasesCost;
     int daysUntilLastBooking = lastPurchase == null
         ? 0
         : DateTime.now().difference(lastPurchase.date).inDays;
@@ -99,9 +98,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
                   children: [
                     Text(
                       'Hallo ${user.name}',
-                      style: TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 24),
                     ),
-                    Text(
+                    const Text(
                       'Willkommen zurück!',
                       style: TextStyle(fontSize: 18),
                     )
@@ -113,13 +112,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
             buildCard(
               child: Column(
                 children: [
-                  Text(
+                  const Text(
                     'Dein Kontostand:',
                     style: TextStyle(fontSize: 24),
                   ),
                   Text(
-                    '${(user.balance / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
-                    style: TextStyle(fontSize: 48),
+                    '${((user.balance - unsentPurchasesCost) / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
+                    style: const TextStyle(fontSize: 48),
                   )
                 ],
               ),
@@ -130,26 +129,26 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
             buildCard(
               child: Column(
                 children: [
-                  Text(
+                  const Text(
                     'Letzte Buchung:',
                     style: TextStyle(fontSize: 24),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 8,
                   ),
                   Text(
                     daysUntilLastBooking == 0
                         ? 'Heute'
                         : daysUntilLastBooking == 1
-                        ? 'Gestern'
-                        : ' Vor ${daysUntilLastBooking} Tagen',
-                    style: TextStyle(fontSize: 18),
+                            ? 'Gestern'
+                            : ' Vor $daysUntilLastBooking Tagen',
+                    style: const TextStyle(fontSize: 18),
                   ),
                   Text(
                     lastPurchase == null
                         ? '-'
                         : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   )
                 ],
               ),
@@ -171,7 +170,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
                   Expanded(
                     child: buildCard(
                         child: Column(
-                          children: [
+                          children: const [
                             Text('Schnellwahltaste',
                                 style: TextStyle(fontSize: 16)),
                             Icon(
@@ -188,7 +187,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
                   Expanded(
                     child: buildCard(
                       child: Column(
-                        children: [
+                        children: const [
                           Text(
                             'Bezahlen',
                             style: TextStyle(fontSize: 24),
@@ -222,77 +221,48 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(Icons.error, size: 150),
-              SizedBox(height: 20),
-              SizedBox(
-                  width: 250,
-                  child: Text(
-                      'Userdaten konnten nicht geladen werden: ${snapshot.error}',
-                      style: TextStyle(fontSize: 25),
-                      textAlign: TextAlign.center))
-            ]
-        )
-    );
+          const Icon(Icons.error, size: 150),
+          const SizedBox(height: 20),
+          SizedBox(
+              width: 250,
+              child: Text(
+                  'Userdaten konnten nicht geladen werden: ${snapshot.error}',
+                  style: const TextStyle(fontSize: 25),
+                  textAlign: TextAlign.center))
+        ]));
   }
 
   Future<Purchase?> fetchLastPurchase() async {
-    //TODO fetch from db if no last purchase was found locally
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final path = directory.path;
-      final drinksFile = File('$path/lastPurchase.txt');
-      final lastPurchaseString = await drinksFile.readAsString();
-      final lastPurchaseData = jsonDecode(lastPurchaseString.toString());
-      return Purchase.fromJson(lastPurchaseData);
-    } catch (error) {
-      developer.log(error.toString());
-      return null;
-    }
-  }
-
-  Future<User> getUser() async {
-    if (currentUser == null){
-      //load files
-      final directory = await getApplicationDocumentsDirectory();
-      final path = directory.path;
-      final userFile = File('$path/user.txt');
-
-      //load user from local storage
-      if (await userFile.exists()) {
-        final userString = await userFile.readAsString();
-        final userJson = await jsonDecode(userString);
-        currentUser = User.fromJson(userJson);
-      } else  {
-        //load user from server
-        await updateUserFromServer();
-      }
-
-      if (currentUser == null) {
-        throw new Exception("Kein User gefunden");
-      }
-    }
-
-    return currentUser!;
-  }
-
-  Future<void> updateUserFromServer() async {
-
-    final directory = await getApplicationDocumentsDirectory();
-    final path = directory.path;
-    final userFile = File('$path/user.txt');
+    var backend = GetIt.I<Backend>();
+    var localStorage = GetIt.I<LocalDB>();
+    String userId = backend.loggedInUserId!;
+    Purchase? purchase;
+    await backend.sendLocalPurchasesToServer();
     //try to fetch data from server
     try {
-      String? loggedInUserId = GetIt.instance<Backend>().loggedInUser?.id;
-      if (loggedInUserId == null) throw Error();
-      final response =
-      await GetIt.instance<Backend>().get('/user/$loggedInUserId');
+      final response = await backend.get('/purchase?userId=$userId');
       if (response != null) {
-        await userFile.writeAsString(jsonEncode(response));
-        currentUser = User.fromJson(response);
+        purchase = Purchase.fromJson(response.last);
+        localStorage.setLastPurchase(purchase);
       }
     } catch (e) {
       developer.log(e.toString());
     }
+
+    //load last purchase from local storage
+    purchase ??= await localStorage.getLastPurchase();
+
+    return purchase;
+  }
+
+  Future<int> calculateUnsentPurchasesCost() async {
+    int cost = 0;
+    List<Purchase> unsentPurchases =
+        await GetIt.I<LocalDB>().getUnsentPurchases();
+    for (Purchase unsentPurchase in unsentPurchases) {
+      cost += unsentPurchase.cost;
+    }
+    return cost;
   }
 
   Future<void> _openPaypal(double amount) async {
@@ -309,6 +279,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>  {
 class WelcomeScreenData {
   User user;
   Purchase? lastPurchase;
-
-  WelcomeScreenData({required this.user, this.lastPurchase});
+  int unsentPurchasesCost;
+  WelcomeScreenData(
+      {required this.user, this.lastPurchase, this.unsentPurchasesCost = 0});
 }

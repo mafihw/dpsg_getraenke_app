@@ -59,7 +59,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                             ),
                             Text(
                               "Preis: " +
-                                  (drink.price / 100)
+                                  (drink.cost / 100)
                                       .toStringAsFixed(2)
                                       .replaceAll('.', ',') +
                                   " €",

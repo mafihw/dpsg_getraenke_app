@@ -42,6 +42,7 @@ dependencies:
   intl: ^0.17.0
   jwt_decode: ^0.3.1
   flutter_masked_text: ^0.7.0
+  sqflite: ^2.0.2+1
 
 dev_dependencies:
   flutter_test:

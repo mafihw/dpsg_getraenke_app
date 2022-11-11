@@ -3,7 +3,7 @@ class Purchase {
   int drinkId;
   String userId;
   int amount;
-  double cost;
+  int cost;
   DateTime date;
   String? drinkName;
   String? userName;
@@ -23,7 +23,7 @@ class Purchase {
     final drinkId = data['drinkId'] as int;
     final userId = data['userId'] as String;
     final amount = data['amount'] as int;
-    final cost = double.parse(data['cost'].toString());
+    final cost = int.parse(data['cost'].toString());
     final date = DateTime.parse(data['date']);
     final drinkName = data['drinkName'];
     final userName = data['userName'];
@@ -38,14 +38,14 @@ class Purchase {
         userName: userName);
   }
 
-  Map toJson() => {
-    'id': id,
-    'drinkId': drinkId,
-    'userId': userId,
-    'amount': amount,
-    'cost': cost,
-    'date': date.toString(),
-    'drinkName': drinkName,
-    'userName': userName
-  };
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'drinkId': drinkId,
+        'userId': userId,
+        'amount': amount,
+        'cost': cost,
+        'date': date.toString(),
+        'drinkName': drinkName,
+        'userName': userName
+      };
 }
