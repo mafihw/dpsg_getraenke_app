@@ -120,7 +120,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
                     SizedBox(height: 20),
                     SizedBox(
                         width: 250,
-                        child: Text('Keine Getränke gefunden...',
+                        child: Text('Keine Bestände gefunden...',
                             style: TextStyle(fontSize: 25),
                             textAlign: TextAlign.center))
                   ]));

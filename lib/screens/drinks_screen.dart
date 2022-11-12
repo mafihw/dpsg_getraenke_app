@@ -49,23 +49,26 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                 drinkCards.add(buildDrinkCard(
                     child: Row(
                       children: [
-                        Icon(Icons.water_drop),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              drink.name,
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              "Preis: " +
-                                  (drink.cost / 100)
-                                      .toStringAsFixed(2)
-                                      .replaceAll('.', ',') +
-                                  " €",
-                              style: TextStyle(fontSize: 14),
-                            ),
-                          ],
+                        Icon(drink.active? Icons.water_drop: Icons.close),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                drink.name,
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                "Preis: " +
+                                    (drink.cost / 100)
+                                        .toStringAsFixed(2)
+                                        .replaceAll('.', ',') +
+                                    " €",
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
@@ -109,15 +112,10 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         IconButton(
                             icon: Icon(
                               Icons.add_circle_outline_outlined,
-                              size: 40,
+                              size: 40
                             ),
                             onPressed: () {
-                              const snackBar = SnackBar(
-                                content: Text('Add new Drink'),
-                              );
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar);
-                              setState(() {});
+                              createNewDrink();
                             }),
                         SizedBox(
                           height: 30,
@@ -231,14 +229,6 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
             child: Divider(thickness: 2)),
         buildSettingCard(
-          icon: Icons.euro,
-          name: 'Preis ändern',
-          onTap: () {
-            changePrice(drink);
-            setState(() {});
-          },
-        ),
-        buildSettingCard(
             icon: Icons.shopping_cart,
             name: 'Einkauf hinzufügen',
             onTap: () {
@@ -253,7 +243,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
               setState(() {});
             }),
         buildSettingCard(
-            icon: Icons.warehouse_rounded,
+            icon: Icons.history,
             name: 'Bestandsverlauf anzeigen',
             onTap: () {
               Navigator.pop(context);
@@ -264,6 +254,22 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                           InventoryDrinkScreen(drink: drink)));
               setState(() {});
             }),
+        buildSettingCard(
+          icon: Icons.euro,
+          name: 'Preis ändern',
+          onTap: () {
+            changePrice(drink);
+            setState(() {});
+          },
+        ),
+        buildSettingCard(
+          icon: drink.active ? Icons.close : Icons.check,
+          name: drink.active ? 'Getränk deaktivieren' : 'Getränk aktivieren',
+          onTap: () {
+            changeStatus(drink);
+            setState(() {});
+          },
+        ),
         SizedBox(height: 15),
       ]),
     );
@@ -271,8 +277,8 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
 
   Future<void> changePrice(Drink drink) async {
     MoneyMaskedTextController _MoneyMaskedTextController =
-        new MoneyMaskedTextController(
-            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+    new MoneyMaskedTextController(
+        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
@@ -295,7 +301,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         FilteringTextInputFormatter.allow(
                             RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
                         TextInputFormatter.withFunction(
-                          (oldValue, newValue) => newValue.copyWith(
+                              (oldValue, newValue) => newValue.copyWith(
                             text: newValue.text.replaceAll('.', ','),
                           ),
                         ),
@@ -332,7 +338,18 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           );
         });
   }
-
+  Future<void> changeStatus(Drink drink) async {
+    try {
+        final body = {
+          'active': !drink.active
+        };
+        await GetIt.I<Backend>()
+            .put('/drink/${drink.id}', jsonEncode(body));
+    } finally {
+      setState((){});
+      Navigator.pop(context);
+    }
+  }
   Future<void> addNewDrinks(Drink drink) async {
     TextEditingController _TextEditingController = new TextEditingController();
     await showDialog(
@@ -389,7 +406,6 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           );
         });
   }
-
   Future<void> addNewStock(Drink drink) async {
     TextEditingController _TextEditingController = new TextEditingController();
     await showDialog(
@@ -437,6 +453,96 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                           jsonEncode(body));
                     }
                   } finally {
+                    Navigator.pop(context);
+                    return;
+                  }
+                },
+              ),
+            ],
+          );
+        });
+  }
+  Future<void> createNewDrink() async {
+    TextEditingController _TextEditingController = new TextEditingController();
+    MoneyMaskedTextController _MoneyMaskedTextController =
+    new MoneyMaskedTextController(
+        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlertDialog(
+            title: Text('Getränk hinzufügen',
+                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Name:", style: TextStyle(fontSize: 20)),
+                    SizedBox(
+                        width: 100,
+                        child: TextField(
+                          autofocus: true,
+                          style: TextStyle(fontSize: 20),
+                          textAlign: TextAlign.right,
+                          controller: _TextEditingController,
+                          keyboardType: TextInputType.name,
+                          textInputAction: TextInputAction.next,
+                        ))
+                  ],
+                ),Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text("Preis:", style: TextStyle(fontSize: 20)),
+                    SizedBox(
+                        width: 100,
+                        child: TextField(
+                          style: TextStyle(fontSize: 20),
+                          textAlign: TextAlign.right,
+                          controller: _MoneyMaskedTextController,
+                          keyboardType: TextInputType.numberWithOptions(
+                              signed: false, decimal: true),
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
+                            TextInputFormatter.withFunction(
+                                  (oldValue, newValue) => newValue.copyWith(
+                                text: newValue.text.replaceAll('.', ','),
+                              ),
+                            ),
+                          ],
+                          textInputAction: TextInputAction.done,
+                        ))
+                  ],
+                )
+              ],
+            ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () async {
+                  try {
+                    if ((_MoneyMaskedTextController.numberValue  > 0) &&(_TextEditingController.text.isNotEmpty)) {
+                      final body = {
+                        'name': _TextEditingController.text,
+                        'cost': _MoneyMaskedTextController.numberValue * 100
+                      };
+                      await GetIt.I<Backend>()
+                          .post('/drink', jsonEncode(body));
+                      setState(() {});
+                      Navigator.pop(context);
+                    }
+                  } catch (e) {
+                    setState(() {});
                     Navigator.pop(context);
                     return;
                   }
