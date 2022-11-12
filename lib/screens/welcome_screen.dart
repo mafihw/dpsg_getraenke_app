@@ -12,6 +12,9 @@ import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
 
+import '../shared/custom_alert_dialog.dart';
+import '../shared/custom_snack_bar.dart';
+
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
 
@@ -22,6 +25,10 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   User? currentUser;
   final Purchase? lastPurchase = null;
+
+  //The ValueNotifier triggers a rebuild of a snackBar
+  final ValueNotifier<String> snackMsg = ValueNotifier('');
+  int drinksPending = 0;
 
   @override
   void initState() {
@@ -156,7 +163,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   Text(
                     lastPurchase == null
                         ? '-'
-                        : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
+                        : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100 * lastPurchase.amount).toStringAsFixed(2).replaceAll('.', ',')}€',
                     style: const TextStyle(fontSize: 18),
                   )
                 ],
@@ -200,8 +207,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                         onTap: () async {
                           if (shortcutDrink != null) {
-                            await purchaseDrink(user.id, shortcutDrink, 1);
-                            setState(() {});
+                            shortDrinkPurchase(user, shortcutDrink);
                           }
                         },
                         onLongPress: openShortcutSelector),
@@ -322,6 +328,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       developer.log("url $url cant be launched");
     }
   }
+
+  Future<void> shortDrinkPurchase(User user, Drink shortcutDrink) async {
+    snackMsg.value = (++drinksPending).toString() + ' ' + shortcutDrink.name + ' gebucht';
+    if(drinksPending == 1){
+      final snackBar = CustomSnackBar(
+          content: SnackContent(snackMsg),
+          action: SnackBarAction(label: 'Rückgängig machen', textColor: kColorScheme.onPrimary, onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          })
+      );
+      await ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((value) async
+        {
+          if (value == SnackBarClosedReason.action){
+            drinksPending = 0;
+          } else {
+            int drinks = drinksPending;
+            drinksPending = 0;
+            await purchaseDrink(user.id, shortcutDrink, drinks);
+            setState(() {});
+          }
+        });
+    }
+  }
 }
 
 class ShortcutSelector extends StatefulWidget {
@@ -337,7 +366,7 @@ class ShortcutSelector extends StatefulWidget {
 class _ShortcutSelectorState extends State<ShortcutSelector> {
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return CustomAlertDialog(
       title: Text('Schnellwahltaste'),
       content: Container(
         width: double.maxFinite,
@@ -396,4 +425,22 @@ class WelcomeScreenData {
       this.lastPurchase,
       this.unsentPurchasesCost = 0,
       this.shortcutDrink});
+}
+
+class SnackContent extends StatelessWidget {
+  final ValueNotifier<String> snackMsg;
+
+  SnackContent(this.snackMsg);
+
+  @override
+  Widget build(BuildContext context) {
+    /// ValueListenableBuilder rebuilds whenever snackMsg value changes.
+    /// i.e. this "listens" to changes of ValueNotifier "snackMsg".
+    /// "msg" in builder below is the value of "snackMsg" ValueNotifier.
+    /// We don't use the other builder args for this example so they are
+    /// set to _ & __ just for readability.
+    return ValueListenableBuilder<String>(
+        valueListenable: snackMsg,
+        builder: (_, msg, __) => Text(msg, style: TextStyle(color: kColorScheme.onPrimary),));
+  }
 }

@@ -252,6 +252,7 @@ Future<void> purchaseDrink(String userId, Drink drink, int amount) async {
       await GetIt.instance<Backend>().post('/purchase', jsonEncode(body));
       await GetIt.instance<LocalDB>().setLastPurchase(purchase);
     } catch (error) {
+      await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
       developer.log(error.toString());
     }
   } else {
