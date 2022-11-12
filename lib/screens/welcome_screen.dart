@@ -4,6 +4,7 @@ import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/drink_screen.dart';
+import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
@@ -139,7 +140,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 ],
               ),
               onTap: () {
-                print("Bezahlen");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentsScreen(),
+                  ),
+                );
               },
             ),
             buildCard(

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
@@ -43,7 +44,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
             snapshot.data!.forEach((element) {
               User? user;
               user = User.fromJson(element);
-              
+
               if (_searchTextController.text.isEmpty ||
                   user.name
                       .toLowerCase()
@@ -54,7 +55,9 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 userCards.add(buildUserCard(
                     child: Row(
                       children: [
-                        Icon(user.role == 'none' ? Icons.disabled_by_default_outlined : Icons.check_circle_outline),
+                        Icon(user.role == 'none'
+                            ? Icons.disabled_by_default_outlined
+                            : Icons.check_circle_outline),
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Column(
@@ -79,8 +82,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                     ),
                     onTap: () {
                       showCustomModalSheet(user!);
-                    })
-                );
+                    }));
               }
             });
             return Column(
@@ -150,14 +152,16 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
-      floatingActionButton: selectedUser == null ? FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        icon: const Icon(Icons.arrow_back),
-        label: const Text("Zurück"),
-      ) : null,
+      floatingActionButton: selectedUser == null
+          ? FloatingActionButton.extended(
+              backgroundColor: kSecondaryColor,
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: const Text("Zurück"),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       resizeToAvoidBottomInset: false,
     );
@@ -172,7 +176,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         child: InkWell(
           onTap: () => onTap(),
           customBorder:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: child,
@@ -182,7 +186,8 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     );
   }
 
-  Widget buildSettingCard({required IconData icon, required String name, required Function onTap}) {
+  Widget buildSettingCard(
+      {required IconData icon, required String name, required Function onTap}) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
@@ -191,7 +196,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         child: InkWell(
           onTap: () => onTap(),
           customBorder:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Row(
@@ -199,13 +204,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               children: [
                 Icon(icon, size: 40),
                 Padding(
-                  padding: const EdgeInsets.only(left: 20.0),
-                  child: Text(
-                        name,
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: Text(name,
                         style: TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center
-                    )
-                )
+                        textAlign: TextAlign.center))
               ],
             ),
           ),
@@ -219,55 +221,70 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       isScrollControlled: true,
       backgroundColor: kBackgroundColor,
       context: context,
-      builder: (context) =>
-        Wrap(
-          children: [
-            Center(
-              child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: Text(user.name, style: TextStyle(fontSize: 30))
-              ),
-            ),
-            const Padding(
-                padding: EdgeInsets.only(left: 10.0, right: 10.0),
-                child: Divider(thickness: 2)
-            ),
-            buildSettingCard(
-              icon: Icons.euro,
-              name: 'Zahlung buchen',
-              onTap: () {
-                GeldBuchen(user);
-              },
-            ),
-            buildSettingCard(icon: Icons.shopping_cart, name: 'Käufe anzeigen', onTap: () async {
-              await Navigator.push(context, MaterialPageRoute(builder: ((context) => PurchasesScreen(user: user))));
+      builder: (context) => Wrap(children: [
+        Center(
+          child: Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: Text(user.name, style: TextStyle(fontSize: 30))),
+        ),
+        const Padding(
+            padding: EdgeInsets.only(left: 10.0, right: 10.0),
+            child: Divider(thickness: 2)),
+        buildSettingCard(
+          icon: Icons.euro,
+          name: 'Zahlung buchen',
+          onTap: () {
+            GeldBuchen(user);
+          },
+        ),
+        buildSettingCard(
+            icon: Icons.shopping_cart,
+            name: 'Käufe anzeigen',
+            onTap: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: ((context) => PurchasesScreen(user: user))));
               Navigator.pop(context);
             }),
-            buildSettingCard(
-              icon: Icons.person_outline,
-              name: 'Profil anzeigen',
-              onTap: () async{
-                await Navigator.push(
+        buildSettingCard(
+            icon: Icons.payments,
+            name: 'Zahlungen anzeigen',
+            onTap: () async {
+              await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UserProfileScreen(currentUser: user, rebuild: performRebuild))
-                );
-                Navigator.pop(context);
-                setState(() {});
-              },
-            ),
-            SizedBox(height: 15),
-          ]
+                  MaterialPageRoute(
+                      builder: ((context) => PaymentsScreen(user: user))));
+              Navigator.pop(context);
+            }),
+        buildSettingCard(
+          icon: Icons.person_outline,
+          name: 'Profil anzeigen',
+          onTap: () async {
+            await Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => UserProfileScreen(
+                        currentUser: user, rebuild: performRebuild)));
+            Navigator.pop(context);
+            setState(() {});
+          },
         ),
+        SizedBox(height: 15),
+      ]),
     );
   }
 
-  Future<void> GeldBuchen (User user) async {
-    MoneyMaskedTextController _MoneyMaskedTextController = new MoneyMaskedTextController(decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+  Future<void> GeldBuchen(User user) async {
+    MoneyMaskedTextController _MoneyMaskedTextController =
+        new MoneyMaskedTextController(
+            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
           return CustomAlertDialog(
-            title: Text('Geld buchen', style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
+            title: Text('Geld buchen',
+                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -278,17 +295,18 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                       style: TextStyle(fontSize: 20),
                       textAlign: TextAlign.right,
                       controller: _MoneyMaskedTextController,
-                      keyboardType: TextInputType.numberWithOptions(signed: false, decimal: true),
+                      keyboardType: TextInputType.numberWithOptions(
+                          signed: false, decimal: true),
                       inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
                         TextInputFormatter.withFunction(
-                              (oldValue, newValue) => newValue.copyWith(
+                          (oldValue, newValue) => newValue.copyWith(
                             text: newValue.text.replaceAll('.', ','),
                           ),
                         ),
                       ],
-                    )
-                )
+                    ))
               ],
             ),
             actions: <Widget>[
@@ -315,7 +333,6 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               ),
             ],
           );
-        }
-    );
+        });
   }
 }

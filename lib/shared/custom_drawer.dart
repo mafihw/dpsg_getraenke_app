@@ -1,6 +1,7 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/drinks_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
+import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
@@ -69,7 +70,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => PurchasesScreen()),
-              (Route<dynamic> route) => route.isFirst);
+                  (Route<dynamic> route) => route.isFirst);
+        },
+      ),
+      ListTile(
+        leading: Icon(Icons.payments),
+        title: const Text('Zahlungen'),
+        onTap: () {
+          Navigator.pop(context);
+
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => PaymentsScreen()),
+                  (Route<dynamic> route) => route.isFirst);
         },
       ),
       ListTile(
