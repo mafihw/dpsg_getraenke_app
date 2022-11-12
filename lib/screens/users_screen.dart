@@ -43,17 +43,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
             snapshot.data!.forEach((element) {
               User? user;
               user = User.fromJson(element);
-              Icon iconEnabledStatus;
-
-              //TODO: activate if user enabled field exists
-              iconEnabledStatus = Icon(Icons.check_circle_outline);
-              /*
-                    if(user.enabled){
-                      iconEnabledStatus = Icon(Icons.check_circle_outline);
-                    } else {
-                      iconEnabledStatus = Icon(Icons.disabled_by_default_outlined);
-                    }
-                    */
+              
               if (_searchTextController.text.isEmpty ||
                   user.name
                       .toLowerCase()
@@ -64,27 +54,26 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 userCards.add(buildUserCard(
                     child: Row(
                       children: [
-                        IconButton(
-                            icon: iconEnabledStatus,
-                            onPressed: () {
-                              //toggle enabled status here
-                            }),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user.name,
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              'Email: ${user.email}',
-                              style: TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              'Rolle: ${user.role}',
-                              style: TextStyle(fontSize: 14),
-                            )
-                          ],
+                        Icon(user.role == 'none' ? Icons.disabled_by_default_outlined : Icons.check_circle_outline),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                'Email: ${user.email}',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              Text(
+                                'Rolle: ${user.role}',
+                                style: TextStyle(fontSize: 14),
+                              )
+                            ],
+                          ),
                         )
                       ],
                     ),
