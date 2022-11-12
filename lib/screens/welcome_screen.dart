@@ -320,7 +320,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     List<Purchase> unsentPurchases =
         await GetIt.I<LocalDB>().getUnsentPurchases();
     for (Purchase unsentPurchase in unsentPurchases) {
-      cost += unsentPurchase.cost;
+      cost += unsentPurchase.cost * unsentPurchase.amount;
     }
     return cost;
   }

@@ -243,7 +243,7 @@ Future<void> purchaseDrink(String userId, Drink drink, int amount) async {
       drinkId: drink.id,
       userId: userId,
       amount: amount,
-      cost: amount * drink.cost,
+      cost: drink.cost,
       date: DateTime.now(),
       drinkName: drink.name);
 
