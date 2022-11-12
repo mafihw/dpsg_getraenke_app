@@ -25,9 +25,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               currentUser: snapshot.data as User,
               rebuild: performRebuild,
             )
-          : const Center(
-              child: CircularProgressIndicator(),
-            )),
+          : Container()),
       future: fetchUser(),
     );
   }

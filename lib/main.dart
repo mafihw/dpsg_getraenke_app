@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
@@ -13,8 +14,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   GetIt.instance.registerSingleton<LocalDB>(LocalDB());
   GetIt.instance.registerSingleton<Backend>(Backend());
+  GetIt.instance.registerSingleton<PermissionSystem>(PermissionSystem());
   await GetIt.I<LocalDB>().init();
   await GetIt.I<Backend>().init();
+  await GetIt.I<PermissionSystem>().init();
   runApp(const MyApp());
 }
 

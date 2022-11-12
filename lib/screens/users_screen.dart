@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
@@ -41,10 +42,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         builder: (context, AsyncSnapshot<dynamic> snapshot) {
           if (snapshot.hasData) {
             List<Widget> userCards = [];
-            snapshot.data!.forEach((element) {
-              User? user;
-              user = User.fromJson(element);
-
+            List<User> users = List.generate(snapshot.data!.length,
+                (index) => User.fromJson(snapshot.data![index]));
+            users.sort((a, b) => a.name.compareTo(b.name));
+            for (var user in users) {
               if (_searchTextController.text.isEmpty ||
                   user.name
                       .toLowerCase()
@@ -81,10 +82,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                       ],
                     ),
                     onTap: () {
-                      showCustomModalSheet(user!);
+                      showCustomModalSheet(user);
                     }));
               }
-            });
+            }
             return Column(
               children: [
                 Padding(
@@ -230,46 +231,54 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         const Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
             child: Divider(thickness: 2)),
-        buildSettingCard(
-          icon: Icons.euro,
-          name: 'Zahlung buchen',
-          onTap: () {
-            GeldBuchen(user);
-          },
-        ),
-        buildSettingCard(
-            icon: Icons.shopping_cart,
-            name: 'Käufe anzeigen',
+        if (GetIt.I<PermissionSystem>()
+            .userHasPermission(Permission.canPayForOthers))
+          buildSettingCard(
+            icon: Icons.euro,
+            name: 'Zahlung buchen',
+            onTap: () {
+              GeldBuchen(user);
+            },
+          ),
+        if (GetIt.I<PermissionSystem>()
+            .userHasPermission(Permission.canSeeAllPurchases))
+          buildSettingCard(
+              icon: Icons.shopping_cart,
+              name: 'Käufe anzeigen',
+              onTap: () async {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: ((context) => PurchasesScreen(user: user))));
+                Navigator.pop(context);
+              }),
+        if (GetIt.I<PermissionSystem>()
+            .userHasPermission(Permission.canSeeAllPurchases))
+          buildSettingCard(
+              icon: Icons.payments,
+              name: 'Zahlungen anzeigen',
+              onTap: () async {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: ((context) => PaymentsScreen(user: user))));
+                Navigator.pop(context);
+              }),
+        if (GetIt.I<PermissionSystem>()
+            .userHasPermission(Permission.canEditOtherUsers))
+          buildSettingCard(
+            icon: Icons.person_outline,
+            name: 'Profil anzeigen',
             onTap: () async {
               await Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: ((context) => PurchasesScreen(user: user))));
+                      builder: (context) => UserProfileScreen(
+                          currentUser: user, rebuild: performRebuild)));
               Navigator.pop(context);
-            }),
-        buildSettingCard(
-            icon: Icons.payments,
-            name: 'Zahlungen anzeigen',
-            onTap: () async {
-              await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: ((context) => PaymentsScreen(user: user))));
-              Navigator.pop(context);
-            }),
-        buildSettingCard(
-          icon: Icons.person_outline,
-          name: 'Profil anzeigen',
-          onTap: () async {
-            await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => UserProfileScreen(
-                        currentUser: user, rebuild: performRebuild)));
-            Navigator.pop(context);
-            setState(() {});
-          },
-        ),
+              setState(() {});
+            },
+          ),
         SizedBox(height: 15),
       ]),
     );

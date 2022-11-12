@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/model/permissions.dart';
 import 'package:get_it/get_it.dart';
 
 class User {
@@ -41,6 +42,7 @@ class User {
 }
 
 Future<User> fetchUser() async {
+  GetIt.I<PermissionSystem>().fetchPermissions();
   String id = GetIt.I<Backend>().loggedInUserId!;
   User? user;
 

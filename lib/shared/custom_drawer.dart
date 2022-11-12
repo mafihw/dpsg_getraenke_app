@@ -1,4 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/drinks_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
@@ -17,7 +18,8 @@ class CustomDrawer extends StatefulWidget {
   const CustomDrawer({Key? key, this.updateHomeScreen}) : super(key: key);
 
   @override
-  State<CustomDrawer> createState() => _CustomDrawerState(updateHomeScreen: updateHomeScreen);
+  State<CustomDrawer> createState() =>
+      _CustomDrawerState(updateHomeScreen: updateHomeScreen);
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
@@ -70,7 +72,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => PurchasesScreen()),
-                  (Route<dynamic> route) => route.isFirst);
+              (Route<dynamic> route) => route.isFirst);
         },
       ),
       ListTile(
@@ -82,7 +84,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => PaymentsScreen()),
-                  (Route<dynamic> route) => route.isFirst);
+              (Route<dynamic> route) => route.isFirst);
         },
       ),
       ListTile(
@@ -107,38 +109,46 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Einstellungen'),
         onTap: () {},
       ),
-      ExpansionTile(
-        title: Text("Verwaltung"),
-        leading: Icon(FontAwesomeIcons.lockOpen),
-        children: [
-          ListTile(
-            leading: Icon(Icons.manage_accounts),
-            title: const Text('Nutzer'),
-            onTap: () async {
-              Navigator.pop(context);
-              await Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => UserAdministrationScreen()),
-                  (Route<dynamic> route) => route.isFirst);
-              updateHomeScreen();
-            },
-          ),
-          ListTile(
-            leading: Icon(FontAwesomeIcons.wineBottle),
-            title: const Text('Getränke'),
-            onTap: () async {
-              Navigator.pop(context);
-              await Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => DrinkAdministrationScreen()),
+      if (GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canGetAllUsers) ||
+          GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canEditDrinks))
+        ExpansionTile(
+          title: Text("Verwaltung"),
+          leading: Icon(FontAwesomeIcons.lockOpen),
+          children: [
+            if (GetIt.I<PermissionSystem>()
+                .userHasPermission(Permission.canGetAllUsers))
+              ListTile(
+                leading: Icon(Icons.manage_accounts),
+                title: const Text('Nutzer'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UserAdministrationScreen()),
                       (Route<dynamic> route) => route.isFirst);
-              updateHomeScreen();
-            },
-          ),
-        ],
-      ),
+                  updateHomeScreen();
+                },
+              ),
+            if (GetIt.I<PermissionSystem>()
+                .userHasPermission(Permission.canEditDrinks))
+              ListTile(
+                leading: Icon(FontAwesomeIcons.wineBottle),
+                title: const Text('Getränke'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DrinkAdministrationScreen()),
+                      (Route<dynamic> route) => route.isFirst);
+                  updateHomeScreen();
+                },
+              ),
+          ],
+        ),
       ListTile(
         leading: Icon(Icons.logout),
         title: const Text('Abmelden'),
