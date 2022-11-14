@@ -351,11 +351,10 @@ class Backend {
                 ElevatedButton(
                   child: isRefreshingToken
                       ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: kColorScheme.onPrimary,
-                          ))
+                      height: 25,
+                      width: 25,
+                      child: CircularProgressIndicator(
+                          color: Colors.blue.shade800))
                       : Text('Bestätigen'),
                   onPressed: () async {
                     if (_textFieldController.text.isNotEmpty &&
