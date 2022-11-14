@@ -42,14 +42,14 @@ class PermissionSystem {
       } catch (e) {
         developer.log(e.toString());
       }
-
-      //load permissions from local storage
-      if (fetchedPermissions.isEmpty) {
-        fetchedPermissions = await _getLocalPermissions();
-      }
-
-      permissions = fetchedPermissions;
     }
+    //load permissions from local storage
+    if (fetchedPermissions.isEmpty) {
+      fetchedPermissions = await _getLocalPermissions();
+    }
+
+    permissions = fetchedPermissions;
+
     return fetchedPermissions;
   }
 
