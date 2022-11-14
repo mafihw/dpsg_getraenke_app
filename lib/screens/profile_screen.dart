@@ -467,7 +467,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                             ),
                           );
                         }
-                      } else {
+                      } else if (oldPassword.isNotEmpty) {
                         throw (Exception('wrong password'));
                       }
                     } catch (e) {
