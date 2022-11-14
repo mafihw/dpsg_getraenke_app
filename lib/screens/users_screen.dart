@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
@@ -38,118 +39,120 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Nutzerverwaltung"),
       drawer: CustomDrawer(),
-      body: FutureBuilder(
-        builder: (context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
-            List<Widget> userCards = [];
-            List<User> users = List.generate(snapshot.data!.length,
-                (index) => User.fromJson(snapshot.data![index]));
-            users.sort((a, b) => a.name.compareTo(b.name));
-            for (var user in users) {
-              if (_searchTextController.text.isEmpty ||
-                  user.name
-                      .toLowerCase()
-                      .contains(_searchTextController.text.toLowerCase()) ||
-                  user.email
-                      .toLowerCase()
-                      .contains(_searchTextController.text.toLowerCase())) {
-                userCards.add(buildUserCard(
-                    child: Row(
-                      children: [
-                        Icon(user.role == 'none'
-                            ? Icons.disabled_by_default_outlined
-                            : Icons.check_circle_outline),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                user.name,
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                'Email: ${user.email}',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              Text(
-                                'Rolle: ${user.role}',
-                                style: TextStyle(fontSize: 14),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                    onTap: () {
-                      showCustomModalSheet(user);
-                    }));
+      body: OfflineCheck(
+        builder: (context) => FutureBuilder(
+          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+            if (snapshot.hasData) {
+              List<Widget> userCards = [];
+              List<User> users = List.generate(snapshot.data!.length,
+                  (index) => User.fromJson(snapshot.data![index]));
+              users.sort((a, b) => a.name.compareTo(b.name));
+              for (var user in users) {
+                if (_searchTextController.text.isEmpty ||
+                    user.name
+                        .toLowerCase()
+                        .contains(_searchTextController.text.toLowerCase()) ||
+                    user.email
+                        .toLowerCase()
+                        .contains(_searchTextController.text.toLowerCase())) {
+                  userCards.add(buildUserCard(
+                      child: Row(
+                        children: [
+                          Icon(user.role == 'none'
+                              ? Icons.disabled_by_default_outlined
+                              : Icons.check_circle_outline),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.name,
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                Text(
+                                  'Email: ${user.email}',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                                Text(
+                                  'Rolle: ${user.role}',
+                                  style: TextStyle(fontSize: 14),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        showCustomModalSheet(user);
+                      }));
+                }
               }
-            }
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _searchTextController,
-                    decoration: InputDecoration(
-                      hintText: 'Suche',
-                      suffixIcon: IconButton(
-                        icon: Icon(_searchTextController.text.isEmpty
-                            ? Icons.person_search
-                            : Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            _searchTextController.clear();
-                          });
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: _searchTextController,
+                      decoration: InputDecoration(
+                        hintText: 'Suche',
+                        suffixIcon: IconButton(
+                          icon: Icon(_searchTextController.text.isEmpty
+                              ? Icons.person_search
+                              : Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              _searchTextController.clear();
+                            });
+                            FocusManager.instance.primaryFocus?.unfocus();
+                          },
+                        ),
+                      ),
+                      onChanged: (query) {
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ...userCards,
+                          SizedBox(
+                            height: 20,
+                          )
+                        ],
                       ),
                     ),
-                    onChanged: (query) {
-                      setState(() {});
-                    },
                   ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ...userCards,
-                        SizedBox(
-                          height: 20,
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          } else {
-            if (snapshot.hasError) {
-              return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                    Icon(Icons.person_search, size: 150),
-                    SizedBox(height: 20),
-                    SizedBox(
-                        width: 250,
-                        child: Text('Anscheinend ist gerade niemand da...',
-                            style: TextStyle(fontSize: 25),
-                            textAlign: TextAlign.center))
-                  ]));
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
+                ],
               );
+            } else {
+              if (snapshot.hasError) {
+                return Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                      Icon(Icons.person_search, size: 150),
+                      SizedBox(height: 20),
+                      SizedBox(
+                          width: 250,
+                          child: Text('Anscheinend ist gerade niemand da...',
+                              style: TextStyle(fontSize: 25),
+                              textAlign: TextAlign.center))
+                    ]));
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
             }
-          }
-        },
-        future: GetIt.instance<Backend>().get('/user'),
+          },
+          future: GetIt.instance<Backend>().get('/user'),
+        ),
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),

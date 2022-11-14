@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_alert_dialog.dart';
 import 'package:flutter/material.dart';
@@ -34,122 +35,123 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Getränkeverwaltung"),
       drawer: CustomDrawer(),
-      body: FutureBuilder(
-        builder: (context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
-            List<Widget> drinkCards = [];
-            snapshot.data!.forEach((element) {
-              Drink? drink;
-              drink = Drink.fromJson(element);
+      body: OfflineCheck(builder: (context) {
+        return FutureBuilder(
+          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+            if (snapshot.hasData) {
+              List<Widget> drinkCards = [];
+              snapshot.data!.forEach((element) {
+                Drink? drink;
+                drink = Drink.fromJson(element);
 
-              if (_searchTextController.text.isEmpty ||
-                  drink.name
-                      .toLowerCase()
-                      .contains(_searchTextController.text.toLowerCase())) {
-                drinkCards.add(buildDrinkCard(
-                    child: Row(
-                      children: [
-                        Icon(drink.active? Icons.water_drop: Icons.close),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                drink.name,
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              Text(
-                                "Preis: " +
-                                    (drink.cost / 100)
-                                        .toStringAsFixed(2)
-                                        .replaceAll('.', ',') +
-                                    " €",
-                                style: TextStyle(fontSize: 14),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
+                if (_searchTextController.text.isEmpty ||
+                    drink.name
+                        .toLowerCase()
+                        .contains(_searchTextController.text.toLowerCase())) {
+                  drinkCards.add(buildDrinkCard(
+                      child: Row(
+                        children: [
+                          Icon(drink.active ? Icons.water_drop : Icons.close),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  drink.name,
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                                Text(
+                                  "Preis: " +
+                                      (drink.cost / 100)
+                                          .toStringAsFixed(2)
+                                          .replaceAll('.', ',') +
+                                      " €",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                      onTap: () {
+                        showCustomModalSheet(drink!);
+                      }));
+                }
+              });
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      controller: _searchTextController,
+                      decoration: InputDecoration(
+                        hintText: 'Suche',
+                        suffixIcon: IconButton(
+                          icon: Icon(_searchTextController.text.isEmpty
+                              ? Icons.person_search
+                              : Icons.delete),
+                          onPressed: () {
+                            setState(() {
+                              _searchTextController.clear();
+                            });
+                            FocusManager.instance.primaryFocus?.unfocus();
+                          },
+                        ),
+                      ),
+                      onChanged: (query) {
+                        setState(() {});
+                      },
                     ),
-                    onTap: () {
-                      showCustomModalSheet(drink!);
-                    }));
-              }
-            });
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextField(
-                    controller: _searchTextController,
-                    decoration: InputDecoration(
-                      hintText: 'Suche',
-                      suffixIcon: IconButton(
-                        icon: Icon(_searchTextController.text.isEmpty
-                            ? Icons.person_search
-                            : Icons.delete),
-                        onPressed: () {
-                          setState(() {
-                            _searchTextController.clear();
-                          });
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ...drinkCards,
+                          IconButton(
+                              icon: const Icon(
+                                  Icons.add_circle_outline_outlined,
+                                  size: 40),
+                              onPressed: () {
+                                createNewDrink();
+                              }),
+                          const SizedBox(
+                            height: 30,
+                          )
+                        ],
                       ),
                     ),
-                    onChanged: (query) {
-                      setState(() {});
-                    },
                   ),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ...drinkCards,
-                        IconButton(
-                            icon: Icon(
-                              Icons.add_circle_outline_outlined,
-                              size: 40
-                            ),
-                            onPressed: () {
-                              createNewDrink();
-                            }),
-                        SizedBox(
-                          height: 30,
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          } else {
-            if (snapshot.hasError) {
-              return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                    Icon(Icons.search_off, size: 150),
-                    SizedBox(height: 20),
-                    SizedBox(
-                        width: 250,
-                        child: Text('Keine Getränke gefunden...',
-                            style: TextStyle(fontSize: 25),
-                            textAlign: TextAlign.center))
-                  ]));
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
+                ],
               );
+            } else {
+              if (snapshot.hasError) {
+                return Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: const [
+                      Icon(Icons.search_off, size: 150),
+                      SizedBox(height: 20),
+                      SizedBox(
+                          width: 250,
+                          child: Text('Keine Getränke gefunden...',
+                              style: TextStyle(fontSize: 25),
+                              textAlign: TextAlign.center))
+                    ]));
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
             }
-          }
-        },
-        future: GetIt.instance<Backend>().get('/drink'),
-      ),
+          },
+          future: GetIt.instance<Backend>().get('/drink'),
+        );
+      }),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
@@ -277,8 +279,8 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
 
   Future<void> changePrice(Drink drink) async {
     MoneyMaskedTextController _MoneyMaskedTextController =
-    new MoneyMaskedTextController(
-        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+        new MoneyMaskedTextController(
+            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
@@ -301,7 +303,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         FilteringTextInputFormatter.allow(
                             RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
                         TextInputFormatter.withFunction(
-                              (oldValue, newValue) => newValue.copyWith(
+                          (oldValue, newValue) => newValue.copyWith(
                             text: newValue.text.replaceAll('.', ','),
                           ),
                         ),
@@ -338,18 +340,17 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           );
         });
   }
+
   Future<void> changeStatus(Drink drink) async {
     try {
-        final body = {
-          'active': !drink.active
-        };
-        await GetIt.I<Backend>()
-            .put('/drink/${drink.id}', jsonEncode(body));
+      final body = {'active': !drink.active};
+      await GetIt.I<Backend>().put('/drink/${drink.id}', jsonEncode(body));
     } finally {
-      setState((){});
+      setState(() {});
       Navigator.pop(context);
     }
   }
+
   Future<void> addNewDrinks(Drink drink) async {
     TextEditingController _TextEditingController = new TextEditingController();
     await showDialog(
@@ -406,6 +407,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           );
         });
   }
+
   Future<void> addNewStock(Drink drink) async {
     TextEditingController _TextEditingController = new TextEditingController();
     await showDialog(
@@ -462,11 +464,12 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           );
         });
   }
+
   Future<void> createNewDrink() async {
     TextEditingController _TextEditingController = new TextEditingController();
     MoneyMaskedTextController _MoneyMaskedTextController =
-    new MoneyMaskedTextController(
-        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+        new MoneyMaskedTextController(
+            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
 
     await showDialog(
         context: context,
@@ -492,7 +495,8 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                           textInputAction: TextInputAction.next,
                         ))
                   ],
-                ),Row(
+                ),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text("Preis:", style: TextStyle(fontSize: 20)),
@@ -508,7 +512,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                             FilteringTextInputFormatter.allow(
                                 RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
                             TextInputFormatter.withFunction(
-                                  (oldValue, newValue) => newValue.copyWith(
+                              (oldValue, newValue) => newValue.copyWith(
                                 text: newValue.text.replaceAll('.', ','),
                               ),
                             ),
@@ -531,13 +535,13 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                 child: Text('Bestätigen'),
                 onPressed: () async {
                   try {
-                    if ((_MoneyMaskedTextController.numberValue  > 0) &&(_TextEditingController.text.isNotEmpty)) {
+                    if ((_MoneyMaskedTextController.numberValue > 0) &&
+                        (_TextEditingController.text.isNotEmpty)) {
                       final body = {
                         'name': _TextEditingController.text,
                         'cost': _MoneyMaskedTextController.numberValue * 100
                       };
-                      await GetIt.I<Backend>()
-                          .post('/drink', jsonEncode(body));
+                      await GetIt.I<Backend>().post('/drink', jsonEncode(body));
                       setState(() {});
                       Navigator.pop(context);
                     }

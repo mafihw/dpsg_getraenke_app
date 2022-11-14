@@ -4,6 +4,7 @@ const kBackgroundColor = Color.fromARGB(255, 33, 33, 63);
 const kPrimaryColor = Color.fromARGB(255, 169, 200, 212);
 const kSecondaryColor = Colors.red;
 const kMainColor = Color.fromARGB(255, 0, 61, 85);
+const kWarningColor = Colors.red;
 
 const kColorScheme = ColorScheme(
   background: kBackgroundColor,

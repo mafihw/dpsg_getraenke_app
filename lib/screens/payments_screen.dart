@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -24,72 +25,74 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Zahlungen"),
       drawer: CustomDrawer(),
-      body: FutureBuilder(
-        builder: (context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
-            List<Widget> PaymentsCards = [];
-            List<Payment> Payments = [];
-            snapshot.data!.forEach((element) {
-              Payment? payment;
-              payment = Payment.fromJson(element);
-              Payments.add(payment);
-            });
-            Payments.sort((a, b) => b.date.compareTo(a.date));
-            Payments.forEach((payment) {
-              PaymentsCards.add(buildCard(
-                  child: Row(
-                    children: [
-                      Icon(Icons.euro),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${DateFormat('dd.MM.yyyy, kk:mm').format(payment.date.toLocal())}',
-                              style: TextStyle(fontSize: 20),
-                            ),
-                            Text(
-                              '${((payment.value / 100)).toStringAsFixed(2).replaceAll('.', ',')} €',
-                              style: TextStyle(fontSize: 14),
-                            )
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                  onTap: () {}));
-            });
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [...PaymentsCards],
-              ),
-            );
-          } else {
-            if (snapshot.hasError) {
-              return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+      body: OfflineCheck(
+        builder: (context) => FutureBuilder(
+          builder: (context, AsyncSnapshot<dynamic> snapshot) {
+            if (snapshot.hasData) {
+              List<Widget> PaymentsCards = [];
+              List<Payment> Payments = [];
+              snapshot.data!.forEach((element) {
+                Payment? payment;
+                payment = Payment.fromJson(element);
+                Payments.add(payment);
+              });
+              Payments.sort((a, b) => b.date.compareTo(a.date));
+              Payments.forEach((payment) {
+                PaymentsCards.add(buildCard(
+                    child: Row(
                       children: [
-                    Icon(Icons.person_search, size: 150),
-                    SizedBox(height: 20),
-                    SizedBox(
-                        width: 250,
-                        child: Text('Keine Zahlungen gefunden ...',
-                            style: TextStyle(fontSize: 25),
-                            textAlign: TextAlign.center))
-                  ]));
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
+                        Icon(Icons.euro),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${DateFormat('dd.MM.yyyy, kk:mm').format(payment.date.toLocal())}',
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                '${((payment.value / 100)).toStringAsFixed(2).replaceAll('.', ',')} €',
+                                style: TextStyle(fontSize: 14),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    onTap: () {}));
+              });
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [...PaymentsCards],
+                ),
               );
+            } else {
+              if (snapshot.hasError) {
+                return Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                      Icon(Icons.person_search, size: 150),
+                      SizedBox(height: 20),
+                      SizedBox(
+                          width: 250,
+                          child: Text('Keine Zahlungen gefunden ...',
+                              style: TextStyle(fontSize: 25),
+                              textAlign: TextAlign.center))
+                    ]));
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
             }
-          }
-        },
-        future: getPayments(widget.user),
+          },
+          future: getPayments(widget.user),
+        ),
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),

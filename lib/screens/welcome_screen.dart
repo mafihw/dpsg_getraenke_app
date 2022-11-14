@@ -16,7 +16,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
 
 import '../shared/custom_alert_dialog.dart';
-import '../shared/custom_snack_bar.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -69,7 +68,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget buildCard(
       {required Widget child,
       required Function onTap,
-      Function()? onLongPress}) {
+      Function()? onLongPress,
+      Widget? infoIcon}) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
@@ -80,9 +80,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           onLongPress: onLongPress,
           customBorder:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: child,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                top: 8,
+                right: 8,
+                child: infoIcon ?? Container(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: child,
+              ),
+            ],
           ),
         ),
       ),
@@ -152,40 +162,54 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               },
             ),
             buildCard(
-              child: Column(
-                children: [
-                  const Text(
-                    'Letzte Buchung:',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  const SizedBox(
-                    height: 8,
-                  ),
-                  Text(
-                    daysUntilLastBooking == 0
-                        ? 'Heute'
-                        : daysUntilLastBooking == 1
-                            ? 'Gestern'
-                            : ' Vor $daysUntilLastBooking Tagen',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    lastPurchase == null
-                        ? '-'
-                        : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100 * lastPurchase.amount).toStringAsFixed(2).replaceAll('.', ',')}€',
-                    style: const TextStyle(fontSize: 18),
-                  )
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PurchasesScreen(),
-                  ),
-                );
-              },
-            ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Letzte Buchung:',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Text(
+                      daysUntilLastBooking == 0
+                          ? 'Heute'
+                          : daysUntilLastBooking == 1
+                              ? 'Gestern'
+                              : ' Vor $daysUntilLastBooking Tagen',
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                    Text(
+                      lastPurchase == null
+                          ? '-'
+                          : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100 * lastPurchase.amount).toStringAsFixed(2).replaceAll('.', ',')}€',
+                      style: const TextStyle(fontSize: 18),
+                    )
+                  ],
+                ),
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PurchasesScreen(),
+                    ),
+                  );
+                  setState(() {});
+                },
+                infoIcon: FutureBuilder<List>(
+                    future: GetIt.I<LocalDB>().getUnsentPurchases(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                        return const Hero(
+                            tag: 'syncWarning',
+                            child: Icon(
+                              Icons.sync_problem_rounded,
+                              color: kSecondaryColor,
+                            ));
+                      } else {
+                        return Container();
+                      }
+                    })),
             IntrinsicHeight(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -300,16 +324,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     var localStorage = GetIt.I<LocalDB>();
     String userId = backend.loggedInUserId!;
     Purchase? purchase;
-    await backend.sendLocalPurchasesToServer();
-    //try to fetch data from server
-    try {
-      final response = await backend.get('/purchase?userId=$userId');
-      if (response != null) {
-        purchase = Purchase.fromJson(response.last);
-        localStorage.setLastPurchase(purchase);
+    if (await backend.checkConnection()) {
+      await backend.sendLocalPurchasesToServer();
+      //try to fetch data from server
+      try {
+        final response = await backend.get('/purchase?userId=$userId');
+        if (response != null) {
+          purchase = Purchase.fromJson(response.last);
+          localStorage.setLastPurchase(purchase);
+        }
+      } catch (e) {
+        developer.log(e.toString());
       }
-    } catch (e) {
-      developer.log(e.toString());
     }
 
     //load last purchase from local storage
@@ -339,33 +365,38 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Future<void> shortDrinkPurchase(User user, Drink shortcutDrink) async {
-    snackMsg.value = (++drinksPending).toString() + ' ' + shortcutDrink.name + ' gebucht';
+    snackMsg.value =
+        (++drinksPending).toString() + ' ' + shortcutDrink.name + ' gebucht';
     restartTimer();
     if (drinksPending == 1) {
       final snackBar = SnackBar(
           content: SnackContent(snackMsg),
           duration: Duration(minutes: 5),
-          action: SnackBarAction(label: 'Rückgängig machen', textColor: kColorScheme.onPrimary, onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          })
-      );
-      await ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((value) async
-        {
-          if (value == SnackBarClosedReason.action){
-            drinksPending = 0;
-            timer.cancel();
-          } else {
-            int drinks = drinksPending;
-            drinksPending = 0;
-            await purchaseDrink(user.id, shortcutDrink, drinks);
-            setState(() {});
-          }
-        });
+          action: SnackBarAction(
+              label: 'Rückgängig machen',
+              textColor: kColorScheme.onPrimary,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              }));
+      await ScaffoldMessenger.of(context)
+          .showSnackBar(snackBar)
+          .closed
+          .then((value) async {
+        if (value == SnackBarClosedReason.action) {
+          drinksPending = 0;
+          timer.cancel();
+        } else {
+          int drinks = drinksPending;
+          drinksPending = 0;
+          await purchaseDrink(user.id, shortcutDrink, drinks);
+          setState(() {});
+        }
+      });
     }
   }
 
-  void restartTimer(){
-    if(timer.isActive) {
+  void restartTimer() {
+    if (timer.isActive) {
       timer.cancel();
     }
     timer = Timer(const Duration(seconds: 5),
@@ -461,6 +492,9 @@ class SnackContent extends StatelessWidget {
     /// set to _ & __ just for readability.
     return ValueListenableBuilder<String>(
         valueListenable: snackMsg,
-        builder: (_, msg, __) => Text(msg, style: TextStyle(color: kColorScheme.onPrimary),));
+        builder: (_, msg, __) => Text(
+              msg,
+              style: TextStyle(color: kColorScheme.onPrimary),
+            ));
   }
 }

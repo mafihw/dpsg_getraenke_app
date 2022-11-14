@@ -1,6 +1,7 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
+import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
@@ -178,166 +179,178 @@ class UserProfileScreenState extends State<UserProfileScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Profil',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  IconButton(
-                      onPressed: () {
-                        setState(() {
-                          if (editMode) {
-                            restoreDefaults();
-                          } else {
-                            editMode = true;
-                          }
-                        });
-                      },
-                      icon: Icon(editMode ? Icons.cancel_outlined : Icons.edit))
-                ],
-              ),
-              Column(
-                children: [
-                  TextField(
-                    autofocus: true,
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      helperText: 'Name',
-                      focusedBorder: _nameValid ? validBorder : invalidBorder,
-                      enabledBorder: _nameValid ? validBorder : invalidBorder,
-                    ),
-                    textInputAction: TextInputAction.next,
-                    readOnly: !editMode,
-                    onChanged: (value) {
-                      setState(() {
-                        validation();
-                      });
-                    },
-                  ),
-                  TextField(
-                    controller: _mailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      helperText: 'Email',
-                      focusedBorder: _mailValid ? validBorder : invalidBorder,
-                      enabledBorder: _mailValid ? validBorder : invalidBorder,
-                    ),
-                    textInputAction: TextInputAction.next,
-                    readOnly: !editMode,
-                    onChanged: (value) {
-                      setState(() {
-                        validation();
-                      });
-                    },
-                  ),
-                  TextField(
-                    obscureText: true,
-                    controller: _passwordController,
-                    decoration: InputDecoration(
-                      helperText: 'Passwort',
-                      hintText: 'Unverändert',
-                      hintStyle: const TextStyle(fontSize: 10),
-                      focusedBorder:
-                          _passwordValid ? validBorder : invalidBorder,
-                      enabledBorder:
-                          _passwordValid ? validBorder : invalidBorder,
-                    ),
-                    textInputAction: TextInputAction.next,
-                    readOnly: !editMode,
-                    onChanged: (value) {
-                      setState(() {
-                        validation();
-                      });
-                    },
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) FocusScope.of(context).nextFocus();
-                    },
-                  ),
-                  Focus(
-                    child: Visibility(
-                      visible: _passwordController.text.isNotEmpty && editMode,
-                      child: TextField(
-                        obscureText: true,
-                        controller: _passwordCheckController,
-                        decoration: InputDecoration(
-                          helperText: 'Neues Passwort bestätigen',
-                          focusedBorder:
-                              _passwordCheckValid ? validBorder : invalidBorder,
-                          enabledBorder:
-                              _passwordCheckValid ? validBorder : invalidBorder,
+        child: OfflineCheck(
+          builder: ((context) => SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Profil',
+                          style: TextStyle(fontSize: 24),
                         ),
-                        textInputAction: TextInputAction.done,
-                        readOnly: !editMode,
-                        onChanged: (value) {
-                          setState(() {
-                            validation();
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Rolle'),
-                      DropdownButton(
-                          value: userRole,
-                          dropdownColor: kMainColor,
-                          alignment: AlignmentDirectional.topStart,
-                          items: <DropdownMenuItem<String>>[
-                            DropdownMenuItem(
-                                child: Text('Admin'), value: 'admin'),
-                            DropdownMenuItem(
-                                child: Text('User'), value: 'user'),
-                            DropdownMenuItem(
-                                child: Text('Deaktiviert'), value: 'none')
-                          ],
-                          onChanged: editsOwnAccount! || !editMode
-                              ? null
-                              : (String? value) {
-                                  setState(() {
-                                    userRole = value;
-                                  });
-                                }),
-                    ],
-                  )
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (editsOwnAccount!)
-                        OutlinedButton.icon(
+                        IconButton(
                             onPressed: () {
-                              GetIt.instance<Backend>().logout();
-                              Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LoginScreen()),
-                                  (Route<dynamic> route) => false);
+                              setState(() {
+                                if (editMode) {
+                                  restoreDefaults();
+                                } else {
+                                  editMode = true;
+                                }
+                              });
                             },
-                            icon: const Icon(Icons.logout),
-                            label: const Text('Abmelden')),
-                      OutlinedButton.icon(
-                          onPressed: _deleteProfile,
-                          icon: const Icon(Icons.delete),
-                          label: const Text('Konto löschen')),
-                    ],
-                  )
-                ],
-              ),
-            ],
-          ),
+                            icon: Icon(
+                                editMode ? Icons.cancel_outlined : Icons.edit))
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        TextField(
+                          autofocus: true,
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            helperText: 'Name',
+                            focusedBorder:
+                                _nameValid ? validBorder : invalidBorder,
+                            enabledBorder:
+                                _nameValid ? validBorder : invalidBorder,
+                          ),
+                          textInputAction: TextInputAction.next,
+                          readOnly: !editMode,
+                          onChanged: (value) {
+                            setState(() {
+                              validation();
+                            });
+                          },
+                        ),
+                        TextField(
+                          controller: _mailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            helperText: 'Email',
+                            focusedBorder:
+                                _mailValid ? validBorder : invalidBorder,
+                            enabledBorder:
+                                _mailValid ? validBorder : invalidBorder,
+                          ),
+                          textInputAction: TextInputAction.next,
+                          readOnly: !editMode,
+                          onChanged: (value) {
+                            setState(() {
+                              validation();
+                            });
+                          },
+                        ),
+                        TextField(
+                          obscureText: true,
+                          controller: _passwordController,
+                          decoration: InputDecoration(
+                            helperText: 'Passwort',
+                            hintText: 'Unverändert',
+                            hintStyle: const TextStyle(fontSize: 10),
+                            focusedBorder:
+                                _passwordValid ? validBorder : invalidBorder,
+                            enabledBorder:
+                                _passwordValid ? validBorder : invalidBorder,
+                          ),
+                          textInputAction: TextInputAction.next,
+                          readOnly: !editMode,
+                          onChanged: (value) {
+                            setState(() {
+                              validation();
+                            });
+                          },
+                          onSubmitted: (value) {
+                            if (value.isNotEmpty)
+                              FocusScope.of(context).nextFocus();
+                          },
+                        ),
+                        Focus(
+                          child: Visibility(
+                            visible:
+                                _passwordController.text.isNotEmpty && editMode,
+                            child: TextField(
+                              obscureText: true,
+                              controller: _passwordCheckController,
+                              decoration: InputDecoration(
+                                helperText: 'Neues Passwort bestätigen',
+                                focusedBorder: _passwordCheckValid
+                                    ? validBorder
+                                    : invalidBorder,
+                                enabledBorder: _passwordCheckValid
+                                    ? validBorder
+                                    : invalidBorder,
+                              ),
+                              textInputAction: TextInputAction.done,
+                              readOnly: !editMode,
+                              onChanged: (value) {
+                                setState(() {
+                                  validation();
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Rolle'),
+                            DropdownButton(
+                                value: userRole,
+                                dropdownColor: kMainColor,
+                                alignment: AlignmentDirectional.topStart,
+                                items: <DropdownMenuItem<String>>[
+                                  DropdownMenuItem(
+                                      child: Text('Admin'), value: 'admin'),
+                                  DropdownMenuItem(
+                                      child: Text('User'), value: 'user'),
+                                  DropdownMenuItem(
+                                      child: Text('Deaktiviert'), value: 'none')
+                                ],
+                                onChanged: editsOwnAccount! || !editMode
+                                    ? null
+                                    : (String? value) {
+                                        setState(() {
+                                          userRole = value;
+                                        });
+                                      }),
+                          ],
+                        )
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            if (editsOwnAccount!)
+                              OutlinedButton.icon(
+                                  onPressed: () {
+                                    GetIt.instance<Backend>().logout();
+                                    Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                LoginScreen()),
+                                        (Route<dynamic> route) => false);
+                                  },
+                                  icon: const Icon(Icons.logout),
+                                  label: const Text('Abmelden')),
+                            OutlinedButton.icon(
+                                onPressed: _deleteProfile,
+                                icon: const Icon(Icons.delete),
+                                label: const Text('Konto löschen')),
+                          ],
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              )),
         ),
       ),
     );

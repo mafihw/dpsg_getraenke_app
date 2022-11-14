@@ -223,7 +223,7 @@ class Backend {
   }
 
   Future<bool> refreshData() async {
-    if (!isInitialized || !isLoggedIn) {
+    if (!await checkConnection() || !isInitialized || !isLoggedIn) {
       return false;
     } else {
       try {
@@ -351,10 +351,10 @@ class Backend {
                 ElevatedButton(
                   child: isRefreshingToken
                       ? SizedBox(
-                      height: 25,
-                      width: 25,
-                      child: CircularProgressIndicator(
-                          color: Colors.blue.shade800))
+                          height: 25,
+                          width: 25,
+                          child: CircularProgressIndicator(
+                              color: Colors.blue.shade800))
                       : Text('Bestätigen'),
                   onPressed: () async {
                     if (_textFieldController.text.isNotEmpty &&

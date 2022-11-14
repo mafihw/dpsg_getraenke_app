@@ -42,21 +42,22 @@ class User {
 }
 
 Future<User> fetchUser() async {
-  GetIt.I<PermissionSystem>().fetchPermissions();
-  String id = GetIt.I<Backend>().loggedInUserId!;
   User? user;
+  if (await GetIt.I<Backend>().checkConnection()) {
+    GetIt.I<PermissionSystem>().fetchPermissions();
+    String id = GetIt.I<Backend>().loggedInUserId!;
 
-  //try to fetch data from server
-  try {
-    final response = await GetIt.instance<Backend>().get('/user/$id');
-    if (response != null) {
-      user = User.fromJson(response);
-      GetIt.I<LocalDB>().saveLoginInformation(user, null);
+    //try to fetch data from server
+    try {
+      final response = await GetIt.instance<Backend>().get('/user/$id');
+      if (response != null) {
+        user = User.fromJson(response);
+        GetIt.I<LocalDB>().saveLoginInformation(user, null);
+      }
+    } catch (e) {
+      developer.log(e.toString());
     }
-  } catch (e) {
-    developer.log(e.toString());
   }
-
   //load user from local storage
   user ??= (await GetIt.I<LocalDB>().getLoginInformation())!['user'];
 
