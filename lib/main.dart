@@ -61,8 +61,12 @@ class _MyHomePageState extends State<MyHomePage> {
       screen = LoginScreen();
     }
     return MaterialApp(
-      home: screen,
-      theme: ThemeData(colorScheme: kColorScheme, snackBarTheme: snackBarTheme),
-    );
+        home: screen,
+        theme: ThemeData(
+            colorScheme: kColorScheme,
+            snackBarTheme: snackBarTheme,
+            dialogTheme: DialogTheme(backgroundColor: kBackgroundColor),
+            checkboxTheme: CheckboxThemeData(
+                fillColor: MaterialStateProperty.all(kPrimaryColor))));
   }
 }
