@@ -293,7 +293,7 @@ class Backend {
     if (payload.containsKey('exp') &&
         (payload['exp'] * 1000 >
             DateTime.now()
-                .add(const Duration(days: 7))
+                .add(const Duration(days: 1))
                 .millisecondsSinceEpoch)) {
       return true;
     } else {
