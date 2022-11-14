@@ -18,3 +18,9 @@ const kColorScheme = ColorScheme(
   error: Colors.redAccent,
   onError: Colors.white,
 );
+
+final snackBarTheme = SnackBarThemeData(
+  backgroundColor: kColorScheme.primary,
+  behavior: SnackBarBehavior.floating,
+  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+);

@@ -62,7 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     return MaterialApp(
       home: screen,
-      theme: ThemeData(colorScheme: kColorScheme),
+      theme: ThemeData(colorScheme: kColorScheme, snackBarTheme: snackBarTheme),
     );
   }
 }

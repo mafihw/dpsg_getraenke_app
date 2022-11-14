@@ -28,7 +28,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   User? currentUser;
   final Purchase? lastPurchase = null;
-  var timer;
+  Timer timer = Timer(const Duration(seconds: 5), () {});
 
   //The ValueNotifier triggers a rebuild of a snackBar
   final ValueNotifier<String> snackMsg = ValueNotifier('');
@@ -341,8 +341,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Future<void> shortDrinkPurchase(User user, Drink shortcutDrink) async {
     snackMsg.value = (++drinksPending).toString() + ' ' + shortcutDrink.name + ' gebucht';
     restartTimer();
-    if(drinksPending == 1){
-      final snackBar = CustomSnackBar(
+    if (drinksPending == 1) {
+      final snackBar = SnackBar(
           content: SnackContent(snackMsg),
           duration: Duration(minutes: 5),
           action: SnackBarAction(label: 'Rückgängig machen', textColor: kColorScheme.onPrimary, onPressed: () {
@@ -368,7 +368,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if(timer.isActive) {
       timer.cancel();
     }
-    timer = Timer(Duration(seconds: 5), () => { ScaffoldMessenger.of(context).hideCurrentSnackBar() });
+    timer = Timer(const Duration(seconds: 5),
+        () => {ScaffoldMessenger.of(context).hideCurrentSnackBar()});
   }
 }
 
