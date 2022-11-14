@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
@@ -26,6 +28,7 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> {
   User? currentUser;
   final Purchase? lastPurchase = null;
+  var timer;
 
   //The ValueNotifier triggers a rebuild of a snackBar
   final ValueNotifier<String> snackMsg = ValueNotifier('');
@@ -337,9 +340,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   Future<void> shortDrinkPurchase(User user, Drink shortcutDrink) async {
     snackMsg.value = (++drinksPending).toString() + ' ' + shortcutDrink.name + ' gebucht';
+    restartTimer();
     if(drinksPending == 1){
       final snackBar = CustomSnackBar(
           content: SnackContent(snackMsg),
+          duration: Duration(minutes: 5),
           action: SnackBarAction(label: 'Rückgängig machen', textColor: kColorScheme.onPrimary, onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           })
@@ -348,6 +353,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         {
           if (value == SnackBarClosedReason.action){
             drinksPending = 0;
+            timer.cancel();
           } else {
             int drinks = drinksPending;
             drinksPending = 0;
@@ -356,6 +362,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           }
         });
     }
+  }
+
+  void restartTimer(){
+    if(timer.isActive) {
+      timer.cancel();
+    }
+    timer = Timer(Duration(seconds: 5), () => { ScaffoldMessenger.of(context).hideCurrentSnackBar() });
   }
 }
 
