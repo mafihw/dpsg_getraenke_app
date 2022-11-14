@@ -8,8 +8,9 @@ AlertDialog CustomAlertDialog({required Widget? title, required Widget? content,
     title: title,
     content: content,
     actions: actions,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     actionsPadding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
-    actionsAlignment: MainAxisAlignment.spaceBetween,
+    actionsAlignment: MainAxisAlignment.end,
   );
 }
 

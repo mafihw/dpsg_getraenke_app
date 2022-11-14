@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
 
 import '../model/purchase.dart';
+import '../shared/colors.dart';
 
 const bool usingLocalAPI = false;
 
@@ -292,7 +293,7 @@ class Backend {
     if (payload.containsKey('exp') &&
         (payload['exp'] * 1000 >
             DateTime.now()
-                .add(const Duration(days: 1))
+                .add(const Duration(days: 7))
                 .millisecondsSinceEpoch)) {
       return true;
     } else {
@@ -301,55 +302,91 @@ class Backend {
   }
 
   Future<void> refreshToken(context) async {
-    final password = await _showPasswordDialog(context);
     final email = loggedInUser?.email;
-    if (password != null && email != null) {
-      this.login(email, password);
-    }
+    if (email != null) await _showDialog(context, email);
   }
 
-  Future<String?> _showPasswordDialog(BuildContext context) async {
+  Future<String?> _showDialog(BuildContext context, String email) async {
     TextEditingController _textFieldController = new TextEditingController();
     String? userInput = null;
+    bool isRefreshingToken = false;
+    String? _errorText = null;
     await showDialog(
+        barrierDismissible: false,
         context: context,
         builder: (context) {
-          return CustomAlertDialog(
-            title: Text('Passwort eingeben'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                    "Account muss neu validiert werden. Bitte Passwort erneut eingeben."),
-                SizedBox(height: 10),
-                TextField(
-                  onChanged: (value) {
-                    userInput = value;
+          return StatefulBuilder(builder: (context, setState) {
+            return CustomAlertDialog(
+              title: Text('Passwort eingeben'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                      "Account muss neu validiert werden. Bitte Passwort erneut eingeben."),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: _textFieldController,
+                    decoration: InputDecoration(
+                        hintText: "Passwort", errorText: _errorText),
+                    obscureText: true,
+                    onChanged: (_text) {
+                      setState(() {
+                        _errorText = null;
+                      });
+                    },
+                  )
+                ],
+              ),
+              actions: <Widget>[
+                /*
+                OutlinedButton(
+                  child: Text('Offline nutzen'),
+                  onPressed: () {
+                    userInput = null;
+                    Navigator.pop(context);
+                    return;
                   },
-                  controller: _textFieldController,
-                  decoration: InputDecoration(hintText: "Passwort"),
-                  obscureText: true,
-                )
+                ),
+                */
+                ElevatedButton(
+                  child: isRefreshingToken
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: kColorScheme.onPrimary,
+                          ))
+                      : Text('Bestätigen'),
+                  onPressed: () async {
+                    if (_textFieldController.text.isNotEmpty &&
+                        !isRefreshingToken) {
+                      setState(() {
+                        isRefreshingToken = true;
+                      });
+                      if (await this.login(email, _textFieldController.text)) {
+                        setState(() {
+                          isRefreshingToken = false;
+                        });
+                        Navigator.pop(context);
+                        return;
+                      } else {
+                        setState(() {
+                          isRefreshingToken = false;
+                          _errorText = 'Passwort falsch!';
+                        });
+                      }
+                    } else {
+                      if (!isRefreshingToken) {
+                        setState(() {
+                          _errorText = 'Passwort falsch!';
+                        });
+                      }
+                    }
+                  },
+                ),
               ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  userInput = null;
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-            ],
-          );
+            );
+          });
         });
     return userInput;
   }
