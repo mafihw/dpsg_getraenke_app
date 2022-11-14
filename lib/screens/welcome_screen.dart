@@ -211,7 +211,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             tag: 'syncWarning',
                             child: Icon(
                               Icons.sync_problem_rounded,
-                              color: kSecondaryColor,
+                              color: kWarningColor,
                             ));
                       } else {
                         return Container();
