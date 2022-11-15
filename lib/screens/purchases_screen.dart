@@ -44,7 +44,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           if (snapshot.hasData) {
             if (snapshot.data!) {
               return FutureBuilder<dynamic>(
-                  future: getPurchases(),
+                  future: getPurchases(widget.user),
                   builder: (context, snapshot2) {
                     if (snapshot2.hasData) {
                       return _buildOnlinePurchases(snapshot2.data!);
