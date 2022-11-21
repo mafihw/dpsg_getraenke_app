@@ -110,13 +110,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Container processSnapshotData(snapshot) {
-    final user = snapshot.data!.user;
-    final lastPurchase = snapshot.data!.lastPurchase;
-    final unsentPurchasesCost = snapshot.data!.unsentPurchasesCost;
+    final User user = snapshot.data!.user;
+    final Purchase? lastPurchase = snapshot.data!.lastPurchase;
+    final int unsentPurchasesCost = snapshot.data!.unsentPurchasesCost;
     final Drink? shortcutDrink = snapshot.data!.shortcutDrink;
+    final now = DateTime.now();
     int daysUntilLastBooking = lastPurchase == null
         ? 0
-        : DateTime.now().difference(lastPurchase.date).inDays;
+        : DateTime(now.year, now.month, now.day)
+            .difference(DateTime(lastPurchase.date.year,
+                lastPurchase.date.month, lastPurchase.date.day))
+            .inDays;
     return Container(
       color: kBackgroundColor,
       child: SingleChildScrollView(
