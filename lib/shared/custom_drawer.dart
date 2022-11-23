@@ -43,7 +43,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               color: kMainColor,
             ),
             child: Image(
-              image: AssetImage('assets/icon_2500px.png'),
+              image: AssetImage('assets/icon_500px.png'),
             ),
           ),
           ...addListTilesToDrawer()

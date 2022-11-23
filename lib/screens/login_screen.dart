@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Hero(
                 tag: 'icon_hero',
                 child: Image(
-                  image: AssetImage('assets/icon_2500px.png'),
+                  image: AssetImage('assets/icon_500px.png'),
                   height: 150.0,
                 ),
               ),
