@@ -1,4 +1,4 @@
-package com.example.dpsg_app
+package de.dpsg_gladbach.app
 
 import io.flutter.embedding.android.FlutterActivity
 
