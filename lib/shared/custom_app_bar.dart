@@ -43,7 +43,7 @@ class _CustomAppBarState extends State<CustomAppBar>
           },
           child: RotationTransition(
             turns: Tween(begin: 0.0, end: 1.0).animate(_controller),
-            child: Image(image: AssetImage('assets/icon_2500px.png')),
+            child: const Image(image: AssetImage('assets/icon_500px.png')),
           ),
         ),
       ),

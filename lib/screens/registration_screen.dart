@@ -41,10 +41,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   bool validation() {
     return nameTextController.text.isNotEmpty &&
-            RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                .hasMatch(emailTextController.text) &&
-            passwordTextController.text.length >= 8  &&
-            confirmPasswordTextController.text == passwordTextController.text;
+        RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+            .hasMatch(emailTextController.text) &&
+        passwordTextController.text.length >= 8 &&
+        confirmPasswordTextController.text == passwordTextController.text;
   }
 
   bool validateName() {
@@ -89,7 +89,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   const Hero(
                     tag: 'icon_hero',
                     child: Image(
-                      image: AssetImage('assets/icon_2500px.png'),
+                      image: AssetImage('assets/icon_500px.png'),
                       height: 150.0,
                     ),
                   ),
@@ -176,49 +176,53 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           },
                           child: Text('Zurück')),
                       ElevatedButton(
-                        onPressed: validation() ? () async {
-                          if (!currentlyLoggingIn) {
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            setState(() {
-                              currentlyLoggingIn = true;
-                            });
-                            if (await GetIt.instance<Backend>().register(
-                              emailTextController.text,
-                              passwordTextController.text,
-                              nameTextController.text,
-                            )) {
-                              if (GetIt.instance<Backend>()
-                                      .loggedInUser!
-                                      .role !=
-                                  'none') {
-                                Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => HomeScreen()),
-                                    (route) => false);
-                              } else {
-                                Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            NotVerifiedScreen(true)),
-                                    (route) => false);
+                        onPressed: validation()
+                            ? () async {
+                                if (!currentlyLoggingIn) {
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                  setState(() {
+                                    currentlyLoggingIn = true;
+                                  });
+                                  if (await GetIt.instance<Backend>().register(
+                                    emailTextController.text,
+                                    passwordTextController.text,
+                                    nameTextController.text,
+                                  )) {
+                                    if (GetIt.instance<Backend>()
+                                            .loggedInUser!
+                                            .role !=
+                                        'none') {
+                                      Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  HomeScreen()),
+                                          (route) => false);
+                                    } else {
+                                      Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  NotVerifiedScreen(true)),
+                                          (route) => false);
+                                    }
+                                    setState(() {
+                                      currentlyLoggingIn = false;
+                                    });
+                                  } else {
+                                    const snackBar = SnackBar(
+                                      content:
+                                          Text('Registrierung fehlgeschlagen!'),
+                                    );
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(snackBar);
+                                    setState(() {
+                                      currentlyLoggingIn = false;
+                                    });
+                                  }
+                                }
                               }
-                              setState(() {
-                                currentlyLoggingIn = false;
-                              });
-                            } else {
-                              const snackBar = SnackBar(
-                                content: Text('Registrierung fehlgeschlagen!'),
-                              );
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(snackBar);
-                              setState(() {
-                                currentlyLoggingIn = false;
-                              });
-                            }
-                          }
-                        } : null,
+                            : null,
                         child: currentlyLoggingIn
                             ? SizedBox(
                                 height: 25,
