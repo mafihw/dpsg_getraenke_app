@@ -99,7 +99,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           updateHomeScreen();
         },
       ),
-      ListTile(
+      /*ListTile(
         leading: Icon(FontAwesomeIcons.syringe),
         title: const Text('Promillerechner'),
         onTap: () {},
@@ -108,7 +108,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         leading: Icon(Icons.settings),
         title: const Text('Einstellungen'),
         onTap: () {},
-      ),
+      ),*/
       if (GetIt.I<PermissionSystem>()
               .userHasPermission(Permission.canGetAllUsers) ||
           GetIt.I<PermissionSystem>()
