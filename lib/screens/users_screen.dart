@@ -239,8 +239,9 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
           buildSettingCard(
             icon: Icons.euro,
             name: 'Zahlung buchen',
-            onTap: () {
-              GeldBuchen(user);
+            onTap: () async {
+              await geldBuchen(user);
+              Navigator.pop(context);
             },
           ),
         if (GetIt.I<PermissionSystem>()
@@ -287,7 +288,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     );
   }
 
-  Future<void> GeldBuchen(User user) async {
+  Future<void> geldBuchen(User user) async {
     MoneyMaskedTextController _MoneyMaskedTextController =
         new MoneyMaskedTextController(
             decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
@@ -337,7 +338,17 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                       'uuid': user.id,
                       'value': _MoneyMaskedTextController.numberValue * 100
                     };
-                    await GetIt.I<Backend>().post('/payment', jsonEncode(body));
+                    try {
+                      await GetIt.I<Backend>()
+                          .post('/payment', jsonEncode(body));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Zahlung wurde gespeichert!')));
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Fehler beim Speichern der Zahlung!'),
+                        backgroundColor: kWarningColor,
+                      ));
+                    }
                   }
                   Navigator.pop(context);
                   return;
