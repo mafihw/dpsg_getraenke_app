@@ -5,6 +5,7 @@ import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
+import 'package:dpsg_app/shared/about_dialog.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -99,7 +100,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           updateHomeScreen();
         },
       ),
-      ListTile(
+      /*ListTile(
         leading: Icon(FontAwesomeIcons.syringe),
         title: const Text('Promillerechner'),
         onTap: () {},
@@ -108,7 +109,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         leading: Icon(Icons.settings),
         title: const Text('Einstellungen'),
         onTap: () {},
-      ),
+      ),*/
       if (GetIt.I<PermissionSystem>()
               .userHasPermission(Permission.canGetAllUsers) ||
           GetIt.I<PermissionSystem>()
@@ -149,6 +150,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ),
           ],
         ),
+      ListTile(
+        leading: const Icon(Icons.info_outline_rounded),
+        title: const Text('Rechtliches'),
+        onTap: () => displayAboutDialog(context),
+      ),
       ListTile(
         leading: Icon(Icons.logout),
         title: const Text('Abmelden'),
