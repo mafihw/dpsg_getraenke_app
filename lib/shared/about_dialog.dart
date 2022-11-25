@@ -18,8 +18,7 @@ displayAboutDialog(context) {
         ),
         TextButton(
           child: const Text('Datenschutzerklärung'),
-          //TODO: DATENSCHUTZ LINK EINFÜGEN!
-          onPressed: () => launchUrl(Uri.parse('https://www.dpsg-gladbach.de/'),
+          onPressed: () => launchUrl(Uri.parse('https://www.dpsg-gladbach.de/app-datenschutz'),
               mode: LaunchMode.externalApplication),
         ),
       ]);
