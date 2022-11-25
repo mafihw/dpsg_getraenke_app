@@ -28,6 +28,15 @@ class UserAdministrationScreen extends StatefulWidget {
 
 class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
   User? selectedUser = null;
+  static const userRoles = [null, 'none', 'user', 'admin'];
+  static const userRolesIcon = [
+    Icons.groups,
+    Icons.person_off,
+    Icons.person,
+    Icons.key
+  ];
+  int selectedGroup = 0;
+
   final TextEditingController _searchTextController = TextEditingController();
 
   void performRebuild() {
@@ -48,69 +57,97 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                   (index) => User.fromJson(snapshot.data![index]));
               users.sort((a, b) => a.name.compareTo(b.name));
               for (var user in users) {
-                if (_searchTextController.text.isEmpty ||
+                //check text input filter
+                if (!(_searchTextController.text.isEmpty ||
                     user.name
                         .toLowerCase()
                         .contains(_searchTextController.text.toLowerCase()) ||
                     user.email
                         .toLowerCase()
-                        .contains(_searchTextController.text.toLowerCase())) {
-                  userCards.add(buildUserCard(
-                      child: Row(
-                        children: [
-                          Icon(user.role == 'none'
-                              ? Icons.disabled_by_default_outlined
-                              : Icons.check_circle_outline),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user.name,
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                Text(
-                                  'Email: ${user.email}',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                Text(
-                                  'Rolle: ${user.role}',
-                                  style: TextStyle(fontSize: 14),
-                                )
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                      onTap: () {
-                        showCustomModalSheet(user);
-                      }));
+                        .contains(_searchTextController.text.toLowerCase()))) {
+                  continue;
                 }
+
+                if (userRoles[selectedGroup] != null &&
+                    userRoles[selectedGroup] != user.role) {
+                  continue;
+                }
+
+                userCards.add(buildUserCard(
+                    child: Row(
+                      children: [
+                        Icon(user.role == 'admin'
+                            ? Icons.key
+                            : user.role == 'user'
+                                ? Icons.person
+                                : user.role == 'none'
+                                    ? Icons.person_off
+                                    : Icons.question_mark),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                'Email: ${user.email}',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              Text(
+                                'Kontostand: ' + (user.balance / 100)
+                                    .toStringAsFixed(2)
+                                    .replaceAll('.', ',') +
+                                    " €",
+                                style: TextStyle(fontSize: 14),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    onTap: () {
+                      showCustomModalSheet(user);
+                    }));
               }
               return Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _searchTextController,
-                      decoration: InputDecoration(
-                        hintText: 'Suche',
-                        suffixIcon: IconButton(
-                          icon: Icon(_searchTextController.text.isEmpty
-                              ? Icons.person_search
-                              : Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              _searchTextController.clear();
-                            });
-                            FocusManager.instance.primaryFocus?.unfocus();
-                          },
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchTextController,
+                            decoration: InputDecoration(
+                              hintText: 'Suche',
+                              suffixIcon: IconButton(
+                                icon: Icon(_searchTextController.text.isEmpty
+                                    ? Icons.person_search
+                                    : Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchTextController.clear();
+                                  });
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                },
+                              ),
+                            ),
+                            onChanged: (query) {
+                              setState(() {});
+                            },
+                          ),
                         ),
-                      ),
-                      onChanged: (query) {
-                        setState(() {});
-                      },
+                        IconButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedGroup = ++selectedGroup % 4;
+                              });
+                            },
+                            icon: Icon(userRolesIcon[selectedGroup]))
+                      ],
                     ),
                   ),
                   Expanded(
