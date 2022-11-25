@@ -18,6 +18,8 @@ import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
 
+enum sortModes { name, balance }
+
 class UserAdministrationScreen extends StatefulWidget {
   const UserAdministrationScreen({Key? key}) : super(key: key);
 
@@ -36,6 +38,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     Icons.key
   ];
   int selectedGroup = 0;
+  String sortMode = sortModes.name.name;
 
   final TextEditingController _searchTextController = TextEditingController();
 
@@ -55,7 +58,8 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               List<Widget> userCards = [];
               List<User> users = List.generate(snapshot.data!.length,
                   (index) => User.fromJson(snapshot.data![index]));
-              users.sort((a, b) => a.name.compareTo(b.name));
+              if(sortMode == sortModes.name.name) users.sort((a, b) => a.name.compareTo(b.name));
+              if(sortMode == sortModes.balance.name) users.sort((a, b) => a.balance.compareTo(b.balance));
               for (var user in users) {
                 //check text input filter
                 if (!(_searchTextController.text.isEmpty ||
@@ -97,9 +101,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                                 style: TextStyle(fontSize: 14),
                               ),
                               Text(
-                                'Kontostand: ' + (user.balance / 100)
-                                    .toStringAsFixed(2)
-                                    .replaceAll('.', ',') +
+                                'Kontostand: ' +
+                                    (user.balance / 100)
+                                        .toStringAsFixed(2)
+                                        .replaceAll('.', ',') +
                                     " €",
                                 style: TextStyle(fontSize: 14),
                               )
@@ -146,7 +151,27 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                                 selectedGroup = ++selectedGroup % 4;
                               });
                             },
-                            icon: Icon(userRolesIcon[selectedGroup]))
+                            icon: Icon(userRolesIcon[selectedGroup])),
+                        PopupMenuButton<sortModes>(
+                            icon: Icon(Icons.sort),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            color: kColorScheme.surface,
+                            onSelected: (sortModes item) {
+                              setState(() {
+                                sortMode = item.name;
+                              });
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<sortModes>>[
+                                  const PopupMenuItem<sortModes>(
+                                    value: sortModes.name,
+                                    child: Text('Name'),
+                                  ),
+                                  const PopupMenuItem<sortModes>(
+                                    value: sortModes.balance,
+                                    child: Text('Kontostand'),
+                                  ),
+                                ]),
                       ],
                     ),
                   ),
