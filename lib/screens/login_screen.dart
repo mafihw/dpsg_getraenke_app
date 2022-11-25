@@ -1,6 +1,7 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
+import 'package:dpsg_app/shared/about_dialog.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -24,6 +25,11 @@ class _LoginScreenState extends State<LoginScreen> {
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text('Login'),
+          actions: [
+            IconButton(
+                onPressed: () => displayAboutDialog(context),
+                icon: const Icon(Icons.info))
+          ],
         ),
         body: Center(
           child: Padding(
@@ -33,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Hero(
                 tag: 'icon_hero',
                 child: Image(
-                  image: AssetImage('assets/icon_2500px.png'),
+                  image: AssetImage('assets/icon_500px.png'),
                   height: 150.0,
                 ),
               ),

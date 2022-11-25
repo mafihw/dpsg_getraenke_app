@@ -260,7 +260,7 @@ class Backend {
           "uuid": element.userId,
           "drinkid": element.drinkId,
           "amount": element.amount,
-          "date": element.date.toIso8601String(),
+          "date": element.date.toString(),
         };
         developer.log('Sending purchase to server');
         try {
