@@ -18,6 +18,8 @@ import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
 
+enum sortModes { name, balance }
+
 class UserAdministrationScreen extends StatefulWidget {
   const UserAdministrationScreen({Key? key}) : super(key: key);
 
@@ -28,6 +30,16 @@ class UserAdministrationScreen extends StatefulWidget {
 
 class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
   User? selectedUser = null;
+  static const userRoles = [null, 'none', 'user', 'admin'];
+  static const userRolesIcon = [
+    Icons.groups,
+    Icons.person_off,
+    Icons.person,
+    Icons.key
+  ];
+  int selectedGroup = 0;
+  String sortMode = sortModes.name.name;
+
   final TextEditingController _searchTextController = TextEditingController();
 
   void performRebuild() {
@@ -46,71 +58,121 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               List<Widget> userCards = [];
               List<User> users = List.generate(snapshot.data!.length,
                   (index) => User.fromJson(snapshot.data![index]));
-              users.sort((a, b) => a.name.compareTo(b.name));
+              if(sortMode == sortModes.name.name) users.sort((a, b) => a.name.compareTo(b.name));
+              if(sortMode == sortModes.balance.name) users.sort((a, b) => a.balance.compareTo(b.balance));
               for (var user in users) {
-                if (_searchTextController.text.isEmpty ||
+                //check text input filter
+                if (!(_searchTextController.text.isEmpty ||
                     user.name
                         .toLowerCase()
                         .contains(_searchTextController.text.toLowerCase()) ||
                     user.email
                         .toLowerCase()
-                        .contains(_searchTextController.text.toLowerCase())) {
-                  userCards.add(buildUserCard(
-                      child: Row(
-                        children: [
-                          Icon(user.role == 'none'
-                              ? Icons.disabled_by_default_outlined
-                              : Icons.check_circle_outline),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user.name,
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                Text(
-                                  'Email: ${user.email}',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                Text(
-                                  'Rolle: ${user.role}',
-                                  style: TextStyle(fontSize: 14),
-                                )
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                      onTap: () {
-                        showCustomModalSheet(user);
-                      }));
+                        .contains(_searchTextController.text.toLowerCase()))) {
+                  continue;
                 }
+
+                if (userRoles[selectedGroup] != null &&
+                    userRoles[selectedGroup] != user.role) {
+                  continue;
+                }
+
+                userCards.add(buildUserCard(
+                    child: Row(
+                      children: [
+                        Icon(user.role == 'admin'
+                            ? Icons.key
+                            : user.role == 'user'
+                                ? Icons.person
+                                : user.role == 'none'
+                                    ? Icons.person_off
+                                    : Icons.question_mark),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user.name,
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              Text(
+                                'Email: ${user.email}',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              Text(
+                                'Kontostand: ' +
+                                    (user.balance / 100)
+                                        .toStringAsFixed(2)
+                                        .replaceAll('.', ',') +
+                                    " €",
+                                style: TextStyle(fontSize: 14),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                    onTap: () {
+                      showCustomModalSheet(user);
+                    }));
               }
               return Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _searchTextController,
-                      decoration: InputDecoration(
-                        hintText: 'Suche',
-                        suffixIcon: IconButton(
-                          icon: Icon(_searchTextController.text.isEmpty
-                              ? Icons.person_search
-                              : Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              _searchTextController.clear();
-                            });
-                            FocusManager.instance.primaryFocus?.unfocus();
-                          },
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchTextController,
+                            decoration: InputDecoration(
+                              hintText: 'Suche',
+                              suffixIcon: IconButton(
+                                icon: Icon(_searchTextController.text.isEmpty
+                                    ? Icons.person_search
+                                    : Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchTextController.clear();
+                                  });
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                },
+                              ),
+                            ),
+                            onChanged: (query) {
+                              setState(() {});
+                            },
+                          ),
                         ),
-                      ),
-                      onChanged: (query) {
-                        setState(() {});
-                      },
+                        IconButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedGroup = ++selectedGroup % 4;
+                              });
+                            },
+                            icon: Icon(userRolesIcon[selectedGroup])),
+                        PopupMenuButton<sortModes>(
+                            icon: Icon(Icons.sort),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            color: kColorScheme.surface,
+                            onSelected: (sortModes item) {
+                              setState(() {
+                                sortMode = item.name;
+                              });
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<sortModes>>[
+                                  const PopupMenuItem<sortModes>(
+                                    value: sortModes.name,
+                                    child: Text('Name'),
+                                  ),
+                                  const PopupMenuItem<sortModes>(
+                                    value: sortModes.balance,
+                                    child: Text('Kontostand'),
+                                  ),
+                                ]),
+                      ],
                     ),
                   ),
                   Expanded(
