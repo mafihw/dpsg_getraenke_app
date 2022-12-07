@@ -1,6 +1,7 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/permissions.dart';
-import 'package:dpsg_app/screens/drinks_screen.dart';
+import 'package:dpsg_app/screens/drinks_administration_screen.dart';
+import 'package:dpsg_app/screens/drinks_statistics_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
@@ -110,46 +111,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Einstellungen'),
         onTap: () {},
       ),*/
-      if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canGetAllUsers) ||
-          GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canEditDrinks))
-        ExpansionTile(
-          title: Text("Verwaltung"),
-          leading: Icon(FontAwesomeIcons.lockOpen),
-          children: [
-            if (GetIt.I<PermissionSystem>()
-                .userHasPermission(Permission.canGetAllUsers))
-              ListTile(
-                leading: Icon(Icons.manage_accounts),
-                title: const Text('Nutzer'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  await Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => UserAdministrationScreen()),
-                      (Route<dynamic> route) => route.isFirst);
-                  updateHomeScreen();
-                },
-              ),
-            if (GetIt.I<PermissionSystem>()
-                .userHasPermission(Permission.canEditDrinks))
-              ListTile(
-                leading: Icon(FontAwesomeIcons.wineBottle),
-                title: const Text('Getränke'),
-                onTap: () async {
-                  Navigator.pop(context);
-                  await Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => DrinkAdministrationScreen()),
-                      (Route<dynamic> route) => route.isFirst);
-                  updateHomeScreen();
-                },
-              ),
-          ],
-        ),
+      ...getAdminListTiles(),
       ListTile(
         leading: const Icon(Icons.info_outline_rounded),
         title: const Text('Rechtliches'),
@@ -168,5 +130,71 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ),
     ];
     return listTiles;
+  }
+
+  List<Widget> getAdminListTiles() {
+    final adminListTiles = <Widget>[];
+    if (GetIt.I<PermissionSystem>()
+            .userHasPermission(Permission.canGetAllUsers) ||
+        GetIt.I<PermissionSystem>()
+            .userHasPermission(Permission.canEditDrinks)) {
+      adminListTiles.add(ExpansionTile(
+        title: Text("Verwaltung"),
+        leading: Icon(FontAwesomeIcons.lockOpen),
+        children: [
+          if (GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canGetAllUsers))
+            ListTile(
+              leading: Icon(Icons.manage_accounts),
+              title: const Text('Nutzer'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => UserAdministrationScreen()),
+                        (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
+              },
+            ),
+          if (GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canEditDrinks))
+            ListTile(
+              leading: Icon(FontAwesomeIcons.wineBottle),
+              title: const Text('Getränke'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => DrinkAdministrationScreen()),
+                        (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
+              },
+            ),
+        ],
+      ));adminListTiles.add(ExpansionTile(
+        title: Text("Statistiken"),
+        leading: Icon(FontAwesomeIcons.chartLine),
+        children: [
+          if (GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canEditDrinks))
+            ListTile(
+              leading: Icon(FontAwesomeIcons.wineBottle),
+              title: const Text('Getränke'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => DrinkStatisticsScreen()),
+                        (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
+              },
+            ),
+        ],
+      ));
+    }
+    return adminListTiles;
   }
 }

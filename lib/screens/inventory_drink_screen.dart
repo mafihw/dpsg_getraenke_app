@@ -52,17 +52,35 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
                         style: TextStyle(fontSize: 20),
                       ),
                       Text(
+                        "Soll-Bestand: " +
+                            inventory.amountCalculated.toString() +
+                            ' Fl.',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      Text(
                         "Ist-Bestand: " +
                             inventory.amountActual.toString() +
                             ' Fl.',
                         style: TextStyle(fontSize: 14),
                       ),
-                      Text(
-                        "Soll-Bestand: " +
-                            inventory.amountCalculated.toString() +
-                            ' Fl.',
-                        style: TextStyle(fontSize: 14),
-                      )
+                      Row(children: [
+                        Text(
+                          "Differenz: ",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        Text(
+                            (inventory.amountActual -
+                                        inventory.amountCalculated)
+                                    .toString() +
+                                ' Fl.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: (inventory.amountActual -
+                                          inventory.amountCalculated) < 0
+                                  ? Colors.red
+                                  : Colors.green,
+                            ))
+                      ])
                     ],
                   )
                 ],

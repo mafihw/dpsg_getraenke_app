@@ -13,7 +13,6 @@ import '../model/drink.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
-import 'inventory_drink_screen.dart';
 
 class DrinkAdministrationScreen extends StatefulWidget {
   const DrinkAdministrationScreen({Key? key}) : super(key: key);
@@ -49,31 +48,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         .toLowerCase()
                         .contains(_searchTextController.text.toLowerCase())) {
                   drinkCards.add(buildDrinkCard(
-                      child: Row(
-                        children: [
-                          Icon(drink.active ? Icons.water_drop : Icons.close),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  drink.name,
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                Text(
-                                  "Preis: " +
-                                      (drink.cost / 100)
-                                          .toStringAsFixed(2)
-                                          .replaceAll('.', ',') +
-                                      " €",
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
+                      drink: drink,
                       onTap: () {
                         showCustomModalSheet(drink!);
                       }));
@@ -167,50 +142,61 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
     );
   }
 
-  Widget buildDrinkCard({required Row child, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: InkWell(
-          onTap: () => onTap(),
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: child,
+  Widget buildDrinkCard({required drink, required Function onTap}) {
+    final child = Row(
+      children: [
+        Icon(drink.active ? Icons.water_drop : Icons.close),
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                drink.name,
+                style: TextStyle(fontSize: 20),
+              ),
+              Text(
+                "Preis: " +
+                    (drink.cost / 100)
+                        .toStringAsFixed(2)
+                        .replaceAll('.', ',') +
+                    " €",
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
           ),
-        ),
-      ),
+        )
+      ],
     );
+    return buildCard(child: child, onTap: onTap);
   }
 
   Widget buildSettingCard(
       {required IconData icon, required String name, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: InkWell(
-          onTap: () => onTap(),
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(icon, size: 40),
-                Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: Text(name,
-                        style: TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center))
-              ],
-            ),
-          ),
+    final child = Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Icon(icon, size: 40),
+        Padding(
+            padding: const EdgeInsets.only(left: 20.0),
+            child: Text(name,
+                style: TextStyle(fontSize: 20), textAlign: TextAlign.center))
+      ],
+    );
+    return buildCard(child: child, onTap: onTap);
+  }
+
+  Widget buildCard({required child, required Function onTap}) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: kMainColor,
+      child: InkWell(
+        onTap: () => onTap(),
+        customBorder:
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: child,
         ),
       ),
     );
@@ -230,32 +216,6 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
         const Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
             child: Divider(thickness: 2)),
-        buildSettingCard(
-            icon: Icons.shopping_cart,
-            name: 'Einkauf hinzufügen',
-            onTap: () {
-              addNewDrinks(drink);
-              setState(() {});
-            }),
-        buildSettingCard(
-            icon: Icons.add_to_home_screen_outlined,
-            name: 'Bestand eintragen',
-            onTap: () {
-              addNewStock(drink);
-              setState(() {});
-            }),
-        buildSettingCard(
-            icon: Icons.history,
-            name: 'Bestandsverlauf anzeigen',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          InventoryDrinkScreen(drink: drink)));
-              setState(() {});
-            }),
         buildSettingCard(
           icon: Icons.euro,
           name: 'Preis ändern',
