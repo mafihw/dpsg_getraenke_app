@@ -315,7 +315,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => PurchasesScreen(user: user))));
+                        builder: ((context) => PurchasesScreen(userId: user.id))));
                 Navigator.pop(context);
               }),
         if (GetIt.I<PermissionSystem>()

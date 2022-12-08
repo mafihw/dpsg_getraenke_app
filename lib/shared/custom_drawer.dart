@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 
+import '../connection/database.dart';
 import '../screens/users_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
@@ -68,12 +69,12 @@ class _CustomDrawerState extends State<CustomDrawer> {
       ListTile(
         leading: Icon(Icons.history),
         title: const Text('Kürzliche Buchungen'),
-        onTap: () {
+        onTap: () async {
           Navigator.pop(context);
-
+          final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
           Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => PurchasesScreen()),
+              MaterialPageRoute(builder: (context) => PurchasesScreen(userId: userId)),
               (Route<dynamic> route) => route.isFirst);
         },
       ),
@@ -192,6 +193,20 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 updateHomeScreen();
               },
             ),
+          if (GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canSeeAllPurchases))
+          ListTile(
+            leading: Icon(Icons.history),
+            title: const Text('Buchungen'),
+            onTap: () {
+              Navigator.pop(context);
+
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => PurchasesScreen()),
+                      (Route<dynamic> route) => route.isFirst);
+            },
+          ),
         ],
       ));
     }

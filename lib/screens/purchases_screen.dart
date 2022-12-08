@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
-import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
@@ -14,8 +13,8 @@ import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
 
 class PurchasesScreen extends StatefulWidget {
-  const PurchasesScreen({Key? key, this.user}) : super(key: key);
-  final User? user;
+  const PurchasesScreen({Key? key, this.userId}) : super(key: key);
+  final String? userId;
   @override
   State<PurchasesScreen> createState() => _PurchasesScreenState();
 }
@@ -44,7 +43,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           if (snapshot.hasData) {
             if (snapshot.data!) {
               return FutureBuilder<dynamic>(
-                  future: getPurchases(widget.user),
+                  future: getPurchases(widget.userId),
                   builder: (context, snapshot2) {
                     if (snapshot2.hasData) {
                       return _buildOnlinePurchases(snapshot2.data!);
@@ -57,17 +56,21 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                     }
                   });
             } else {
-              return FutureBuilder<List<Purchase>>(
-                  future: GetIt.I<LocalDB>().getUnsentPurchases(),
-                  builder: (context, snapshot2) {
-                    if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
-                      return _buildOfflinePurchases(snapshot2.data!);
-                    } else {
-                      return OfflineWarning(refresh: () {
-                        setState(() {});
-                      });
-                    }
-                  });
+              if (widget.userId == null) {
+                return _noPurchasesScreen;
+              } else {
+                return FutureBuilder<List<Purchase>>(
+                    future: GetIt.I<LocalDB>().getUnsentPurchases(),
+                    builder: (context, snapshot2) {
+                      if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
+                        return _buildOfflinePurchases(snapshot2.data!);
+                      } else {
+                        return OfflineWarning(refresh: () {
+                          setState(() {});
+                        });
+                      }
+                    });
+              }
             }
           } else {
             if (snapshot.hasError) {
@@ -96,11 +99,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     );
   }
 
-  Future<dynamic> getPurchases([User? user]) async {
-    final String userId =
-        user != null ? user.id : GetIt.instance<Backend>().loggedInUser!.id;
+  Future<dynamic> getPurchases([String? userId]) async {
+    final String userSearchString = userId != null ? '?userId=' + userId : '';
     await GetIt.instance<Backend>().sendLocalPurchasesToServer();
-    return GetIt.instance<Backend>().get('/purchase?userId=${userId}');
+    return GetIt.instance<Backend>().get('/purchase' + userSearchString);
   }
 
   Widget buildCard({required Row child, required Function onTap}) {
@@ -134,15 +136,21 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                     '${purchase.amount} x ${purchase.drinkName}',
                     style: const TextStyle(fontSize: 20),
                   ),
+                  if (widget.userId == null)
+                    Text(
+                      'Nutzer: ${purchase.userName}',
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   Text(
                     DateFormat('dd.MM.yyyy, kk:mm')
                         .format(purchase.date.toLocal()),
                     style: const TextStyle(fontSize: 14),
                   ),
-                  Text(
-                    '${((purchase.cost / 100) * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
-                    style: const TextStyle(fontSize: 14),
-                  )
+                  if (widget.userId != null)
+                    Text(
+                      '${((purchase.cost / 100) * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
+                      style: const TextStyle(fontSize: 14),
+                    )
                 ],
               )
             ],

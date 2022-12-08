@@ -199,10 +199,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ],
                 ),
                 onTap: () async {
+                  final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PurchasesScreen(),
+                      builder: (context) => PurchasesScreen(userId: userId),
                     ),
                   );
                   setState(() {});
