@@ -64,7 +64,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         hintText: 'Suche',
                         suffixIcon: IconButton(
                           icon: Icon(_searchTextController.text.isEmpty
-                              ? Icons.person_search
+                              ? Icons.search
                               : Icons.delete),
                           onPressed: () {
                             setState(() {
@@ -157,9 +157,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
               ),
               Text(
                 "Preis: " +
-                    (drink.cost / 100)
-                        .toStringAsFixed(2)
-                        .replaceAll('.', ',') +
+                    (drink.cost / 100).toStringAsFixed(2).replaceAll('.', ',') +
                     " €",
                 style: TextStyle(fontSize: 14),
               ),
@@ -193,7 +191,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       child: InkWell(
         onTap: () => onTap(),
         customBorder:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: child,
@@ -225,6 +223,14 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           },
         ),
         buildSettingCard(
+          icon: Icons.text_snippet,
+          name: 'Name ändern',
+          onTap: () {
+            changeName(drink);
+            setState(() {});
+          },
+        ),
+        buildSettingCard(
           icon: drink.active ? Icons.close : Icons.check,
           name: drink.active ? 'Getränk deaktivieren' : 'Getränk aktivieren',
           onTap: () {
@@ -239,8 +245,8 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
 
   Future<void> changePrice(Drink drink) async {
     MoneyMaskedTextController _MoneyMaskedTextController =
-        new MoneyMaskedTextController(
-            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+    new MoneyMaskedTextController(
+        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
@@ -263,7 +269,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         FilteringTextInputFormatter.allow(
                             RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
                         TextInputFormatter.withFunction(
-                          (oldValue, newValue) => newValue.copyWith(
+                              (oldValue, newValue) => newValue.copyWith(
                             text: newValue.text.replaceAll('.', ','),
                           ),
                         ),
@@ -301,6 +307,59 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
         });
   }
 
+  Future<void> changeName(Drink drink) async {
+    TextEditingController _TextEditingController =
+    new TextEditingController();
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlertDialog(
+            title: Text('Name ändern',
+                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Neuer Name:", style: TextStyle(fontSize: 20)),
+                SizedBox(
+                    width: 100,
+                    child: TextField(
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.right,
+                      controller: _TextEditingController,
+                      keyboardType: TextInputType.text,
+                    ))
+              ],
+            ),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Abbrechen'),
+                onPressed: () {
+                  Navigator.pop(context);
+                  return;
+                },
+              ),
+              ElevatedButton(
+                child: Text('Bestätigen'),
+                onPressed: () async {
+                  try {
+                    if (_TextEditingController.text.length > 2) {
+                      final body = {
+                        'name': _TextEditingController.text
+                      };
+                      await GetIt.I<Backend>()
+                          .put('/drink/${drink.id}', jsonEncode(body));
+                    }
+                    Navigator.pop(context);
+                  } catch (e) {
+                    return;
+                  }
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   Future<void> changeStatus(Drink drink) async {
     try {
       final body = {'active': !drink.active};
@@ -309,120 +368,6 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       setState(() {});
       Navigator.pop(context);
     }
-  }
-
-  Future<void> addNewDrinks(Drink drink) async {
-    TextEditingController _TextEditingController = new TextEditingController();
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return CustomAlertDialog(
-            title: Text('Einkauf hinzufügen',
-                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Menge:", style: TextStyle(fontSize: 20)),
-                SizedBox(
-                    width: 100,
-                    child: TextFormField(
-                      autofocus: true,
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.right,
-                      controller: _TextEditingController,
-                      keyboardType: TextInputType.numberWithOptions(
-                          signed: false, decimal: false),
-                      autovalidateMode: AutovalidateMode.always,
-                      decoration: InputDecoration(suffixText: 'Fl.'),
-                    ))
-              ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () async {
-                  try {
-                    if (int.parse(_TextEditingController.text) > 0) {
-                      final body = {
-                        'drinkId': drink.id,
-                        'amount': int.parse(_TextEditingController.text)
-                      };
-                      await GetIt.I<Backend>()
-                          .post('/newDrinks', jsonEncode(body));
-                    }
-                  } finally {
-                    Navigator.pop(context);
-                    return;
-                  }
-                },
-              ),
-            ],
-          );
-        });
-  }
-
-  Future<void> addNewStock(Drink drink) async {
-    TextEditingController _TextEditingController = new TextEditingController();
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return CustomAlertDialog(
-            title: Text('Bestand eintragen',
-                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Menge:", style: TextStyle(fontSize: 20)),
-                SizedBox(
-                    width: 100,
-                    child: TextFormField(
-                      autofocus: true,
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.right,
-                      controller: _TextEditingController,
-                      keyboardType: TextInputType.numberWithOptions(
-                          signed: false, decimal: false),
-                      autovalidateMode: AutovalidateMode.always,
-                      decoration: InputDecoration(suffixText: 'Fl.'),
-                    ))
-              ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () async {
-                  try {
-                    if (int.parse(_TextEditingController.text) > 0) {
-                      final body = {
-                        'amount': int.parse(_TextEditingController.text)
-                      };
-                      await GetIt.I<Backend>().post(
-                          '/inventory/' + drink.id.toString(),
-                          jsonEncode(body));
-                    }
-                  } finally {
-                    Navigator.pop(context);
-                    return;
-                  }
-                },
-              ),
-            ],
-          );
-        });
   }
 
   Future<void> createNewDrink() async {
