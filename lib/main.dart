@@ -8,6 +8,7 @@ import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
@@ -67,6 +68,12 @@ class _MyHomePageState extends State<MyHomePage> {
             snackBarTheme: snackBarTheme,
             dialogTheme: DialogTheme(backgroundColor: kBackgroundColor),
             checkboxTheme: CheckboxThemeData(
-                fillColor: MaterialStateProperty.all(kPrimaryColor))));
+                fillColor: MaterialStateProperty.all(kPrimaryColor)),
+        ),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: [
+          const Locale('de'),
+        ],
+    );
   }
 }
