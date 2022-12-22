@@ -150,7 +150,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
           }
         },
         future: GetIt.instance<Backend>()
-            .get('/inventory?drink=' + widget.drink.id.toString()),
+            .get('/inventory?drinkId=' + widget.drink.id.toString()),
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
