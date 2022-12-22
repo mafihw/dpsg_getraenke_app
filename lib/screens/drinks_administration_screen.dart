@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
-import 'package:dpsg_app/shared/custom_alert_dialog.dart';
+import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';

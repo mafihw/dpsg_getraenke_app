@@ -5,14 +5,13 @@ import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/user.dart';
-import 'package:dpsg_app/shared/custom_alert_dialog.dart';
+import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
 
 import '../model/purchase.dart';
-import '../shared/colors.dart';
 
 const bool usingLocalAPI = false;
 

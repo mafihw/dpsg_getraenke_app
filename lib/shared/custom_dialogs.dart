@@ -51,3 +51,18 @@ class _CustomStatefulAlertDialogState extends State<CustomStatefulAlertDialog> {
     return CustomAlertDialog(title: title, content: content, actions: actions);
   }
 }
+Future<DateTime?> selectDate(
+    { required BuildContext context,
+      required DateTime initialDate,
+      required DateTime firstDate,
+      required DateTime lastDate}) {
+  return showDatePicker(
+    context: context,
+    initialDate: initialDate,
+    lastDate: lastDate,
+    firstDate: firstDate,
+    cancelText: 'Abbrechen',
+    confirmText: 'Bestätigen',
+    locale: Locale('de'),
+  );
+}

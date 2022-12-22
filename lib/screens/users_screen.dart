@@ -8,7 +8,7 @@ import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
-import 'package:dpsg_app/shared/custom_alert_dialog.dart';
+import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -327,7 +327,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => PaymentsScreen(user: user))));
+                        builder: ((context) => PaymentsScreen(userId: user.id))));
                 Navigator.pop(context);
               }),
         if (GetIt.I<PermissionSystem>()

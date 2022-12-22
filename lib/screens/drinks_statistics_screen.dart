@@ -4,7 +4,7 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink_statistics.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
-import 'package:dpsg_app/shared/custom_alert_dialog.dart';
+import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -153,7 +153,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
               style: TextStyle(fontSize: 14),
             ),
             Text(
-              "Bestand: " + drinkStatistics.amountActual.toString() + " Fl.",
+              "letzte Zählung: " + drinkStatistics.amountActual.toString() + " Fl.",
               style: TextStyle(fontSize: 14),
             ),
             Text(

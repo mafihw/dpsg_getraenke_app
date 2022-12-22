@@ -16,7 +16,7 @@ import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
 
-import '../shared/custom_alert_dialog.dart';
+import '../shared/custom_dialogs.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -163,11 +163,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   )
                 ],
               ),
-              onTap: () {
+              onTap: () async {
+                final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PaymentsScreen(),
+                    builder: (context) => PaymentsScreen(userId: userId),
                   ),
                 );
               },

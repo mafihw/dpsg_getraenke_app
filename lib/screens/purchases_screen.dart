@@ -4,6 +4,7 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
+import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -20,9 +21,11 @@ class PurchasesScreen extends StatefulWidget {
 }
 
 class _PurchasesScreenState extends State<PurchasesScreen> {
-  TextEditingController _fromDateTextInputController = new TextEditingController();
-  TextEditingController _toDateTextInputController = new TextEditingController();
-  var dateTimeRange = DateTimeRange(start: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).subtract(Duration(days:30)), end: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day));
+  var startDate =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
+          .subtract(Duration(days: 30));
+  var endDate =
+      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
   final Widget _noPurchasesScreen = Center(
       child: Column(
@@ -39,10 +42,6 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _fromDateTextInputController.text = DateFormat('dd.MM.yyyy')
-        .format(dateTimeRange.start.toLocal());
-    _toDateTextInputController.text = DateFormat('dd.MM.yyyy')
-        .format(dateTimeRange.end.toLocal());
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Buchungen"),
       drawer: const CustomDrawer(),
@@ -64,42 +63,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       );
                     }
                   });
-              return Column(
-                children:[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('von:  ', style: TextStyle(fontSize: 20)),
-                        IntrinsicWidth(
-                          child: TextField(
-                            controller: _fromDateTextInputController,
-                            readOnly: true,
-                            onTap: () async {
-                              final selectedDateRange = await selectDate(initialDate: DateTime.now());
-                              if(selectedDateRange != null)
-                                setState(() { dateTimeRange = selectedDateRange; });
-                            },
-                          ),
-                        ),
-                        Text('  bis:  ', style: TextStyle(fontSize: 20)),
-                        IntrinsicWidth(child: TextField(
-                          controller: _toDateTextInputController,
-                          readOnly: true,
-                          onTap: () async {
-                            final selectedDateRange = await selectDate(initialDate: DateTime.now());
-                            if(selectedDateRange != null)
-                              setState(() { dateTimeRange = selectedDateRange; });
-                          },
-                        ))
-                      ],
-                    ),
-                  ),
-                  Expanded(child: builder)
-                ]
-              );
+              return Column(children: [
+                getFilters(),
+                Expanded(child: builder)
+              ]);
             } else {
               //app is not connected to server
               if (widget.userId == null) {
@@ -145,12 +112,83 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     );
   }
 
+  Widget getFilters() {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () async {
+              final selectedDate = await selectDate(
+                  context: context,
+                  initialDate: startDate,
+                  firstDate: DateTime(2021, 12, 01),
+                  lastDate: endDate);
+              if (selectedDate != null)
+                setState(() {
+                  startDate = selectedDate;
+                });
+            },
+            style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0)
+                    )
+                )
+            ),
+            child: IntrinsicWidth(
+              child: Text('von: ' +
+                  DateFormat('dd.MM.yyyy')
+                      .format(startDate.toLocal())),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ElevatedButton(
+            onPressed: () async {
+              final selectedDate = await selectDate(
+                  context: context,
+                  initialDate: endDate,
+                  firstDate: startDate,
+                  lastDate: DateTime.now());
+              if (selectedDate != null)
+                setState(() {
+                  endDate = selectedDate;
+                });
+            },
+            style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0)
+                    )
+                )
+            ),
+            child: IntrinsicWidth(
+              child: Text('bis: ' +
+                  DateFormat('dd.MM.yyyy')
+                      .format(endDate.toLocal())),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<dynamic> getPurchases([String? userId]) async {
-    final String dateRangeStartSearchString = '?from=' + (dateTimeRange.start.millisecondsSinceEpoch / 1000).toStringAsFixed(0);
-    final String dateRangeToSearchString = '&to=' + (dateTimeRange.end.add(Duration(days: 1)).millisecondsSinceEpoch / 1000).toStringAsFixed(0);
+    final String dateStartSearchString =
+        '?from=' + (startDate.millisecondsSinceEpoch / 1000).toStringAsFixed(0);
+    final String dateEndSearchString = '&to=' +
+        (endDate.add(Duration(days: 1)).millisecondsSinceEpoch / 1000)
+            .toStringAsFixed(0);
     final String userSearchString = userId != null ? '&userId=' + userId : '';
     await GetIt.instance<Backend>().sendLocalPurchasesToServer();
-    return GetIt.instance<Backend>().get('/purchase' + dateRangeStartSearchString + dateRangeToSearchString + userSearchString);
+    return GetIt.instance<Backend>().get('/purchase' +
+        dateStartSearchString +
+        dateEndSearchString +
+        userSearchString);
   }
 
   Widget buildCard({required Row child, required Function onTap}) {
@@ -206,18 +244,6 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           onTap: () {}));
     });
     return purchasesCards;
-  }
-
-  Future<DateTimeRange?> selectDate({required DateTime initialDate}) {
-    return showDateRangePicker(
-      context: context,
-      initialDateRange: dateTimeRange,
-      lastDate: DateTime.now(),
-      firstDate: DateTime(2021, 12, 01),
-      cancelText: 'Abbrechen',
-      confirmText: 'Bestätigen',
-      locale: Locale('de'),
-    );
   }
 
   Widget _buildOnlinePurchases(dynamic input) {

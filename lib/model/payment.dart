@@ -4,13 +4,15 @@ class Payment {
   int value;
   int balanceAfter;
   DateTime date;
+  String? userName;
 
   Payment(
       {required this.id,
       required this.userId,
       required this.value,
       required this.balanceAfter,
-      required this.date});
+      required this.date,
+      this.userName});
 
   factory Payment.fromJson(Map<String, dynamic> data) {
     final id = data['id'] as int;
@@ -18,12 +20,14 @@ class Payment {
     final value = data['value'] as int;
     final balanceAfter = int.parse(data['balanceAfter'].toString());
     final date = DateTime.parse(data['date']);
+    final userName = data['userName'];
     return Payment(
         id: id,
         userId: userId,
         value: value,
         balanceAfter: balanceAfter,
-        date: date);
+        date: date,
+        userName: userName);
   }
 
   Map<String, dynamic> toJson() => {
@@ -31,6 +35,7 @@ class Payment {
         'userId': userId,
         'value': value,
         'balanceAfter': balanceAfter,
-        'date': date.toString()
+        'date': date.toString(),
+        'userName': userName
       };
 }
