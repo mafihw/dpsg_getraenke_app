@@ -25,7 +25,7 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserver {
   User? currentUser;
   final Purchase? lastPurchase = null;
   Timer timer = Timer(const Duration(seconds: 5), () {});
@@ -33,6 +33,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   //The ValueNotifier triggers a rebuild of a snackBar
   final ValueNotifier<String> snackMsg = ValueNotifier('');
   int drinksPending = 0;
+  Drink? shortcutDrink;
 
   @override
   void initState() {
@@ -44,6 +45,26 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       }
       await fetchUser();
     });
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async  {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.inactive && timer.isActive){
+      timer.cancel();
+      int drinks = drinksPending;
+      drinksPending = 0;
+      await purchaseDrink(currentUser!.id, shortcutDrink!, drinks);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      setState((){});
+    }
   }
 
   @override
@@ -110,10 +131,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   Container processSnapshotData(snapshot) {
-    final User user = snapshot.data!.user;
+    currentUser = snapshot.data!.user;
     final Purchase? lastPurchase = snapshot.data!.lastPurchase;
     final int unsentPurchasesCost = snapshot.data!.unsentPurchasesCost;
-    final Drink? shortcutDrink = snapshot.data!.shortcutDrink;
+    shortcutDrink = snapshot.data!.shortcutDrink;
     final now = DateTime.now();
     int daysUntilLastBooking = lastPurchase == null
         ? 0
@@ -132,7 +153,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Hallo ${user.name}',
+                      'Hallo ${currentUser!.name}',
                       style: const TextStyle(fontSize: 24),
                     ),
                     const Text(
@@ -158,7 +179,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     style: TextStyle(fontSize: 24),
                   ),
                   Text(
-                    '${((user.balance - unsentPurchasesCost) / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
+                    '${((currentUser!.balance - unsentPurchasesCost) / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
                     style: const TextStyle(fontSize: 48),
                   )
                 ],
@@ -242,7 +263,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                             shortcutDrink != null
                                 ? Text(
-                                    '1x ${shortcutDrink.name} buchen',
+                                    '1x ${shortcutDrink!.name} buchen',
                                     textAlign: TextAlign.center,
                                   )
                                 : Text(
@@ -253,7 +274,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ),
                         onTap: () async {
                           if (shortcutDrink != null) {
-                            shortDrinkPurchase(user, shortcutDrink);
+                            shortDrinkPurchase(currentUser!, shortcutDrink!);
                           }
                         },
                         onLongPress: openShortcutSelector),
@@ -276,7 +297,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ],
                       ),
                       onTap: () async {
-                        await _openPaypal(-user.balance / 100);
+                        await _openPaypal(-currentUser!.balance / 100);
                       },
                     ),
                   ),
@@ -377,9 +398,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
   }
 
-  Future<void> shortDrinkPurchase(User user, Drink shortcutDrink) async {
+  FutureOr<dynamic> shortDrinkPurchase(User user, Drink drink) async {
     snackMsg.value =
-        (++drinksPending).toString() + ' ' + shortcutDrink.name + ' gebucht';
+        (++drinksPending).toString() + ' ' + drink.name + ' gebucht';
     restartTimer();
     if (drinksPending == 1) {
       final snackBar = SnackBar(
@@ -398,10 +419,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         if (value == SnackBarClosedReason.action) {
           drinksPending = 0;
           timer.cancel();
-        } else {
+        } else if (value == SnackBarClosedReason.timeout) {
           int drinks = drinksPending;
           drinksPending = 0;
-          await purchaseDrink(user.id, shortcutDrink, drinks);
+          await purchaseDrink(user.id, drink, drinks);
           setState(() {});
         }
       });
@@ -413,7 +434,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       timer.cancel();
     }
     timer = Timer(const Duration(seconds: 5),
-        () => {ScaffoldMessenger.of(context).hideCurrentSnackBar()});
+        () => {ScaffoldMessenger.of(context).hideCurrentSnackBar(reason: SnackBarClosedReason.timeout)});
   }
 }
 
