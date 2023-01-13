@@ -163,8 +163,14 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
               style: TextStyle(fontSize: 14),
             ),
             Text(
+              "seitdem gekauft: " +
+                  drinkStatistics.amountNew.toString() +
+                  " Fl.",
+              style: TextStyle(fontSize: 14),
+            ),
+            Text(
               "Bestand erwartet: " +
-                  (drinkStatistics.amountActual - drinkStatistics.amountPurchased).toString() +
+                  (drinkStatistics.amountActual - drinkStatistics.amountPurchased + drinkStatistics.amountNew).toString() +
                   " Fl.",
               style: TextStyle(fontSize: 14),
             )
