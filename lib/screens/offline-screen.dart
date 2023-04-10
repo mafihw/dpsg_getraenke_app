@@ -65,9 +65,9 @@ class _OfflineWarningState extends State<OfflineWarning>
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.cloud_off,
-            color: kPrimaryColor,
+            color: colors(context).primary,
             size: 72,
           ),
           const Center(

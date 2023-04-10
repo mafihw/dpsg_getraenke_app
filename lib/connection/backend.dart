@@ -316,6 +316,7 @@ class Backend {
         builder: (context) {
           return StatefulBuilder(builder: (context, setState) {
             return CustomAlertDialog(
+              context: context,
               title: Text('Passwort eingeben'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,

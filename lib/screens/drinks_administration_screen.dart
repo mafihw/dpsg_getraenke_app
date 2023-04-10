@@ -127,10 +127,10 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           future: GetIt.instance<Backend>().get('/drink'),
         );
       }),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -187,14 +187,20 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
   Widget buildCard({required child, required Function onTap}) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: kMainColor,
+      color: colors(context).surface,
       child: InkWell(
         onTap: () => onTap(),
         customBorder:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: child,
+          child: DefaultTextStyle(
+            style: TextStyle(color: colors(context).onSurface),
+            child: IconTheme(
+              data: IconThemeData(color: colors(context).onSurface),
+              child: child,
+            ),
+          ),
         ),
       ),
     );
@@ -203,7 +209,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
   showCustomModalSheet(Drink drink) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       context: context,
       builder: (context) => Wrap(children: [
         Center(
@@ -245,12 +251,13 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
 
   Future<void> changePrice(Drink drink) async {
     MoneyMaskedTextController _MoneyMaskedTextController =
-    new MoneyMaskedTextController(
-        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+        new MoneyMaskedTextController(
+            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
           return CustomAlertDialog(
+            context: context,
             title: Text('Preis ändern',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(
@@ -269,7 +276,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                         FilteringTextInputFormatter.allow(
                             RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
                         TextInputFormatter.withFunction(
-                              (oldValue, newValue) => newValue.copyWith(
+                          (oldValue, newValue) => newValue.copyWith(
                             text: newValue.text.replaceAll('.', ','),
                           ),
                         ),
@@ -308,12 +315,12 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
   }
 
   Future<void> changeName(Drink drink) async {
-    TextEditingController _TextEditingController =
-    new TextEditingController();
+    TextEditingController _TextEditingController = new TextEditingController();
     await showDialog(
         context: context,
         builder: (context) {
           return CustomAlertDialog(
+            context: context,
             title: Text('Name ändern',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(
@@ -343,9 +350,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                 onPressed: () async {
                   try {
                     if (_TextEditingController.text.length > 2) {
-                      final body = {
-                        'name': _TextEditingController.text
-                      };
+                      final body = {'name': _TextEditingController.text};
                       await GetIt.I<Backend>()
                           .put('/drink/${drink.id}', jsonEncode(body));
                     }
@@ -380,6 +385,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
         context: context,
         builder: (context) {
           return CustomAlertDialog(
+            context: context,
             title: Text('Getränk hinzufügen',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Column(

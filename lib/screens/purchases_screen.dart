@@ -63,10 +63,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       );
                     }
                   });
-              return Column(children: [
-                getFilters(),
-                Expanded(child: builder)
-              ]);
+              return Column(children: [getFilters(), Expanded(child: builder)]);
             } else {
               //app is not connected to server
               if (widget.userId == null) {
@@ -97,10 +94,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         },
         future: GetIt.I<Backend>().checkConnection(),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -134,14 +131,14 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)
-                    )
-                )
-            ),
+                        borderRadius: BorderRadius.circular(18.0))),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(colors(context).secondary),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                    colors(context).onSecondary)),
             child: IntrinsicWidth(
               child: Text('von: ' +
-                  DateFormat('dd.MM.yyyy')
-                      .format(startDate.toLocal())),
+                  DateFormat('dd.MM.yyyy').format(startDate.toLocal())),
             ),
           ),
         ),
@@ -160,16 +157,17 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                 });
             },
             style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)
-                    )
-                )
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0))),
+              backgroundColor:
+                  MaterialStateProperty.all<Color>(colors(context).secondary),
+              foregroundColor:
+                  MaterialStateProperty.all<Color>(colors(context).onSecondary),
             ),
             child: IntrinsicWidth(
-              child: Text('bis: ' +
-                  DateFormat('dd.MM.yyyy')
-                      .format(endDate.toLocal())),
+              child: Text(
+                  'bis: ' + DateFormat('dd.MM.yyyy').format(endDate.toLocal())),
             ),
           ),
         ),
@@ -196,10 +194,16 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: child,
+          child: DefaultTextStyle(
+            style: TextStyle(color: colors(context).onSurface),
+            child: IconTheme(
+              data: IconThemeData(color: colors(context).onSurface),
+              child: child,
+            ),
+          ),
         ),
       ),
     );
@@ -281,19 +285,19 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kPrimaryColor,
+        color: colors(context).primary,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: const [
+                children: [
                   Hero(
                     tag: 'syncWarning',
                     child: Icon(
                       Icons.sync_problem_rounded,
-                      color: kWarningColor,
+                      color: colors(context).error,
                       size: 32,
                     ),
                   ),
@@ -301,14 +305,15 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                     padding: EdgeInsets.only(left: 12),
                     child: Text(
                       'Offline-Käufe',
-                      style: TextStyle(color: Colors.black, fontSize: 18),
+                      style: TextStyle(
+                          color: colors(context).onPrimary, fontSize: 18),
                     ),
                   )
                 ],
               ),
-              const Text(
+              Text(
                 'Die hier aufgelisteten Käufe sind vorgemerkt und werden erst übernommen, wenn du die App mit einer aktiven Internetverbindung öffnest.',
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: colors(context).onPrimary),
               ),
             ],
           ),

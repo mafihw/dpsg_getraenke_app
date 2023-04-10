@@ -58,14 +58,6 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   final _passwordCheckController = TextEditingController();
   String oldPassword = '';
 
-  var validBorder = const UnderlineInputBorder(
-    borderSide: BorderSide(color: Colors.white, width: 1.0),
-  );
-
-  var invalidBorder = const UnderlineInputBorder(
-    borderSide: BorderSide(color: Colors.red, width: 1.0),
-  );
-
   bool _nameValid = true;
   bool _mailValid = true;
   bool _passwordValid = true;
@@ -117,15 +109,23 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     _allValid = validation();
+    var validBorder = UnderlineInputBorder(
+      borderSide: BorderSide(color: colors(context).onBackground, width: 1.0),
+    );
+
+    var invalidBorder = UnderlineInputBorder(
+      borderSide: BorderSide(color: colors(context).error, width: 1.0),
+    );
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Nutzerverwaltung"),
       drawer: const CustomDrawer(),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: MediaQuery.of(context).viewInsets.bottom == 0
           ? FloatingActionButton.extended(
-              backgroundColor:
-                  _allValid || !editMode ? kSecondaryColor : Colors.grey,
+              backgroundColor: _allValid || !editMode
+                  ? colors(context).secondary
+                  : Colors.grey,
               disabledElevation: 0,
               onPressed: _allValid && editMode
                   ? () async {
@@ -300,7 +300,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                             const Text('Rolle'),
                             DropdownButton(
                                 value: userRole,
-                                dropdownColor: kMainColor,
+                                dropdownColor: colors(context).surface,
                                 alignment: AlignmentDirectional.topStart,
                                 items: <DropdownMenuItem<String>>[
                                   DropdownMenuItem(

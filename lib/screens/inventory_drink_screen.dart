@@ -76,7 +76,8 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               color: (inventory.amountActual -
-                                          inventory.amountCalculated) < 0
+                                          inventory.amountCalculated) <
+                                      0
                                   ? Colors.red
                                   : Colors.green,
                             ))
@@ -152,10 +153,10 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
         future: GetIt.instance<Backend>()
             .get('/inventory?drinkId=' + widget.drink.id.toString()),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -172,7 +173,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: InkWell(
           customBorder:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

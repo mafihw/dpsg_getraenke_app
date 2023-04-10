@@ -37,15 +37,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
       // Add a ListView to the drawer. This ensures the user can scroll
       // through the options in the drawer if there isn't enough vertical
       // space to fit everything.
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
-              color: kMainColor,
+              color: colors(context).surface,
             ),
-            child: Image(
+            child: const Image(
               image: AssetImage('assets/icon_500px.png'),
             ),
           ),
@@ -225,7 +225,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => PurchasesScreen()),
-                        (Route<dynamic> route) => route.isFirst);
+                    (Route<dynamic> route) => route.isFirst);
               },
             ),
           if (GetIt.I<PermissionSystem>()
@@ -238,7 +238,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => NewDrinksScreen()),
-                        (Route<dynamic> route) => route.isFirst);
+                    (Route<dynamic> route) => route.isFirst);
               },
             ),
           if (GetIt.I<PermissionSystem>()

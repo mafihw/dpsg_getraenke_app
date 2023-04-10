@@ -13,8 +13,9 @@ class CustomBottomBar extends StatelessWidget {
           children: [
             Builder(
                 builder: ((context) => IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.menu,
+                        color: colors(context).onSurface,
                       ),
                       onPressed: () {
                         Scaffold.of(context).openDrawer();
@@ -24,7 +25,7 @@ class CustomBottomBar extends StatelessWidget {
         ),
       ),
       elevation: 5,
-      color: kMainColor,
+      color: colors(context).surface,
     );
   }
 }

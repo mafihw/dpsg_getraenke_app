@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/permissions.dart';
@@ -61,19 +62,17 @@ class _MyHomePageState extends State<MyHomePage> {
       GetIt.I<Backend>().logout();
       screen = LoginScreen();
     }
-    return MaterialApp(
-        home: screen,
-        theme: ThemeData(
-            colorScheme: kColorScheme,
-            snackBarTheme: snackBarTheme,
-            dialogTheme: DialogTheme(backgroundColor: kBackgroundColor),
-            checkboxTheme: CheckboxThemeData(
-                fillColor: MaterialStateProperty.all(kPrimaryColor)),
-        ),
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        supportedLocales: [
-          const Locale('de'),
-        ],
-    );
+    return AdaptiveTheme(
+        dark: generateTheme(colorScheme: appThemes[6]!.colorScheme),
+        light: generateTheme(colorScheme: appThemes[6]!.colorScheme),
+        initial: AdaptiveThemeMode.dark,
+        builder: (theme, darkTheme) => MaterialApp(
+              home: screen,
+              theme: theme,
+              localizationsDelegates: GlobalMaterialLocalizations.delegates,
+              supportedLocales: const [
+                Locale('de'),
+              ],
+            ));
   }
 }

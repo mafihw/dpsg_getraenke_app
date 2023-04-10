@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: kBackgroundColor,
+        backgroundColor: colors(context).background,
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: const Text('Login'),
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 25,
                             width: 25,
                             child: CircularProgressIndicator(
-                                color: Colors.blue.shade800))
+                                color: colors(context).tertiary))
                         : const Text('Anmelden'),
                   ),
                 ],

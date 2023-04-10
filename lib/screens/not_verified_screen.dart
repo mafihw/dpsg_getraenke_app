@@ -21,13 +21,13 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
   Widget build(BuildContext context) {
     widget.fromRegistration ??= false;
     if (currentlyRefreshing) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-        backgroundColor: kBackgroundColor,
+      return Scaffold(
+        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: colors(context).background,
       );
     } else {
       return Scaffold(
-        backgroundColor: kBackgroundColor,
+        backgroundColor: colors(context).background,
         body: Padding(
           padding: const EdgeInsets.all(25.0),
           child: Column(
@@ -40,9 +40,9 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         FontAwesomeIcons.userLock,
-                        color: kPrimaryColor,
+                        color: colors(context).primary,
                         size: 96,
                       ),
                       const SizedBox(

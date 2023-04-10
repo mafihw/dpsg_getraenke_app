@@ -15,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   void _update() {
     setState(() {});
   }
@@ -23,13 +22,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackgroundColor,
-      appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke', onIconPress: _update,),
+      backgroundColor: colors(context).background,
+      appBar: CustomAppBar(
+        appBarTitle: 'DPSG Gladbach Getränke',
+        onIconPress: _update,
+      ),
       drawer: CustomDrawer(updateHomeScreen: _update),
       body: WelcomeScreen(),
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () async {
           await Navigator.push(
             context,

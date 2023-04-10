@@ -41,10 +41,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           future: getPayments(widget.userId),
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -82,7 +82,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                       ),
                       if (widget.userId == null)
                         Text(
-                          'Nutzer: ' + (payment.userName == null ? '-' : payment.userName!),
+                          'Nutzer: ' +
+                              (payment.userName == null
+                                  ? '-'
+                                  : payment.userName!),
                           style: const TextStyle(fontSize: 14),
                         ),
                       Text(
@@ -110,21 +113,22 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_search, size: 150),
-                  SizedBox(height: 20),
-                  SizedBox(
-                      width: 250,
-                      child: Text('Keine Zahlungen gefunden ...',
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center))
-                ]));
+              Icon(Icons.person_search, size: 150),
+              SizedBox(height: 20),
+              SizedBox(
+                  width: 250,
+                  child: Text('Keine Zahlungen gefunden ...',
+                      style: TextStyle(fontSize: 25),
+                      textAlign: TextAlign.center))
+            ]));
       } else {
         return Center(
-            child: CircularProgressIndicator(),
-          );
+          child: CircularProgressIndicator(),
+        );
       }
     }
   }
+
   Widget getFilters() {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -147,7 +151,11 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)))),
+                        borderRadius: BorderRadius.circular(18.0))),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(colors(context).secondary),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                    colors(context).onSecondary)),
             child: IntrinsicWidth(
               child: Text('von: ' +
                   DateFormat('dd.MM.yyyy').format(startDate.toLocal())),
@@ -171,7 +179,11 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)))),
+                        borderRadius: BorderRadius.circular(18.0))),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(colors(context).secondary),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                    colors(context).onSecondary)),
             child: IntrinsicWidth(
               child: Text(
                   'bis: ' + DateFormat('dd.MM.yyyy').format(endDate.toLocal())),
@@ -201,10 +213,16 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: child,
+          child: DefaultTextStyle(
+            style: TextStyle(color: colors(context).onSurface),
+            child: IconTheme(
+              data: IconThemeData(color: colors(context).onSurface),
+              child: child,
+            ),
+          ),
         ),
       ),
     );

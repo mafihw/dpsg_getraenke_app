@@ -85,9 +85,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          ...drinkCards
-                        ],
+                        children: [...drinkCards],
                       ),
                     ),
                   ),
@@ -118,10 +116,10 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
           future: GetIt.instance<Backend>().get('/statistics/drink'),
         );
       }),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -148,12 +146,16 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
             ),
             Text(
               "Datum: " +
-                  (drinkStatistics.date == null ? "-" : DateFormat('dd.MM.yyyy')
-                      .format(drinkStatistics.date!.toLocal())),
+                  (drinkStatistics.date == null
+                      ? "-"
+                      : DateFormat('dd.MM.yyyy')
+                          .format(drinkStatistics.date!.toLocal())),
               style: TextStyle(fontSize: 14),
             ),
             Text(
-              "letzte Zählung: " + drinkStatistics.amountActual.toString() + " Fl.",
+              "letzte Zählung: " +
+                  drinkStatistics.amountActual.toString() +
+                  " Fl.",
               style: TextStyle(fontSize: 14),
             ),
             Text(
@@ -170,7 +172,10 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
             ),
             Text(
               "Bestand erwartet: " +
-                  (drinkStatistics.amountActual - drinkStatistics.amountPurchased + drinkStatistics.amountNew).toString() +
+                  (drinkStatistics.amountActual -
+                          drinkStatistics.amountPurchased +
+                          drinkStatistics.amountNew)
+                      .toString() +
                   " Fl.",
               style: TextStyle(fontSize: 14),
             )
@@ -199,14 +204,20 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
   Widget buildCard({required child, required Function onTap}) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: kMainColor,
+      color: colors(context).surface,
       child: InkWell(
         onTap: () => onTap(),
         customBorder:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: child,
+          child: DefaultTextStyle(
+            style: TextStyle(color: colors(context).onSurface),
+            child: IconTheme(
+              data: IconThemeData(color: colors(context).onSurface),
+              child: child,
+            ),
+          ),
         ),
       ),
     );
@@ -215,7 +226,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
   showCustomModalSheet(DrinkStatistics drinkStatistics) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       context: context,
       builder: (context) => Wrap(children: [
         Center(
@@ -264,6 +275,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
         context: context,
         builder: (context) {
           return CustomAlertDialog(
+            context: context,
             title: Text('Einkauf hinzufügen',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(
@@ -321,6 +333,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
         context: context,
         builder: (context) {
           return CustomAlertDialog(
+            context: context,
             title: Text('Bestand eintragen',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(

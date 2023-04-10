@@ -66,16 +66,14 @@ class _DrinkScreenState extends State<DrinkScreen> {
                                 Text(
                                   element.name,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                  ),
+                                  style: const TextStyle(fontSize: 18),
                                 ),
                                 Text(
                                   (element.cost / 100)
                                           .toStringAsFixed(2)
                                           .replaceAll('.', ',') +
                                       " €",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold),
                                 )
@@ -95,7 +93,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                               'shortcutDrink', element.id.toString());
                           setState(() {});
                         },
-                        color: kMainColor,
+                        color: colors(context).surface,
                       ),
                     );
                   }
@@ -109,13 +107,13 @@ class _DrinkScreenState extends State<DrinkScreen> {
                 children: drinkCards,
               );
             } else {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             }
           }),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -136,7 +134,7 @@ class BuyDialog extends StatelessWidget {
     final TextEditingController _controller = TextEditingController();
     _controller.text = "1";
     return Dialog(
-      backgroundColor: kMainColor,
+      backgroundColor: colors(context).surface,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

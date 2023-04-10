@@ -25,7 +25,8 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserver {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with WidgetsBindingObserver {
   User? currentUser;
   final Purchase? lastPurchase = null;
   Timer timer = Timer(const Duration(seconds: 5), () {});
@@ -55,15 +56,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async  {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.inactive && timer.isActive){
+    if (state == AppLifecycleState.inactive && timer.isActive) {
       timer.cancel();
       int drinks = drinksPending;
       drinksPending = 0;
       await purchaseDrink(currentUser!.id, shortcutDrink!, drinks);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      setState((){});
+      setState(() {});
     }
   }
 
@@ -96,7 +97,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: InkWell(
           onTap: () => onTap(),
           onLongPress: onLongPress,
@@ -112,7 +113,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
               ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: child,
+                child: DefaultTextStyle(
+                  style: TextStyle(color: colors(context).onSurface),
+                  child: IconTheme(
+                    data: IconThemeData(color: colors(context).onSurface),
+                    child: child,
+                  ),
+                ),
               ),
             ],
           ),
@@ -143,7 +150,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
                 lastPurchase.date.month, lastPurchase.date.day))
             .inDays;
     return Container(
-      color: kBackgroundColor,
+      color: colors(context).background,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -234,11 +241,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
                     future: GetIt.I<LocalDB>().getUnsentPurchases(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                        return const Hero(
+                        return Hero(
                             tag: 'syncWarning',
                             child: Icon(
                               Icons.sync_problem_rounded,
-                              color: kWarningColor,
+                              color: colors(context).error,
                             ));
                       } else {
                         return Container();
@@ -255,18 +262,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text('Schnellwahltaste',
-                                style: TextStyle(fontSize: 16)),
-                            Icon(
+                            const Text('Schnellwahltaste',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                )),
+                            const Icon(
                               Icons.add,
                               size: 48,
                             ),
                             shortcutDrink != null
-                                ? Text(
-                                    '1x ${shortcutDrink!.name} buchen',
-                                    textAlign: TextAlign.center,
-                                  )
-                                : Text(
+                                ? Text('1x ${shortcutDrink!.name} buchen',
+                                    textAlign: TextAlign.center)
+                                : const Text(
                                     'Lange gedrückt halten zum Auswählen',
                                     textAlign: TextAlign.center,
                                   ),
@@ -408,7 +415,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
           duration: Duration(minutes: 5),
           action: SnackBarAction(
               label: 'Rückgängig machen',
-              textColor: kColorScheme.onPrimary,
+              textColor: colors(context).onPrimary,
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
               }));
@@ -433,8 +440,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
     if (timer.isActive) {
       timer.cancel();
     }
-    timer = Timer(const Duration(seconds: 5),
-        () => {ScaffoldMessenger.of(context).hideCurrentSnackBar(reason: SnackBarClosedReason.timeout)});
+    timer = Timer(
+        const Duration(seconds: 5),
+        () => {
+              ScaffoldMessenger.of(context)
+                  .hideCurrentSnackBar(reason: SnackBarClosedReason.timeout)
+            });
   }
 }
 
@@ -452,6 +463,7 @@ class _ShortcutSelectorState extends State<ShortcutSelector> {
   @override
   Widget build(BuildContext context) {
     return CustomAlertDialog(
+      context: context,
       title: Text('Schnellwahltaste'),
       content: Container(
         width: double.maxFinite,
@@ -528,7 +540,7 @@ class SnackContent extends StatelessWidget {
         valueListenable: snackMsg,
         builder: (_, msg, __) => Text(
               msg,
-              style: TextStyle(color: kColorScheme.onPrimary),
+              style: TextStyle(color: colors(context).onPrimary),
             ));
   }
 }

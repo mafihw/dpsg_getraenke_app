@@ -41,10 +41,10 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
           future: getNewDrinks(),
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        backgroundColor: colors(context).secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -109,21 +109,22 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_search, size: 150),
-                  SizedBox(height: 20),
-                  SizedBox(
-                      width: 250,
-                      child: Text('Keine Einkäufe gefunden ...',
-                          style: TextStyle(fontSize: 25),
-                          textAlign: TextAlign.center))
-                ]));
+              Icon(Icons.person_search, size: 150),
+              SizedBox(height: 20),
+              SizedBox(
+                  width: 250,
+                  child: Text('Keine Einkäufe gefunden ...',
+                      style: TextStyle(fontSize: 25),
+                      textAlign: TextAlign.center))
+            ]));
       } else {
         return Center(
-            child: CircularProgressIndicator(),
-          );
+          child: CircularProgressIndicator(),
+        );
       }
     }
   }
+
   Widget getFilters() {
     return Row(
       mainAxisSize: MainAxisSize.max,
@@ -146,7 +147,11 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)))),
+                        borderRadius: BorderRadius.circular(18.0))),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(colors(context).secondary),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                    colors(context).onSecondary)),
             child: IntrinsicWidth(
               child: Text('von: ' +
                   DateFormat('dd.MM.yyyy').format(startDate.toLocal())),
@@ -170,7 +175,11 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)))),
+                        borderRadius: BorderRadius.circular(18.0))),
+                backgroundColor:
+                    MaterialStateProperty.all<Color>(colors(context).secondary),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                    colors(context).onSecondary)),
             child: IntrinsicWidth(
               child: Text(
                   'bis: ' + DateFormat('dd.MM.yyyy').format(endDate.toLocal())),
@@ -188,9 +197,8 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
         (endDate.add(Duration(days: 1)).millisecondsSinceEpoch / 1000)
             .toStringAsFixed(0);
     await GetIt.instance<Backend>().sendLocalPurchasesToServer();
-    return GetIt.instance<Backend>().get('/newDrinks' +
-        dateStartSearchString +
-        dateEndSearchString);
+    return GetIt.instance<Backend>()
+        .get('/newDrinks' + dateStartSearchString + dateEndSearchString);
   }
 
   Widget buildCard({required Row child, required Function onTap}) {
@@ -198,10 +206,16 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
-          child: child,
+          child: DefaultTextStyle(
+            style: TextStyle(color: colors(context).onSurface),
+            child: IconTheme(
+              data: IconThemeData(color: colors(context).onSurface),
+              child: child,
+            ),
+          ),
         ),
       ),
     );

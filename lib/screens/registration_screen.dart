@@ -29,14 +29,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _passwordValid = true;
   bool _passwordCheckValid = true;
 
-  var validBorder = const OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.white, width: 1.0),
-  );
-
-  var invalidBorder = const OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.red, width: 1.0),
-  );
-
   bool currentlyLoggingIn = false;
 
   bool validation() {
@@ -73,8 +65,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var validBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: colors(context).onBackground, width: 1.0),
+    );
+
+    var invalidBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: colors(context).error, width: 1.0),
+    );
     return Scaffold(
-        backgroundColor: kBackgroundColor,
+        backgroundColor: colors(context).background,
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: const Text('Registrierung'),
@@ -228,7 +227,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 height: 25,
                                 width: 25,
                                 child: CircularProgressIndicator(
-                                    color: Colors.blue.shade800))
+                                    color: colors(context).tertiary))
                             : const Text('Registrieren'),
                       ),
                     ],

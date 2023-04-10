@@ -58,8 +58,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               List<Widget> userCards = [];
               List<User> users = List.generate(snapshot.data!.length,
                   (index) => User.fromJson(snapshot.data![index]));
-              if(sortMode == sortModes.name.name) users.sort((a, b) => a.name.compareTo(b.name));
-              if(sortMode == sortModes.balance.name) users.sort((a, b) => a.balance.compareTo(b.balance));
+              if (sortMode == sortModes.name.name)
+                users.sort((a, b) => a.name.compareTo(b.name));
+              if (sortMode == sortModes.balance.name)
+                users.sort((a, b) => a.balance.compareTo(b.balance));
               for (var user in users) {
                 //check text input filter
                 if (!(_searchTextController.text.isEmpty ||
@@ -154,8 +156,9 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                             icon: Icon(userRolesIcon[selectedGroup])),
                         PopupMenuButton<sortModes>(
                             icon: Icon(Icons.sort),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            color: kColorScheme.surface,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            color: colors(context).surface,
                             onSelected: (sortModes item) {
                               setState(() {
                                 sortMode = item.name;
@@ -216,11 +219,11 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
           future: GetIt.instance<Backend>().get('/user'),
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: selectedUser == null
           ? FloatingActionButton.extended(
-              backgroundColor: kSecondaryColor,
+              backgroundColor: colors(context).secondary,
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -238,14 +241,20 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: InkWell(
           onTap: () => onTap(),
           customBorder:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: child,
+            child: DefaultTextStyle(
+              style: TextStyle(color: colors(context).onSurface),
+              child: IconTheme(
+                data: IconThemeData(color: colors(context).onSurface),
+                child: child,
+              ),
+            ),
           ),
         ),
       ),
@@ -258,23 +267,29 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: colors(context).surface,
         child: InkWell(
           onTap: () => onTap(),
           customBorder:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(icon, size: 40),
-                Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: Text(name,
-                        style: TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center))
-              ],
+            child: DefaultTextStyle(
+              style: TextStyle(color: colors(context).onSurface),
+              child: IconTheme(
+                data: IconThemeData(color: colors(context).onSurface),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Icon(icon, size: 40),
+                    Padding(
+                        padding: const EdgeInsets.only(left: 20.0),
+                        child: Text(name,
+                            style: TextStyle(fontSize: 20),
+                            textAlign: TextAlign.center))
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -285,7 +300,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
   showCustomModalSheet(User user) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: colors(context).background,
       context: context,
       builder: (context) => Wrap(children: [
         Center(
@@ -315,7 +330,8 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => PurchasesScreen(userId: user.id))));
+                        builder: ((context) =>
+                            PurchasesScreen(userId: user.id))));
                 Navigator.pop(context);
               }),
         if (GetIt.I<PermissionSystem>()
@@ -327,7 +343,8 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                 await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: ((context) => PaymentsScreen(userId: user.id))));
+                        builder: ((context) =>
+                            PaymentsScreen(userId: user.id))));
                 Navigator.pop(context);
               }),
         if (GetIt.I<PermissionSystem>()
@@ -358,6 +375,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         context: context,
         builder: (context) {
           return CustomAlertDialog(
+            context: context,
             title: Text('Geld buchen',
                 style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
             content: Row(
@@ -406,9 +424,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                           content: Text('Zahlung wurde gespeichert!')));
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Fehler beim Speichern der Zahlung!'),
-                        backgroundColor: kWarningColor,
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content:
+                            const Text('Fehler beim Speichern der Zahlung!'),
+                        backgroundColor: colors(context).error,
                       ));
                     }
                   }
