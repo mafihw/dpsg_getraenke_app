@@ -391,10 +391,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
   Future<void> _openPaypal(double amount) async {
     Uri url = Uri.parse(
         'https://paypal.me/Bierkasse1947/${amount.toString().replaceAll('.', ',')}');
-    if (await canLaunchUrl(url)) {
+    try {
       await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      developer.log("url $url cant be launched");
+    } catch (e) {
+      developer.log("url $url cant be launched: $e");
     }
   }
 
