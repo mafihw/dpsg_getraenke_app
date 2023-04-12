@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     return MaterialApp(
         home: screen,
+        navigatorKey: navigatorKey, // Setting a global key for navigator
         theme: ThemeData(
             colorScheme: kColorScheme,
             snackBarTheme: snackBarTheme,
@@ -70,10 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
             checkboxTheme: CheckboxThemeData(
                 fillColor: MaterialStateProperty.all(kPrimaryColor)),
         ),
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        supportedLocales: [
-          const Locale('de'),
-        ],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          supportedLocales: [
+            const Locale('de'),
+          ],
     );
   }
 }
