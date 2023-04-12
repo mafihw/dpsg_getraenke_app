@@ -15,7 +15,7 @@ import '../model/purchase.dart';
 import '../main.dart';
 
 const bool usingLocalAPI = false;
-const int tokenLifetimeBeforeRefreshInS = 60 * 60;
+const int tokenLifetimeBeforeRefreshInS = 15 * 60;
 
 class Backend {
   String apiurl = usingLocalAPI
@@ -337,6 +337,7 @@ class Backend {
             body: jsonEncode(
                 <String, String>{'email': loggedInUser!.email})
         );
+        developer.log(response.statusCode.toString() + '  /auth/refresh');
         if (response.statusCode == 200) {
           token = json.decode(response.body)['token'];
           if (loggedInUser != null && token != null) {
@@ -357,7 +358,7 @@ class Backend {
             return Future(() => true);
           }
         } else {
-          if (response.statusCode == 401) {
+          if (response.statusCode == 409) {
             await this.refreshToken();
             refreshingToken = false;
             return Future(() => true);
