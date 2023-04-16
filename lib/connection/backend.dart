@@ -17,7 +17,7 @@ import '../model/purchase.dart';
 const bool usingLocalAPI = false;
 
 const oldApiUrl = 'https://api.dpsg-gladbach.de:3001';
-const newApiUrl = 'https://app.dpsg-gladbach.de:80';
+const newApiUrl = 'https://app.dpsg-gladbach.de:443';
 const localApiUrl = 'http://192.168.178.39:3000';
 
 class Backend {
