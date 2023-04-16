@@ -2,6 +2,8 @@ class Purchase {
   int id;
   int drinkId;
   String userId;
+  String userBookedId;
+  String userBookedName;
   int amount;
   int cost;
   DateTime date;
@@ -12,6 +14,8 @@ class Purchase {
       {required this.id,
       required this.drinkId,
       required this.userId,
+      required this.userBookedId,
+      required this.userBookedName,
       required this.amount,
       required this.cost,
       required this.date,
@@ -22,6 +26,8 @@ class Purchase {
     final id = data['id'] as int;
     final drinkId = data['drinkId'] as int;
     final userId = data['userId'] as String;
+    final userBookedId = data['userBookedId'] ?? data['userId'] as String;
+    final userBookedName = data['userBookedName'] ?? '';
     final amount = data['amount'] as int;
     final cost = int.parse(data['cost'].toString());
     final date = DateTime.parse(data['date']);
@@ -31,6 +37,8 @@ class Purchase {
         id: id,
         drinkId: drinkId,
         userId: userId,
+        userBookedId: userBookedId,
+        userBookedName: userBookedName,
         amount: amount,
         cost: cost,
         date: date,
@@ -42,6 +50,8 @@ class Purchase {
         'id': id,
         'drinkId': drinkId,
         'userId': userId,
+        'userBookedId': userBookedId,
+        'userBookedName': userBookedName,
         'amount': amount,
         'cost': cost,
         'date': date.toString(),

@@ -1,3 +1,4 @@
+import 'package:dpsg_app/main.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 
@@ -9,7 +10,7 @@ displayAboutDialog(context) {
         width: 40,
       ),
       applicationName: 'DPSG Gladbach',
-      applicationVersion: '1.1.0',
+      applicationVersion: appVersion,
       children: [
         TextButton(
           child: const Text('Internetseite'),
@@ -18,7 +19,8 @@ displayAboutDialog(context) {
         ),
         TextButton(
           child: const Text('Datenschutzerklärung'),
-          onPressed: () => launchUrl(Uri.parse('https://www.dpsg-gladbach.de/app-datenschutz'),
+          onPressed: () => launchUrl(
+              Uri.parse('https://www.dpsg-gladbach.de/app-datenschutz'),
               mode: LaunchMode.externalApplication),
         ),
       ]);

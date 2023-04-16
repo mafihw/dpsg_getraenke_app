@@ -1,3 +1,4 @@
+import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/welcome_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
@@ -6,6 +7,7 @@ import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get_it/get_it.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,7 +17,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   void _update() {
     setState(() {});
   }
@@ -24,7 +25,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBackgroundColor,
-      appBar: CustomAppBar(appBarTitle: 'DPSG Gladbach Getränke', onIconPress: _update,),
+      appBar: CustomAppBar(
+        appBarTitle: 'DPSG Gladbach Getränke',
+        onIconPress: _update,
+      ),
       drawer: CustomDrawer(updateHomeScreen: _update),
       body: WelcomeScreen(),
       bottomNavigationBar: CustomBottomBar(),
@@ -34,7 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const DrinkScreen(),
+              builder: (context) =>
+                  DrinkScreen(userId: GetIt.I<Backend>().loggedInUserId!),
             ),
           );
           setState(() {});

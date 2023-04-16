@@ -25,7 +25,8 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserver {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with WidgetsBindingObserver {
   User? currentUser;
   final Purchase? lastPurchase = null;
   Timer timer = Timer(const Duration(seconds: 5), () {});
@@ -55,15 +56,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async  {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.inactive && timer.isActive){
+    if (state == AppLifecycleState.inactive && timer.isActive) {
       timer.cancel();
       int drinks = drinksPending;
       drinksPending = 0;
-      await purchaseDrink(currentUser!.id, shortcutDrink!, drinks);
+      await purchaseDrink(
+          currentUser!.id, currentUser!.id, shortcutDrink!, drinks);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      setState((){});
+      setState(() {});
     }
   }
 
@@ -217,7 +219,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
                           ? '-'
                           : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100 * lastPurchase.amount).toStringAsFixed(2).replaceAll('.', ',')}€',
                       style: const TextStyle(fontSize: 18),
-                    )
+                    ),
+                    if (lastPurchase != null &&
+                        lastPurchase.userId !=
+                            GetIt.I<Backend>().loggedInUserId)
+                      Text('für ${lastPurchase.userName}',
+                          style: const TextStyle(fontSize: 18)),
+                    if (lastPurchase != null &&
+                        lastPurchase.userBookedId !=
+                            GetIt.I<Backend>().loggedInUserId)
+                      Text('von ${lastPurchase.userBookedName}',
+                          style: const TextStyle(fontSize: 18))
                   ],
                 ),
                 onTap: () async {
@@ -363,7 +375,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
       //try to fetch data from server
       try {
         final response = await backend.get('/purchase?userId=$userId');
-        if (response != null) {
+        if (response != null && response.isNotEmpty) {
           purchase = Purchase.fromJson(response.last);
           localStorage.setLastPurchase(purchase);
         }
@@ -382,7 +394,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
     int cost = 0;
     List<Purchase> unsentPurchases =
         await GetIt.I<LocalDB>().getUnsentPurchases();
-    for (Purchase unsentPurchase in unsentPurchases) {
+    for (Purchase unsentPurchase in unsentPurchases.where(
+        (element) => element.userId == GetIt.I<Backend>().loggedInUserId)) {
       cost += unsentPurchase.cost * unsentPurchase.amount;
     }
     return cost;
@@ -422,7 +435,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
         } else if (value == SnackBarClosedReason.timeout) {
           int drinks = drinksPending;
           drinksPending = 0;
-          await purchaseDrink(user.id, drink, drinks);
+          await purchaseDrink(user.id, user.id, drink, drinks);
           setState(() {});
         }
       });
@@ -433,8 +446,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with WidgetsBindingObserv
     if (timer.isActive) {
       timer.cancel();
     }
-    timer = Timer(const Duration(seconds: 5),
-        () => {ScaffoldMessenger.of(context).hideCurrentSnackBar(reason: SnackBarClosedReason.timeout)});
+    timer = Timer(
+        const Duration(seconds: 5),
+        () => {
+              ScaffoldMessenger.of(context)
+                  .hideCurrentSnackBar(reason: SnackBarClosedReason.timeout)
+            });
   }
 }
 

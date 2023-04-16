@@ -39,5 +39,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Der Kamerazugriff wird benötigt, um die Freundes-QR-Codes zu scannen</string>
 </dict>
 </plist>

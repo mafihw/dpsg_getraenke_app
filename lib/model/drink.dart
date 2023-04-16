@@ -54,7 +54,7 @@ Future<List<Drink>> fetchDrinks() async {
   }
 
   if (drinks.isEmpty) {
-    drinks = await database.fetchDrinks();
+    drinks = await database.fetchDrinksFromDB();
   }
 
   return drinks;

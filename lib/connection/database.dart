@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink.dart';
+import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:get_it/get_it.dart';
@@ -20,10 +22,11 @@ class LocalDB {
     try {
       // open or create the database file
       database = await openDatabase(
-        join(await getDatabasesPath(), 'dpsg-database.db'),
-        version: 1,
-        onCreate: (db, _) async => await _createTables(db),
-      );
+          join(await getDatabasesPath(), 'dpsg-database.db'),
+          version: 2,
+          onCreate: (db, _) async => await _createTables(db),
+          onUpgrade: ((db, oldVersion, newVersion) async =>
+              await _handleUpdate(db, oldVersion, newVersion)));
       isInitialized = true;
       return true;
     } catch (e) {
@@ -33,14 +36,29 @@ class LocalDB {
   }
 
   Future<void> _createTables(Database db) async {
+    developer.log('Creating local Database');
     List<String> createStatements = [
       'CREATE TABLE drinks(id INTEGER PRIMARY KEY, cost INTEGER, name STRING, active INTEGER, deleted INTEGER)',
-      'CREATE TABLE unsentPurchases(id INTEGER PRIMARY KEY AUTOINCREMENT, drinkId INTEGER, userId STRING, amount INTEGER, cost INTEGER, date STRING, drinkName STRING, userName STRING)',
+      'CREATE TABLE unsentPurchases(id INTEGER PRIMARY KEY AUTOINCREMENT, drinkId INTEGER, userId STRING, userBookedId STRING, amount INTEGER, cost INTEGER, date STRING, drinkName STRING, userName STRING, userBookedName STRING)',
       'CREATE TABLE settings(userId STRING, key STRING, value, STRING, PRIMARY KEY (userId, key))',
+      'CREATE TABLE friends(uuid STRING PRIMARY KEY, userName STRING)',
     ];
 
     for (String createStatement in createStatements) {
       await db.execute(createStatement);
+    }
+  }
+
+  Future<void> _handleUpdate(
+      Database db, int oldVersion, int newVersion) async {
+    developer.log('Updating local database');
+    if (newVersion > 1) {
+      await db.execute(
+          'CREATE TABLE IF NOT EXISTS friends(uuid STRING PRIMARY KEY, userName STRING)');
+      await db.execute(
+          "ALTER TABLE unsentPurchases ADD COLUMN userBookedId STRING");
+      await db.execute(
+          "ALTER TABLE unsentPurchases ADD COLUMN userBookedName STRING");
     }
   }
 
@@ -57,7 +75,7 @@ class LocalDB {
     }
   }
 
-  Future<List<Drink>> fetchDrinks() async {
+  Future<List<Drink>> fetchDrinksFromDB() async {
     if (isInitialized) {
       final List<Map<String, dynamic>> maps = await database!.query('drinks');
       return List.generate(maps.length, (index) {
@@ -109,6 +127,8 @@ class LocalDB {
           id: maps[index]['id'],
           drinkId: maps[index]['drinkId'],
           userId: maps[index]['userId'],
+          userBookedId: maps[index]['userBookedId'] ?? maps[index]['userId'],
+          userBookedName: maps[index]['userBookedName'] ?? '',
           amount: maps[index]['amount'],
           cost: maps[index]['cost'],
           date: DateTime.parse(maps[index]['date']),
@@ -305,5 +325,30 @@ class LocalDB {
           0;
     }
     return false;
+  }
+
+  Future<void> insertFriends(List<Friend> friends) async {
+    if (isInitialized) {
+      await database!.delete('friends');
+      for (Friend friend in friends) {
+        await database!.insert(
+          'friends',
+          friend.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    }
+  }
+
+  Future<List<Friend>> fetchFriendsFromDB() async {
+    if (isInitialized) {
+      final List<Map<String, dynamic>> maps = await database!.query('friends');
+      var list = List.generate(maps.length, (index) {
+        return Friend.fromMap(maps[index]);
+      });
+      return list;
+    } else {
+      return [];
+    }
   }
 }

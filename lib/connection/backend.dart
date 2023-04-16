@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
+import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -15,10 +16,11 @@ import '../model/purchase.dart';
 
 const bool usingLocalAPI = false;
 
+const oldApiUrl = 'https://api.dpsg-gladbach.de:3001';
+const newApiUrl = 'https://app.dpsg-gladbach.de:80';
+const localApiUrl = 'http://192.168.178.39:3000';
+
 class Backend {
-  String apiurl = usingLocalAPI
-      ? 'http://192.168.178.32:3000'
-      : 'https://api.dpsg-gladbach.de:3001';
   static const int timeoutDuration = 30;
   bool isLoggedIn = false;
   bool isInitialized = false;
@@ -31,8 +33,10 @@ class Backend {
   File? loginFile;
   late Map<String, String> headers;
   LocalDB? localStorage;
+  String apiurl = oldApiUrl;
 
   Future<void> init() async {
+    await setApiUrl();
     try {
       localStorage = GetIt.I<LocalDB>();
       loggedInUserId = await localStorage!.getLoggedInUserId();
@@ -58,12 +62,30 @@ class Backend {
     isInitialized = true;
   }
 
+  Future<void> setApiUrl() async {
+    if (usingLocalAPI) {
+      apiurl = localApiUrl;
+    } else {
+      try {
+        final response = await http
+            .get(Uri.parse('$apiurl/api/test'))
+            .timeout(const Duration(seconds: 5));
+        if (response.statusCode != 200) {
+          apiurl = newApiUrl;
+        }
+      } catch (e) {
+        apiurl = newApiUrl;
+      }
+    }
+    developer.log('API-Url set to: ' + apiurl);
+  }
+
   Future<dynamic> get(String uri) async {
     try {
       final response = await http
           .get(Uri.parse('$apiurl/api$uri'), headers: await getHeader())
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(response.statusCode.toString() + '  ' + uri);
+      developer.log(response.statusCode.toString() + '  GET  ' + uri);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -78,11 +100,11 @@ class Backend {
   Future<dynamic> post(String uri, String body) async {
     try {
       final url = Uri.parse('$apiurl/api$uri');
-      developer.log('POST: url:$url body: $body');
       final response = await http
           .post(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
+      developer
+          .log(response.statusCode.toString() + '  POST  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -97,11 +119,11 @@ class Backend {
   Future<dynamic> patch(String uri, String body) async {
     try {
       final url = Uri.parse('$apiurl/api$uri');
-      developer.log('PATCH: url:$url');
       final response = await http
           .patch(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
+      developer.log(
+          response.statusCode.toString() + '  PATCH  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -116,11 +138,11 @@ class Backend {
   Future<dynamic> put(String uri, String body) async {
     try {
       final url = Uri.parse('$apiurl/api$uri');
-      developer.log('PUT: url:$url');
       final response = await http
           .put(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(response.statusCode.toString() + '  ' + uri + '  ' + body);
+      developer
+          .log(response.statusCode.toString() + '  PUT  ' + uri + '  ' + body);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -135,12 +157,14 @@ class Backend {
   Future<dynamic> delete(String uri, String? body) async {
     try {
       final url = Uri.parse('$apiurl/api$uri');
-      developer.log('DELETE: url:$url body: $body');
       final response = await http
           .delete(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(
-          response.statusCode.toString() + '  ' + uri + '  ' + (body ?? ''));
+      developer.log(response.statusCode.toString() +
+          '  DELETE  ' +
+          uri +
+          '  ' +
+          (body ?? ''));
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -227,6 +251,7 @@ class Backend {
     } else {
       try {
         await fetchDrinks();
+        await fetchFriends();
         loggedInUser = await fetchUser();
         return true;
       } catch (e) {
@@ -238,12 +263,12 @@ class Backend {
 
   Future<bool> checkConnection() async {
     try {
-      final result = await InternetAddress.lookup("api.dpsg-gladbach.de");
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        return true;
-      } else {
-        return false;
-      }
+      final response = await http
+          .get(Uri.parse('$apiurl/api/test'))
+          .timeout(const Duration(seconds: 5));
+      developer.log(
+          'Checking Connection to API at $apiurl. Status: ${response.statusCode}');
+      return response.statusCode == 200;
     } catch (error) {
       return false;
     }
@@ -261,16 +286,22 @@ class Backend {
           "amount": element.amount,
           "date": element.date.toString(),
         };
-        developer.log('Sending purchase to server');
+        developer.log('Sending offline purchase to server');
         try {
           await post('/purchase', jsonEncode(body));
           purchasesSent = true;
           await GetIt.instance<LocalDB>().removeUnsentPurchase(element);
           await Future.delayed(const Duration(milliseconds: 500));
-          developer.log('Successfully sent purchase to server');
+          developer.log('Successfully sent offline purchase to server');
         } catch (error) {
-          developer.log(
-              'Error while sending purchase to server: ' + error.toString());
+          developer.log('Error while sending offline purchase to server: ' +
+              error.toString());
+          if (error.toString() == 'Exception: HTTP 403') {
+            developer.log(
+                'HTTP 403 Forbidden error while sending offline purchase. Deleting the purchase now.');
+            developer.log('Purchase to be deleted: ${element.toJson()}');
+            await GetIt.instance<LocalDB>().removeUnsentPurchase(element);
+          }
         }
       }
       if (unsentPurchases.isEmpty) purchasesSent = true;

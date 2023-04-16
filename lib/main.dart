@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+const String appVersion = '1.2.0';
+
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,18 +64,18 @@ class _MyHomePageState extends State<MyHomePage> {
       screen = LoginScreen();
     }
     return MaterialApp(
-        home: screen,
-        theme: ThemeData(
-            colorScheme: kColorScheme,
-            snackBarTheme: snackBarTheme,
-            dialogTheme: DialogTheme(backgroundColor: kBackgroundColor),
-            checkboxTheme: CheckboxThemeData(
-                fillColor: MaterialStateProperty.all(kPrimaryColor)),
-        ),
+      home: screen,
+      theme: ThemeData(
+        colorScheme: kColorScheme,
+        snackBarTheme: snackBarTheme,
+        dialogTheme: DialogTheme(backgroundColor: kBackgroundColor),
+        checkboxTheme: CheckboxThemeData(
+            fillColor: MaterialStateProperty.all(kPrimaryColor)),
+      ),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-        supportedLocales: [
-          const Locale('de'),
-        ],
+      supportedLocales: [
+        const Locale('de'),
+      ],
     );
   }
 }

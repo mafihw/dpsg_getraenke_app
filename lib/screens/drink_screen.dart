@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
+import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
@@ -13,22 +14,26 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 class DrinkScreen extends StatefulWidget {
-  const DrinkScreen({Key? key}) : super(key: key);
+  DrinkScreen({Key? key, required this.userId}) : super(key: key);
+  final String userId;
 
   @override
   State<DrinkScreen> createState() => _DrinkScreenState();
 }
 
 class _DrinkScreenState extends State<DrinkScreen> {
+  String? userId;
   @override
   Widget build(BuildContext context) {
+    userId ??= widget.userId;
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Getränke"),
       drawer: CustomDrawer(),
       body: FutureBuilder(
           future: Future.wait([
             fetchDrinks(),
-            GetIt.I<LocalDB>().getSettingByKey('shortcutDrink')
+            GetIt.I<LocalDB>().getSettingByKey('shortcutDrink'),
+            fetchFriends()
           ]),
           builder: (context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
@@ -87,7 +92,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                           showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return BuyDialog(element);
+                                return BuyDialog(element, userId!);
                               });
                         }),
                         onLongPress: () async {
@@ -101,12 +106,23 @@ class _DrinkScreenState extends State<DrinkScreen> {
                   }
                 },
               );
-              return GridView.count(
-                padding: const EdgeInsets.all(6),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                crossAxisCount: 2,
-                children: drinkCards,
+              return Column(
+                children: [
+                  if (snapshot.data![2].isNotEmpty)
+                    buildFriendCard(
+                        userId!,
+                        [Friend(GetIt.I<Backend>().loggedInUserId!, 'Dich')] +
+                            snapshot.data![2]),
+                  Expanded(
+                    child: GridView.count(
+                      padding: const EdgeInsets.all(6),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      crossAxisCount: 2,
+                      children: drinkCards,
+                    ),
+                  ),
+                ],
               );
             } else {
               return Center(child: CircularProgressIndicator());
@@ -125,11 +141,69 @@ class _DrinkScreenState extends State<DrinkScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
+
+  Widget buildFriendCard(String uuid, List<Friend> friends) {
+    friends;
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: (userId == GetIt.I<Backend>().loggedInUserId)
+            ? kPrimaryColor
+            : kSecondaryColor,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.people,
+                    color: Colors.black,
+                    size: 32,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(left: 12),
+                    child: Text(
+                      'Du buchst für:',
+                      style: TextStyle(color: Colors.black, fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  DropdownButton<String>(
+                    iconEnabledColor: Colors.black,
+                    style: const TextStyle(color: Colors.black, fontSize: 18),
+                    dropdownColor: kPrimaryColor,
+                    items: List.generate(
+                        friends.length,
+                        (index) => DropdownMenuItem(
+                              child: Text(friends[index].userName),
+                              value: friends[index].uuid,
+                            )),
+                    onChanged: (value) {
+                      setState(() {
+                        userId = value!;
+                      });
+                    },
+                    value: uuid,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class BuyDialog extends StatelessWidget {
   Drink drink;
-  BuyDialog(this.drink, {Key? key}) : super(key: key);
+  String userId;
+  BuyDialog(this.drink, this.userId, {Key? key}) : super(key: key);
   int amountSelected = 1;
   @override
   Widget build(BuildContext context) {
@@ -217,8 +291,9 @@ class BuyDialog extends StatelessWidget {
                 ),
                 ElevatedButton(
                     onPressed: () {
-                      purchaseDrink(GetIt.instance<Backend>().loggedInUser!.id,
-                          drink, amountSelected);
+                      String forId = userId;
+                      String bookedUserId = GetIt.I<Backend>().loggedInUserId!;
+                      purchaseDrink(forId, bookedUserId, drink, amountSelected);
                       Navigator.pop(context);
                     },
                     child: const Text("Bestätigen"))
@@ -231,17 +306,31 @@ class BuyDialog extends StatelessWidget {
   }
 }
 
-Future<void> purchaseDrink(String userId, Drink drink, int amount) async {
+Future<void> purchaseDrink(
+    String userId, String userBookedId, Drink drink, int amount) async {
+  String? userName;
   final body = {
     "uuid": userId,
+    'userBookedId': userBookedId,
     "drinkid": drink.id,
     "amount": amount,
     "date": DateTime.now().toString()
   };
+  if (userBookedId != userId) {
+    userName = (await fetchFriends())
+        .where((element) => element.uuid == userId)
+        .first
+        .userName;
+  } else {
+    userName = GetIt.I<Backend>().loggedInUser!.name;
+  }
   final purchase = Purchase(
       id: 0,
       drinkId: drink.id,
       userId: userId,
+      userName: userName,
+      userBookedId: userBookedId,
+      userBookedName: GetIt.I<Backend>().loggedInUser!.name,
       amount: amount,
       cost: drink.cost,
       date: DateTime.now(),

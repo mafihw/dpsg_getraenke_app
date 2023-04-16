@@ -45,6 +45,8 @@ dependencies:
   jwt_decode: ^0.3.1
   flutter_masked_text: ^0.7.0
   sqflite: ^2.0.2+1
+  qr_flutter: ^4.0.0
+  fast_barcode_scanner: ^1.1.4
 
 
 dev_dependencies:

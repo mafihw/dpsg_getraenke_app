@@ -43,7 +43,12 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(appBarTitle: "Buchungen"),
+      appBar: CustomAppBar(
+        appBarTitle: "Buchungen",
+        onIconPress: () {
+          setState(() {});
+        },
+      ),
       drawer: const CustomDrawer(),
       body: FutureBuilder<bool>(
         builder: (context, snapshot) {
@@ -63,10 +68,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       );
                     }
                   });
-              return Column(children: [
-                getFilters(),
-                Expanded(child: builder)
-              ]);
+              return Column(children: [getFilters(), Expanded(child: builder)]);
             } else {
               //app is not connected to server
               if (widget.userId == null) {
@@ -134,14 +136,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)
-                    )
-                )
-            ),
+                        borderRadius: BorderRadius.circular(18.0)))),
             child: IntrinsicWidth(
               child: Text('von: ' +
-                  DateFormat('dd.MM.yyyy')
-                      .format(startDate.toLocal())),
+                  DateFormat('dd.MM.yyyy').format(startDate.toLocal())),
             ),
           ),
         ),
@@ -162,14 +160,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)
-                    )
-                )
-            ),
+                        borderRadius: BorderRadius.circular(18.0)))),
             child: IntrinsicWidth(
-              child: Text('bis: ' +
-                  DateFormat('dd.MM.yyyy')
-                      .format(endDate.toLocal())),
+              child: Text(
+                  'bis: ' + DateFormat('dd.MM.yyyy').format(endDate.toLocal())),
             ),
           ),
         ),
@@ -236,7 +230,16 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                     Text(
                       '${((purchase.cost / 100) * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
                       style: const TextStyle(fontSize: 14),
-                    )
+                    ),
+                  ((widget.userId != null &&
+                              purchase.userBookedId != widget.userId) ||
+                          (purchase.userBookedId != purchase.userId &&
+                              widget.userId == null))
+                      ? Text('Gebucht von ${purchase.userBookedName}')
+                      : (widget.userId != null &&
+                              purchase.userId != widget.userId)
+                          ? Text('Gebucht für ${purchase.userName}')
+                          : const SizedBox(),
                 ],
               )
             ],

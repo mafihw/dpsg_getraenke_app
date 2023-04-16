@@ -2,6 +2,7 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/drinks_administration_screen.dart';
 import 'package:dpsg_app/screens/drinks_statistics_screen.dart';
+import 'package:dpsg_app/screens/friends_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/newDrinks_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
@@ -123,6 +124,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
           updateHomeScreen();
         },
       ),
+      ListTile(
+        leading: const Icon(Icons.people),
+        title: const Text('Freundschaften'),
+        onTap: () async {
+          await Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const FriendsScreen()),
+              (Route<dynamic> route) => route.isFirst);
+          Navigator.pop(context);
+        },
+      ),
       /*ListTile(
         leading: Icon(FontAwesomeIcons.syringe),
         title: const Text('Promillerechner'),
@@ -225,7 +237,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => PurchasesScreen()),
-                        (Route<dynamic> route) => route.isFirst);
+                    (Route<dynamic> route) => route.isFirst);
               },
             ),
           if (GetIt.I<PermissionSystem>()
@@ -238,7 +250,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => NewDrinksScreen()),
-                        (Route<dynamic> route) => route.isFirst);
+                    (Route<dynamic> route) => route.isFirst);
               },
             ),
           if (GetIt.I<PermissionSystem>()
