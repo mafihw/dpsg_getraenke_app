@@ -2,6 +2,7 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/drinks_administration_screen.dart';
 import 'package:dpsg_app/screens/drinks_statistics_screen.dart';
+import 'package:dpsg_app/screens/general_statistics_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/newDrinks_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
@@ -200,6 +201,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: Text("Statistiken"),
         leading: Icon(FontAwesomeIcons.chartLine),
         children: [
+          if (GetIt.I<PermissionSystem>()
+              .userHasPermission(Permission.canSeeAllPurchases))
+            ListTile(
+              leading: Icon(Icons.bar_chart),
+              title: const Text('Allgemein'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => GeneralStatisticsScreen()),
+                        (Route<dynamic> route) => route.isFirst);
+              },
+            ),
           if (GetIt.I<PermissionSystem>()
               .userHasPermission(Permission.canEditDrinks))
             ListTile(
