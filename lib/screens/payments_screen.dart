@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../model/payment.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
+import '../shared/custom_card.dart';
 import '../shared/custom_drawer.dart';
 
 class PaymentsScreen extends StatefulWidget {
@@ -25,6 +26,19 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           .subtract(Duration(days: 30));
   var endDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+
+  final Widget _noPaymentsScreen = Center(
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: const [
+            Icon(Icons.search_off, size: 150),
+            SizedBox(height: 20),
+            SizedBox(
+                width: 250,
+                child: Text('Noch keine Zahlungen erhalten ...',
+                    style: TextStyle(fontSize: 25), textAlign: TextAlign.center))
+          ]));
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +72,9 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
 
   Widget getBody(snapshot) {
     if (snapshot.hasData) {
+      if(snapshot.data.isEmpty){
+        return _noPaymentsScreen;
+      }
       List<Widget> PaymentsCards = [];
       List<Payment> Payments = [];
       snapshot.data!.forEach((element) {
@@ -93,8 +110,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                   ),
                 )
               ],
-            ),
-            onTap: () {}));
+            )));
       });
       return SingleChildScrollView(
         child: Column(
@@ -194,19 +210,5 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         dateStartSearchString +
         dateEndSearchString +
         userSearchString);
-  }
-
-  Widget buildCard({required Row child, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: child,
-        ),
-      ),
-    );
   }
 }

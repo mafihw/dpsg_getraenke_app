@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../model/drink.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
+import '../shared/custom_card.dart';
 import '../shared/custom_drawer.dart';
 
 class InventoryDrinkScreen extends StatefulWidget {
@@ -38,7 +39,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
               Inventory? inventory;
               inventory = Inventory.fromJson(element);
 
-              inventoryCards.add(buildInventoryCard(
+              inventoryCards.add(buildCard(
                   child: Row(
                 children: [
                   Icon(Icons.date_range),
@@ -164,24 +165,6 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       resizeToAvoidBottomInset: false,
-    );
-  }
-
-  Widget buildInventoryCard({required Row child}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: InkWell(
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: child,
-          ),
-        ),
-      ),
     );
   }
 }
