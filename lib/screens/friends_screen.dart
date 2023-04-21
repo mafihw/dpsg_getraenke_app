@@ -123,6 +123,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         ...friendCards,
+                        IconButton(
+                          icon: const Icon(Icons.person_add_alt, size: 40),
+                          onPressed: () async {
+                            await addFriendPopup();
+                            performRebuild();
+                          },
+                        ),
                         const SizedBox(
                           height: 20,
                         )
@@ -161,12 +168,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
       floatingActionButton: selectedUser == null
           ? FloatingActionButton.extended(
               backgroundColor: kSecondaryColor,
-              onPressed: () async {
-                await addFriendPopup();
-                performRebuild();
+              onPressed: () {
+                Navigator.pop(context);
               },
-              icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text("Freund*in hinzufügen"),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text("Zurück"),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -295,7 +301,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
     await showDialog(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Freund*in hinzufügen'),
+        title: Row(
+          children: [
+            const Expanded(child: Text('Freund*in hinzufügen')),
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close),
+            ),
+          ],
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisSize: MainAxisSize.max,
+        ),
         children: [
           DefaultTabController(
             length: 2,
