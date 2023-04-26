@@ -59,7 +59,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                   future: getPurchases(widget.userId),
                   builder: (context, snapshot2) {
                     if (snapshot2.hasData) {
-                      return _buildOnlinePurchases(snapshot2.data!);
+                      if(snapshot2.data.isEmpty){
+                        return _noPurchasesScreen;
+                      } else {
+                        return _buildOnlinePurchases(snapshot2.data!);
+                      }
                     } else if (snapshot2.hasError) {
                       return _noPurchasesScreen;
                     } else {

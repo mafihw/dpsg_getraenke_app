@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../model/newDrink.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
+import '../shared/custom_card.dart';
 import '../shared/custom_drawer.dart';
 
 class NewDrinksScreen extends StatefulWidget {
@@ -92,8 +93,7 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
                   ),
                 )
               ],
-            ),
-            onTap: () {}));
+            )));
       });
       return SingleChildScrollView(
         child: Column(
@@ -191,19 +191,5 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
     return GetIt.instance<Backend>().get('/newDrinks' +
         dateStartSearchString +
         dateEndSearchString);
-  }
-
-  Widget buildCard({required Row child, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: child,
-        ),
-      ),
-    );
   }
 }

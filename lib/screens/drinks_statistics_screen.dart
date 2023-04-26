@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 import '../model/drink.dart';
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_bottom_bar.dart';
+import '../shared/custom_card.dart';
 import '../shared/custom_drawer.dart';
 import 'inventory_drink_screen.dart';
 
@@ -194,22 +195,6 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
       ],
     );
     return buildCard(child: child, onTap: onTap);
-  }
-
-  Widget buildCard({required child, required Function onTap}) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: kMainColor,
-      child: InkWell(
-        onTap: () => onTap(),
-        customBorder:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: child,
-        ),
-      ),
-    );
   }
 
   showCustomModalSheet(DrinkStatistics drinkStatistics) {

@@ -13,8 +13,10 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decode/jwt_decode.dart';
 
 import '../model/purchase.dart';
+import '../main.dart';
 
 const bool usingLocalAPI = false;
+const int tokenLifetimeBeforeRefreshInS = 15 * 60;
 
 const oldApiUrl = 'https://api.dpsg-gladbach.de:3001';
 const newApiUrl = 'https://app.dpsg-gladbach.de:443';
@@ -34,6 +36,7 @@ class Backend {
   late Map<String, String> headers;
   LocalDB? localStorage;
   String apiurl = oldApiUrl;
+  static bool refreshingToken = false;
 
   Future<void> init() async {
     await setApiUrl();
@@ -198,6 +201,13 @@ class Backend {
             loggedInUserId = loggedInUser!.id;
             await localStorage!.setLoggedInUserId(loggedInUser!.id);
             await localStorage!.saveLoginInformation(loggedInUser!, token);
+            if(response.headers.containsKey("set-cookie")){
+              final cookie = response.headers["set-cookie"]!.split(";").firstWhere((element) => element.contains("jwt="), orElse:() => "");
+              final refreshToken = cookie != "" ? cookie.split("=")[1] : null;
+              if(refreshToken != null){
+                await localStorage!.setSettingByKey("refreshToken", refreshToken);
+              }
+            }
             await init();
             return true;
           } else {
@@ -310,7 +320,7 @@ class Backend {
   }
 
   Future<Map<String, String>> getHeader() async {
-    if (checkTokenValidity()) {
+    if (await checkTokenValidity()) {
       return headers;
     } else {
       developer.log('Token has to be refreshed');
@@ -318,42 +328,114 @@ class Backend {
     }
   }
 
-  bool checkTokenValidity() {
+  Future<bool> checkTokenValidity() async {
     Map<String, dynamic> payload = Jwt.parseJwt(token!);
     if (payload.containsKey('exp') &&
         (payload['exp'] * 1000 >
             DateTime.now()
-                .add(const Duration(days: 1))
+                .add(const Duration(seconds: tokenLifetimeBeforeRefreshInS))
                 .millisecondsSinceEpoch)) {
-      return true;
+      return Future(() => true);
     } else {
-      return false;
+        if (payload.containsKey('exp') &&
+            (payload['exp'] * 1000 >
+                DateTime.now()
+                    .add(const Duration(seconds: 30))
+                    .millisecondsSinceEpoch)) {
+          autoRefreshToken();
+          return Future(() => true);
+        } else {
+          return Future(() async => await autoRefreshToken());
+        }
     }
   }
 
-  Future<void> refreshToken(context) async {
-    final email = loggedInUser?.email;
-    if (email != null) await _showDialog(context, email);
+  Future<bool> autoRefreshToken() async {
+    if(refreshingToken) {
+      return Future(() => false);
+    }
+    refreshingToken = true;
+    final refreshToken = await localStorage!.getSettingByKey("refreshToken");
+    if(refreshToken != null
+        && Jwt.parseJwt(refreshToken).containsKey('exp')
+        && Jwt.parseJwt(refreshToken)['exp'] * 1000 > DateTime.now().millisecondsSinceEpoch
+        && loggedInUser != null){
+      try {
+        final response = await http.post(Uri.parse('$apiurl/auth/refresh'),
+            headers: <String, String>{
+              'Content-Type': 'application/json',
+              'Cookie': 'jwt=$refreshToken'
+            },
+            body: jsonEncode(
+                <String, String>{'email': loggedInUser!.email})
+        );
+        developer.log(response.statusCode.toString() + '  /auth/refresh');
+        if (response.statusCode == 200) {
+          token = json.decode(response.body)['token'];
+          if (loggedInUser != null && token != null) {
+            if(response.headers.containsKey("set-cookie")){
+              final cookie = response.headers["set-cookie"]!.split(";").firstWhere((element) => element.contains("jwt="), orElse:() => "");
+              final refreshToken = cookie != "" ? cookie.split("=")[1] : null;
+              if(refreshToken != null){
+                await localStorage!.setSettingByKey("refreshToken", refreshToken);
+                developer.log('RefreshToken has been refreshed');
+              }
+            }
+            await localStorage!.setSettingByKey("token", token!);
+            developer.log('AccessToken has been refreshed');
+            refreshingToken = false;
+            return Future(() => true);
+          } else {
+            refreshingToken = false;
+            return Future(() => true);
+          }
+        } else {
+          if (response.statusCode == 409) {
+            await this.refreshToken();
+            refreshingToken = false;
+            return Future(() => true);
+
+          } else {
+            refreshingToken = false;
+            return Future(() => true);
+          }
+        }
+      } catch (e) {
+        developer.log(e.toString());
+        refreshingToken = false;
+        return Future(() => true);
+      }
+    } else {
+      await this.refreshToken();
+      refreshingToken = false;
+      return Future(() => true);
+    }
   }
 
-  Future<String?> _showDialog(BuildContext context, String email) async {
-    TextEditingController _textFieldController = new TextEditingController();
-    String? userInput = null;
+  Future<void> refreshToken() async {
+    final email = loggedInUser?.email;
+    if (email != null) await _showDialog(email);
+    refreshingToken = false;
+  }
+
+  Future<String?> _showDialog(String email) async {
+    TextEditingController _textFieldController = TextEditingController();
+    String? userInput;
     bool isRefreshingToken = false;
-    String? _errorText = null;
+    String? _errorText;
     await showDialog(
         barrierDismissible: false,
-        context: context,
+        context: navigatorKey.currentContext!,
         builder: (context) {
           return StatefulBuilder(builder: (context, setState) {
             return CustomAlertDialog(
-              title: Text('Passwort eingeben'),
+              title: const Text('Passwort eingeben'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                       "Account muss neu validiert werden. Bitte Passwort erneut eingeben."),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _textFieldController,
                     decoration: InputDecoration(
@@ -385,14 +467,14 @@ class Backend {
                           width: 25,
                           child: CircularProgressIndicator(
                               color: Colors.blue.shade800))
-                      : Text('Bestätigen'),
+                      : const Text('Bestätigen'),
                   onPressed: () async {
                     if (_textFieldController.text.isNotEmpty &&
                         !isRefreshingToken) {
                       setState(() {
                         isRefreshingToken = true;
                       });
-                      if (await this.login(email, _textFieldController.text)) {
+                      if (await login(email, _textFieldController.text)) {
                         setState(() {
                           isRefreshingToken = false;
                         });

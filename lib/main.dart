@@ -11,6 +11,7 @@ import 'package:get_it/get_it.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 const String appVersion = '1.2.0';
+final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
@@ -64,18 +65,19 @@ class _MyHomePageState extends State<MyHomePage> {
       screen = LoginScreen();
     }
     return MaterialApp(
-      home: screen,
-      theme: ThemeData(
-        colorScheme: kColorScheme,
-        snackBarTheme: snackBarTheme,
-        dialogTheme: DialogTheme(backgroundColor: kBackgroundColor),
-        checkboxTheme: CheckboxThemeData(
-            fillColor: MaterialStateProperty.all(kPrimaryColor)),
-      ),
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: [
-        const Locale('de'),
-      ],
+        home: screen,
+        navigatorKey: navigatorKey, // Setting a global key for navigator
+        theme: ThemeData(
+            colorScheme: kColorScheme,
+            snackBarTheme: snackBarTheme,
+            dialogTheme: const DialogTheme(backgroundColor: kBackgroundColor),
+            checkboxTheme: CheckboxThemeData(
+                fillColor: MaterialStateProperty.all(kPrimaryColor)),
+        ),
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          supportedLocales: const [
+            Locale('de'),
+          ],
     );
   }
 }

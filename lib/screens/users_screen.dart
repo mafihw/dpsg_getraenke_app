@@ -8,6 +8,7 @@ import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
+import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,7 +78,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                   continue;
                 }
 
-                userCards.add(buildUserCard(
+                userCards.add(buildCard(
                     child: Row(
                       children: [
                         Icon(user.role == 'admin'
@@ -233,53 +234,21 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     );
   }
 
-  Widget buildUserCard({required Row child, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: InkWell(
-          onTap: () => onTap(),
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget buildSettingCard(
       {required IconData icon, required String name, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: InkWell(
-          onTap: () => onTap(),
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(icon, size: 40),
-                Padding(
-                    padding: const EdgeInsets.only(left: 20.0),
-                    child: Text(name,
-                        style: TextStyle(fontSize: 20),
-                        textAlign: TextAlign.center))
-              ],
-            ),
-          ),
-        ),
-      ),
+    final child = Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Icon(icon, size: 40),
+        Padding(
+            padding: const EdgeInsets.only(left: 20.0),
+            child: Text(name,
+                style: TextStyle(fontSize: 20),
+                textAlign: TextAlign.center))
+      ],
     );
+    return buildCard(child: child, onTap: onTap);
   }
 
   showCustomModalSheet(User user) {
