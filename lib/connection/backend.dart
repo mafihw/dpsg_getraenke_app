@@ -292,6 +292,7 @@ class Backend {
       for (var element in unsentPurchases) {
         final body = {
           "uuid": element.userId,
+          "userBookedId": element.userBookedId,
           "drinkid": element.drinkId,
           "amount": element.amount,
           "date": element.date.toString(),
