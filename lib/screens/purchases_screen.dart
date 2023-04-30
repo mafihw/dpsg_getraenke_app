@@ -23,7 +23,7 @@ class PurchasesScreen extends StatefulWidget {
 class _PurchasesScreenState extends State<PurchasesScreen> {
   var startDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-          .subtract(Duration(days: 30));
+          .subtract(const Duration(days: 90));
   var endDate =
       DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
 
