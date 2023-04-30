@@ -47,7 +47,8 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: emailTextController,
                 keyboardType: TextInputType.emailAddress,
-                decoration: InputDecoration(
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
                   labelText: 'Email',
                 ),
               ),
@@ -57,9 +58,11 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: passwordTextController,
                 obscureText: true,
-                decoration: InputDecoration(
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(
                   labelText: 'Passwort',
                 ),
+                onSubmitted: (c) => login(),
               ),
               const SizedBox(
                 height: 20,
@@ -76,46 +79,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: Text('Registrieren')),
+                      child: const Text('Registrieren')),
                   ElevatedButton(
-                    onPressed: () async {
-                      if (!currentlyLoggingIn) {
-                        FocusManager.instance.primaryFocus?.unfocus();
-                        setState(() {
-                          currentlyLoggingIn = true;
-                        });
-                        if (await GetIt.instance<Backend>().login(
-                            emailTextController.text,
-                            passwordTextController.text)) {
-                          await GetIt.instance<Backend>().refreshData();
-                          if (GetIt.instance<Backend>().loggedInUser!.role !=
-                              'none') {
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => HomeScreen()),
-                                (route) => false);
-                          } else {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: ((context) =>
-                                        NotVerifiedScreen())));
-                          }
-                          setState(() {
-                            currentlyLoggingIn = false;
-                          });
-                        } else {
-                          const snackBar = SnackBar(
-                            content: Text('Login fehlgeschlagen!'),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                          setState(() {
-                            currentlyLoggingIn = false;
-                          });
-                        }
-                      }
-                    },
+                    onPressed: login,
                     child: currentlyLoggingIn
                         ? SizedBox(
                             height: 25,
@@ -129,5 +95,38 @@ class _LoginScreenState extends State<LoginScreen> {
             ]),
           ),
         ));
+  }
+
+  void login() async {
+    if (!currentlyLoggingIn) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() {
+        currentlyLoggingIn = true;
+      });
+      if (await GetIt.instance<Backend>()
+          .login(emailTextController.text, passwordTextController.text)) {
+        await GetIt.instance<Backend>().refreshData();
+        if (GetIt.instance<Backend>().loggedInUser!.role != 'none') {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false);
+        } else {
+          Navigator.push(context,
+              MaterialPageRoute(builder: ((context) => NotVerifiedScreen())));
+        }
+        setState(() {
+          currentlyLoggingIn = false;
+        });
+      } else {
+        const snackBar = SnackBar(
+          content: Text('Login fehlgeschlagen!'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        setState(() {
+          currentlyLoggingIn = false;
+        });
+      }
+    }
   }
 }

@@ -165,6 +165,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         validatePasswordConfirm();
                       });
                     },
+                    onSubmitted: (value) {
+                      if (validation()) {
+                        registration();
+                      }
+                    },
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -174,55 +179,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           onPressed: () {
                             backButtonPressed();
                           },
-                          child: Text('Zurück')),
+                          child: const Text('Zurück')),
                       ElevatedButton(
-                        onPressed: validation()
-                            ? () async {
-                                if (!currentlyLoggingIn) {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  setState(() {
-                                    currentlyLoggingIn = true;
-                                  });
-                                  if (await GetIt.instance<Backend>().register(
-                                    emailTextController.text,
-                                    passwordTextController.text,
-                                    nameTextController.text,
-                                  )) {
-                                    if (GetIt.instance<Backend>()
-                                            .loggedInUser!
-                                            .role !=
-                                        'none') {
-                                      Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  HomeScreen()),
-                                          (route) => false);
-                                    } else {
-                                      Navigator.pushAndRemoveUntil(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  NotVerifiedScreen(true)),
-                                          (route) => false);
-                                    }
-                                    setState(() {
-                                      currentlyLoggingIn = false;
-                                    });
-                                  } else {
-                                    const snackBar = SnackBar(
-                                      content:
-                                          Text('Registrierung fehlgeschlagen!'),
-                                    );
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(snackBar);
-                                    setState(() {
-                                      currentlyLoggingIn = false;
-                                    });
-                                  }
-                                }
-                              }
-                            : null,
+                        onPressed: validation() ? registration : null,
                         child: currentlyLoggingIn
                             ? SizedBox(
                                 height: 25,
@@ -236,6 +195,43 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ]),
           ),
         ));
+  }
+
+  void registration() async {
+    if (!currentlyLoggingIn) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() {
+        currentlyLoggingIn = true;
+      });
+      if (await GetIt.instance<Backend>().register(
+        emailTextController.text,
+        passwordTextController.text,
+        nameTextController.text,
+      )) {
+        if (GetIt.instance<Backend>().loggedInUser!.role != 'none') {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false);
+        } else {
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => NotVerifiedScreen(true)),
+              (route) => false);
+        }
+        setState(() {
+          currentlyLoggingIn = false;
+        });
+      } else {
+        const snackBar = SnackBar(
+          content: Text('Registrierung fehlgeschlagen!'),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        setState(() {
+          currentlyLoggingIn = false;
+        });
+      }
+    }
   }
 
   Future<bool> backButtonPressed() {
