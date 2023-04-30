@@ -26,7 +26,8 @@ class Purchase {
     final id = data['id'] as int;
     final drinkId = data['drinkId'] as int;
     final userId = data['userId'] as String;
-    final userBookedId = data['userBookedId'] ?? data['userId'] as String;
+    var userBookedId = data['userBookedId'] as String;
+    if(userBookedId == '') userBookedId = data['userId'] as String;
     final userBookedName = data['userBookedName'] ?? '';
     final amount = data['amount'] as int;
     final cost = int.parse(data['cost'].toString());
