@@ -290,11 +290,22 @@ class BuyDialog extends StatelessWidget {
                   child: const Text("Abbrechen"),
                 ),
                 ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      String? userName;
                       String forId = userId;
                       String bookedUserId = GetIt.I<Backend>().loggedInUserId!;
-                      purchaseDrink(forId, bookedUserId, drink, amountSelected);
+                      if (bookedUserId != userId) {
+                        userName = (await fetchFriends())
+                            .where((element) => element.uuid == userId)
+                            .first
+                            .userName;
+                      }
+                      purchaseDrink(
+                          forId, bookedUserId, drink, amountSelected, userName);
                       Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(
+                              'Du hast ${amountSelected}x ${drink.name} ${userName != null ? 'für $userName ' : ''}gebucht.')));
                     },
                     child: const Text("Bestätigen"))
               ],
@@ -307,8 +318,8 @@ class BuyDialog extends StatelessWidget {
 }
 
 Future<void> purchaseDrink(
-    String userId, String userBookedId, Drink drink, int amount) async {
-  String? userName;
+    String userId, String userBookedId, Drink drink, int amount,
+    [String? userName]) async {
   final body = {
     "uuid": userId,
     'userBookedId': userBookedId,
@@ -317,7 +328,7 @@ Future<void> purchaseDrink(
     "date": DateTime.now().toString()
   };
   if (userBookedId != userId) {
-    userName = (await fetchFriends())
+    userName ??= (await fetchFriends())
         .where((element) => element.uuid == userId)
         .first
         .userName;
