@@ -10,15 +10,24 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'connection/notification_service.dart';
+
 const String appVersion = '1.2.0';
 final navigatorKey = GlobalKey<NavigatorState>();
 
+Future<dynamic> _onDidReceiveLocalNotification(
+    int id,
+    String? title,
+    String? body,
+    String? payload) async {}
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
   GetIt.instance.registerSingleton<LocalDB>(LocalDB());
   GetIt.instance.registerSingleton<Backend>(Backend());
   GetIt.instance.registerSingleton<PermissionSystem>(PermissionSystem());
+  GetIt.instance.registerSingleton<NotificationService>(NotificationService());
+  await GetIt.instance<NotificationService>().init(_onDidReceiveLocalNotification);
   await GetIt.I<LocalDB>().init();
   await GetIt.I<Backend>().init();
   await GetIt.I<PermissionSystem>().init();
