@@ -187,7 +187,6 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
     final String dateEndSearchString = '&to=' +
         (endDate.add(Duration(days: 1)).millisecondsSinceEpoch / 1000)
             .toStringAsFixed(0);
-    await GetIt.instance<Backend>().sendLocalPurchasesToServer();
     return GetIt.instance<Backend>().get('/newDrinks' +
         dateStartSearchString +
         dateEndSearchString);

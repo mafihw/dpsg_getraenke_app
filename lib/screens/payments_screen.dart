@@ -205,7 +205,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         (endDate.add(Duration(days: 1)).millisecondsSinceEpoch / 1000)
             .toStringAsFixed(0);
     final String userSearchString = userId != null ? '&userId=' + userId : '';
-    await GetIt.instance<Backend>().sendLocalPurchasesToServer();
     return GetIt.instance<Backend>().get('/payment' +
         dateStartSearchString +
         dateEndSearchString +

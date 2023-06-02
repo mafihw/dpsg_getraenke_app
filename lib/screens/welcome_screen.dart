@@ -309,12 +309,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     future: GetIt.I<LocalDB>().getUnsentPurchases(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                        return const Hero(
+                        return Hero(
                             tag: 'syncWarning',
-                            child: Icon(
-                              Icons.sync_problem_rounded,
-                              color: kWarningColor,
-                            ));
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.sync_problem_rounded,
+                                color: kWarningColor
+                              ),
+                              onPressed: () {
+                                setState((){
+                                  GetIt.instance<Backend>().sendLocalPurchasesToServer();
+                                });
+                              },
+                            )
+                        );
                       } else {
                         return Container();
                       }

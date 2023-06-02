@@ -13,6 +13,10 @@ import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
+import '../connection/notification_service.dart';
+
+NotificationService _notificationService = GetIt.instance<NotificationService>();
+
 class DrinkScreen extends StatefulWidget {
   DrinkScreen({Key? key, required this.userId}) : super(key: key);
   final String userId;
@@ -353,10 +357,12 @@ Future<void> purchaseDrink(
       await GetIt.instance<LocalDB>().setLastPurchase(purchase);
     } catch (error) {
       await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
+      _notificationService.showOfflinePurchasesNotification();
       developer.log(error.toString());
     }
   } else {
     await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
+    _notificationService.showOfflinePurchasesNotification();
     await GetIt.instance<LocalDB>().setLastPurchase(purchase);
   }
 }
