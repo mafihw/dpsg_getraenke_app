@@ -28,16 +28,18 @@ class Friend {
 Future<List<Friend>> fetchFriends() async {
   var database = GetIt.I<LocalDB>();
   List<Friend> friends = [];
-  try {
-    final response = await GetIt.I<Backend>().get('/friend');
-    if (response != null) {
-      for (var friendsJson in response) {
-        friends.add(Friend.fromJson(friendsJson));
+  if (GetIt.I<Backend>().isOnline) {
+    try {
+      final response = await GetIt.I<Backend>().get('/friend');
+      if (response != null) {
+        for (var friendsJson in response) {
+          friends.add(Friend.fromJson(friendsJson));
+        }
+        await database.insertFriends(friends);
       }
-      await database.insertFriends(friends);
+    } catch (e) {
+      developer.log(e.toString());
     }
-  } catch (e) {
-    developer.log(e.toString());
   }
 
   if (friends.isEmpty) {

@@ -30,6 +30,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   User? currentUser;
   final Purchase? lastPurchase = null;
   Timer timer = Timer(const Duration(seconds: 5), () {});
+  bool connecting = false;
+  int reconnectCounter = 0;
 
   //The ValueNotifier triggers a rebuild of a snackBar
   final ValueNotifier<String> snackMsg = ValueNotifier('');
@@ -40,8 +42,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (await GetIt.instance<Backend>().checkConnection()
-          && !(await GetIt.instance<Backend>().checkTokenValidity())) {
+      if (GetIt.instance<Backend>().isOnline &&
+          !(await GetIt.instance<Backend>().checkTokenValidity())) {
         await GetIt.instance<Backend>().refreshToken();
       }
       await fetchUser();
@@ -65,6 +67,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       await purchaseDrink(
           currentUser!.id, currentUser!.id, shortcutDrink!, drinks);
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      setState(() {});
+    } else if (state == AppLifecycleState.resumed) {
+      await GetIt.I<Backend>().checkConnection();
       setState(() {});
     }
   }
@@ -123,6 +128,62 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
+  Widget offlineInfo() {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: kPrimaryColor,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Offline-Modus',
+                      style: TextStyle(color: Colors.black, fontSize: 18),
+                    ),
+                    Text(
+                      'Du bist nicht verbunden',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  setState(() {
+                    reconnectCounter++;
+                  });
+                  if (!connecting) {
+                    connecting = true;
+                    await GetIt.I<Backend>().checkConnection().then((value) => {
+                          Future.delayed(const Duration(seconds: 1))
+                              .then((_) => setState(() => connecting = false))
+                        });
+                  } else {
+                    setState(() {});
+                  }
+                },
+                icon: AnimatedRotation(
+                    duration: const Duration(seconds: 1),
+                    turns: reconnectCounter / 1,
+                    child: const Icon(Icons.refresh)),
+                label: const Text('Verbinden'),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(kMainColor),
+                    foregroundColor: MaterialStateProperty.all(Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<WelcomeScreenData> fetchWelcomeScreenData(context) async {
     return WelcomeScreenData(
       lastPurchase: await fetchLastPurchase(),
@@ -151,6 +212,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            if (!GetIt.I<Backend>().isOnline) offlineInfo(),
             buildCard(
                 child: Column(
                   children: [
@@ -194,6 +256,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     builder: (context) => PaymentsScreen(userId: userId),
                   ),
                 );
+                setState(() {});
               },
             ),
             buildCard(
@@ -370,7 +433,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     var localStorage = GetIt.I<LocalDB>();
     String userId = backend.loggedInUserId!;
     Purchase? purchase;
-    if (await backend.checkConnection()) {
+    if (backend.isOnline) {
       await backend.sendLocalPurchasesToServer();
       //try to fetch data from server
       try {

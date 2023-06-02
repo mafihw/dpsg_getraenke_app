@@ -85,6 +85,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pop(context);
 
           Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
         },
       ),
       ListTile(
@@ -98,6 +99,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               MaterialPageRoute(
                   builder: (context) => PurchasesScreen(userId: userId)),
               (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
         },
       ),
       ListTile(
@@ -111,6 +113,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               MaterialPageRoute(
                   builder: (context) => PaymentsScreen(userId: userId)),
               (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
         },
       ),
       ListTile(
@@ -121,8 +124,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
               context,
               MaterialPageRoute(builder: (context) => MyProfileScreen()),
               (Route<dynamic> route) => route.isFirst);
-          Navigator.pop(context);
           updateHomeScreen();
+          Navigator.pop(context);
         },
       ),
       ListTile(
@@ -133,6 +136,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               context,
               MaterialPageRoute(builder: (context) => const FriendsScreen()),
               (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
           Navigator.pop(context);
         },
       ),
@@ -224,6 +228,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     context,
                     MaterialPageRoute(builder: (context) => GeneralStatisticsScreen()),
                         (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
               },
             ),
           if (GetIt.I<PermissionSystem>()
@@ -252,6 +257,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     context,
                     MaterialPageRoute(builder: (context) => PurchasesScreen()),
                     (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
               },
             ),
           if (GetIt.I<PermissionSystem>()
@@ -265,6 +271,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     context,
                     MaterialPageRoute(builder: (context) => NewDrinksScreen()),
                     (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
               },
             ),
           if (GetIt.I<PermissionSystem>()
@@ -278,6 +285,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     context,
                     MaterialPageRoute(builder: (context) => PaymentsScreen()),
                     (Route<dynamic> route) => route.isFirst);
+                updateHomeScreen();
               },
             )
         ],

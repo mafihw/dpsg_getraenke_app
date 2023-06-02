@@ -30,19 +30,9 @@ class _OfflineCheckState extends State<OfflineCheck> {
         setState(() {});
       },
     );
-    return FutureBuilder<bool>(
-        future: GetIt.I<Backend>().checkConnection(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data!) {
-              return widget.builder.call(context);
-            } else {
-              return offlineWidget;
-            }
-          } else {
-            return waitingWidget;
-          }
-        });
+    return GetIt.I<Backend>().isOnline
+        ? widget.builder.call(context)
+        : offlineWidget;
   }
 }
 
@@ -57,6 +47,7 @@ class OfflineWarning extends StatefulWidget {
 class _OfflineWarningState extends State<OfflineWarning>
     with TickerProviderStateMixin {
   int refreshCounter = 0;
+  bool connecting = false;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -85,7 +76,13 @@ class _OfflineWarningState extends State<OfflineWarning>
               setState(() {
                 refreshCounter++;
               });
-              widget.refresh.call();
+              if (!connecting) {
+                connecting = true;
+                await GetIt.I<Backend>()
+                    .checkConnection()
+                    .then((value) => {setState(() => connecting = false)});
+                widget.refresh.call();
+              }
             },
             icon: AnimatedRotation(
               child: const Icon(Icons.refresh),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -36,41 +37,28 @@ class _GeneralStatisticsScreenState extends State<GeneralStatisticsScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Statistiken"),
       drawer: const CustomDrawer(),
-      body: FutureBuilder<bool>(
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data!) {
-              //app is connected to server
-              final builder = FutureBuilder<dynamic>(
-                  future: getStatistics(),
-                  builder: (context, snapshot2) {
-                    if (snapshot2.hasData) {
-                      return getStatisticsScreen(snapshot2.data!);
-                    } else if (snapshot2.hasError) {
-                      return _noGeneralStatisticsScreen;
-                    } else {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                  });
-              return Column(children: [Expanded(child: builder)]);
-            } else {
-              //app is not connected to server
-              return _noGeneralStatisticsScreen;
-            }
-          } else {
-            if (snapshot.hasError) {
-              return _noGeneralStatisticsScreen;
-            } else {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          }
-        },
-        future: GetIt.I<Backend>().checkConnection(),
-      ),
+      body: (GetIt.I<Backend>().isOnline)
+          ?
+          //
+          Column(children: [
+              Expanded(
+                  child: FutureBuilder<dynamic>(
+                      future: getStatistics(),
+                      builder: (context, snapshot2) {
+                        if (snapshot2.hasData) {
+                          return getStatisticsScreen(snapshot2.data!);
+                        } else if (snapshot2.hasError) {
+                          return _noGeneralStatisticsScreen;
+                        } else {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                      }))
+            ])
+          : OfflineWarning(refresh: () {
+              setState(() {});
+            }),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
@@ -105,26 +93,27 @@ class _GeneralStatisticsScreenState extends State<GeneralStatisticsScreen> {
   Widget _buildStatisticsCards(int totalUserAmount, int outstandingPayments) {
     return buildCard(
         child: Row(children: [
-          Icon(Icons.bar_chart),
-          Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Allgemeine Statistiken',
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                  Text(
-                    'Nutzer gesamt: $totalUserAmount',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  Text(
-                    'Zahlungen ausstehend: ' + '${((-outstandingPayments) / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
-                    style: const TextStyle(fontSize: 14),
-                  )
-                ],
-              ))
-        ]));
+      Icon(Icons.bar_chart),
+      Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Allgemeine Statistiken',
+                style: const TextStyle(fontSize: 20),
+              ),
+              Text(
+                'Nutzer gesamt: $totalUserAmount',
+                style: const TextStyle(fontSize: 14),
+              ),
+              Text(
+                'Zahlungen ausstehend: ' +
+                    '${((-outstandingPayments) / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
+                style: const TextStyle(fontSize: 14),
+              )
+            ],
+          ))
+    ]));
   }
 }

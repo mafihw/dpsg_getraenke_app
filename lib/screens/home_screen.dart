@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   void _update() {
+    GetIt.I<Backend>().checkConnection();
     setState(() {});
   }
 

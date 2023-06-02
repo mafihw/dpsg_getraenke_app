@@ -50,59 +50,48 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         },
       ),
       drawer: const CustomDrawer(),
-      body: FutureBuilder<bool>(
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data!) {
-              //app is connected to server
-              final builder = FutureBuilder<dynamic>(
-                  future: getPurchases(widget.userId),
-                  builder: (context, snapshot2) {
-                    if (snapshot2.hasData) {
-                      if(snapshot2.data.isEmpty){
+      body: () {
+        if (GetIt.I<Backend>().isOnline) {
+          return Column(children: [
+            getFilters(),
+            Expanded(
+                child: FutureBuilder<dynamic>(
+                    future: getPurchases(widget.userId),
+                    builder: (context, snapshot2) {
+                      if (snapshot2.hasData) {
+                        if (snapshot2.data.isEmpty) {
+                          return _noPurchasesScreen;
+                        } else {
+                          return _buildOnlinePurchases(snapshot2.data!);
+                        }
+                      } else if (snapshot2.hasError) {
                         return _noPurchasesScreen;
                       } else {
-                        return _buildOnlinePurchases(snapshot2.data!);
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
                       }
-                    } else if (snapshot2.hasError) {
-                      return _noPurchasesScreen;
-                    } else {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                  });
-              return Column(children: [getFilters(), Expanded(child: builder)]);
-            } else {
-              //app is not connected to server
-              if (widget.userId == null) {
-                return _noPurchasesScreen;
-              } else {
-                return FutureBuilder<List<Purchase>>(
-                    future: GetIt.I<LocalDB>().getUnsentPurchases(),
-                    builder: (context, snapshot2) {
-                      if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
-                        return _buildOfflinePurchases(snapshot2.data!);
-                      } else {
-                        return OfflineWarning(refresh: () {
-                          setState(() {});
-                        });
-                      }
-                    });
-              }
-            }
+                    }))
+          ]);
+        } else {
+          //app is not connected to server
+          if (widget.userId == null) {
+            return _noPurchasesScreen;
           } else {
-            if (snapshot.hasError) {
-              return _noPurchasesScreen;
-            } else {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+            return FutureBuilder<List<Purchase>>(
+                future: GetIt.I<LocalDB>().getUnsentPurchases(),
+                builder: (context, snapshot2) {
+                  if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
+                    return _buildOfflinePurchases(snapshot2.data!);
+                  } else {
+                    return OfflineWarning(refresh: () {
+                      setState(() {});
+                    });
+                  }
+                });
           }
-        },
-        future: GetIt.I<Backend>().checkConnection(),
-      ),
+        }
+      }.call(),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(

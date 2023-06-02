@@ -18,7 +18,7 @@ import '../main.dart';
 const bool usingLocalAPI = false;
 const int tokenLifetimeBeforeRefreshInS = 15 * 60;
 
-const oldApiUrl = 'https://api.dpsg-gladbach.de:3001';
+const oldApiUrl = 'https://appi.dpsg-gladbach.de:3001';
 const newApiUrl = 'https://app.dpsg-gladbach.de:443';
 const localApiUrl = 'http://192.168.178.39:3000';
 
@@ -26,6 +26,7 @@ class Backend {
   static const int timeoutDuration = 30;
   bool isLoggedIn = false;
   bool isInitialized = false;
+  bool isOnline = false;
   Directory? directory;
   String? path;
   dynamic loginInformation;
@@ -40,6 +41,7 @@ class Backend {
 
   Future<void> init() async {
     await setApiUrl();
+    await checkConnection();
     try {
       localStorage = GetIt.I<LocalDB>();
       loggedInUserId = await localStorage!.getLoggedInUserId();
@@ -95,6 +97,7 @@ class Backend {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
+      await checkConnection();
       developer.log(e.toString());
       rethrow;
     }
@@ -114,6 +117,7 @@ class Backend {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
+      await checkConnection();
       developer.log(e.toString());
       rethrow;
     }
@@ -133,6 +137,7 @@ class Backend {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
+      await checkConnection();
       developer.log(e.toString());
       rethrow;
     }
@@ -152,6 +157,7 @@ class Backend {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
+      await checkConnection();
       developer.log(e.toString());
       rethrow;
     }
@@ -174,6 +180,7 @@ class Backend {
         throw Exception('HTTP ${response.statusCode}');
       }
     } catch (e) {
+      await checkConnection();
       developer.log(e.toString());
       rethrow;
     }
@@ -201,11 +208,15 @@ class Backend {
             loggedInUserId = loggedInUser!.id;
             await localStorage!.setLoggedInUserId(loggedInUser!.id);
             await localStorage!.saveLoginInformation(loggedInUser!, token);
-            if(response.headers.containsKey("set-cookie")){
-              final cookie = response.headers["set-cookie"]!.split(";").firstWhere((element) => element.contains("jwt="), orElse:() => "");
+            if (response.headers.containsKey("set-cookie")) {
+              final cookie = response.headers["set-cookie"]!
+                  .split(";")
+                  .firstWhere((element) => element.contains("jwt="),
+                      orElse: () => "");
               final refreshToken = cookie != "" ? cookie.split("=")[1] : null;
-              if(refreshToken != null){
-                await localStorage!.setSettingByKey("refreshToken", refreshToken);
+              if (refreshToken != null) {
+                await localStorage!
+                    .setSettingByKey("refreshToken", refreshToken);
               }
             }
             await init();
@@ -256,7 +267,7 @@ class Backend {
   }
 
   Future<bool> refreshData() async {
-    if (!await checkConnection() || !isInitialized || !isLoggedIn) {
+    if (!isOnline || !isInitialized || !isLoggedIn) {
       return false;
     } else {
       try {
@@ -278,15 +289,26 @@ class Backend {
           .timeout(const Duration(seconds: 5));
       developer.log(
           'Checking Connection to API at $apiurl. Status: ${response.statusCode}');
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        isOnline = true;
+        return true;
+      } else {
+        developer.log(
+          'No Connection to API at $apiurl. Code: ${response.statusCode}');
+        isOnline = false;
+        return false;
+      }
     } catch (error) {
+      developer.log(
+          'No Connection to API at $apiurl. Status: $error');
+      isOnline = false;
       return false;
     }
   }
 
   Future<bool> sendLocalPurchasesToServer() async {
     bool purchasesSent = false;
-    if (await checkConnection()) {
+    if (isOnline) {
       List<Purchase> unsentPurchases =
           await GetIt.instance<LocalDB>().getUnsentPurchases();
       for (var element in unsentPurchases) {
@@ -338,47 +360,50 @@ class Backend {
                 .millisecondsSinceEpoch)) {
       return Future(() => true);
     } else {
-        if (payload.containsKey('exp') &&
-            (payload['exp'] * 1000 >
-                DateTime.now()
-                    .add(const Duration(seconds: 30))
-                    .millisecondsSinceEpoch)) {
-          autoRefreshToken();
-          return Future(() => true);
-        } else {
-          return Future(() async => await autoRefreshToken());
-        }
+      if (payload.containsKey('exp') &&
+          (payload['exp'] * 1000 >
+              DateTime.now()
+                  .add(const Duration(seconds: 30))
+                  .millisecondsSinceEpoch)) {
+        autoRefreshToken();
+        return Future(() => true);
+      } else {
+        return Future(() async => await autoRefreshToken());
+      }
     }
   }
 
   Future<bool> autoRefreshToken() async {
-    if(refreshingToken) {
+    if (refreshingToken) {
       return Future(() => false);
     }
     refreshingToken = true;
     final refreshToken = await localStorage!.getSettingByKey("refreshToken");
-    if(refreshToken != null
-        && Jwt.parseJwt(refreshToken).containsKey('exp')
-        && Jwt.parseJwt(refreshToken)['exp'] * 1000 > DateTime.now().millisecondsSinceEpoch
-        && loggedInUser != null){
+    if (refreshToken != null &&
+        Jwt.parseJwt(refreshToken).containsKey('exp') &&
+        Jwt.parseJwt(refreshToken)['exp'] * 1000 >
+            DateTime.now().millisecondsSinceEpoch &&
+        loggedInUser != null) {
       try {
         final response = await http.post(Uri.parse('$apiurl/auth/refresh'),
             headers: <String, String>{
               'Content-Type': 'application/json',
               'Cookie': 'jwt=$refreshToken'
             },
-            body: jsonEncode(
-                <String, String>{'email': loggedInUser!.email})
-        );
+            body: jsonEncode(<String, String>{'email': loggedInUser!.email}));
         developer.log(response.statusCode.toString() + '  /auth/refresh');
         if (response.statusCode == 200) {
           token = json.decode(response.body)['token'];
           if (loggedInUser != null && token != null) {
-            if(response.headers.containsKey("set-cookie")){
-              final cookie = response.headers["set-cookie"]!.split(";").firstWhere((element) => element.contains("jwt="), orElse:() => "");
+            if (response.headers.containsKey("set-cookie")) {
+              final cookie = response.headers["set-cookie"]!
+                  .split(";")
+                  .firstWhere((element) => element.contains("jwt="),
+                      orElse: () => "");
               final refreshToken = cookie != "" ? cookie.split("=")[1] : null;
-              if(refreshToken != null){
-                await localStorage!.setSettingByKey("refreshToken", refreshToken);
+              if (refreshToken != null) {
+                await localStorage!
+                    .setSettingByKey("refreshToken", refreshToken);
                 developer.log('RefreshToken has been refreshed');
               }
             }
@@ -395,7 +420,6 @@ class Backend {
             await this.refreshToken();
             refreshingToken = false;
             return Future(() => true);
-
           } else {
             refreshingToken = false;
             return Future(() => true);
