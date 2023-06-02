@@ -18,7 +18,7 @@ import '../main.dart';
 const bool usingLocalAPI = false;
 const int tokenLifetimeBeforeRefreshInS = 15 * 60;
 
-const oldApiUrl = 'https://appi.dpsg-gladbach.de:3001';
+const oldApiUrl = 'https://api.dpsg-gladbach.de:3001';
 const newApiUrl = 'https://app.dpsg-gladbach.de:443';
 const localApiUrl = 'http://192.168.178.39:3000';
 
