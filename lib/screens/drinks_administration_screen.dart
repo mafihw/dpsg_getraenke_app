@@ -4,9 +4,9 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
+import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:get_it/get_it.dart';
 
 import '../model/drink.dart';
@@ -229,9 +229,9 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
   }
 
   Future<void> changePrice(Drink drink) async {
-    MoneyMaskedTextController _MoneyMaskedTextController =
-    new MoneyMaskedTextController(
-        decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+    final MoneyMaskedTextController moneyMaskedTextController =
+    MoneyMaskedTextController(
+        initialValue: drink.cost.toDouble() / 100, decimalSeparator: ',', thousandSeparator: '.', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
@@ -247,19 +247,11 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                     child: TextField(
                       style: TextStyle(fontSize: 20),
                       textAlign: TextAlign.right,
-                      controller: _MoneyMaskedTextController,
+                      controller: moneyMaskedTextController,
                       keyboardType: TextInputType.numberWithOptions(
                           signed: false, decimal: true),
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
-                        TextInputFormatter.withFunction(
-                              (oldValue, newValue) => newValue.copyWith(
-                            text: newValue.text.replaceAll('.', ','),
-                          ),
-                        ),
-                      ],
-                    ))
+                    )
+                )
               ],
             ),
             actions: <Widget>[
@@ -274,14 +266,16 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                 child: Text('Bestätigen'),
                 onPressed: () async {
                   try {
-                    if (_MoneyMaskedTextController.numberValue > 0) {
+                    if (moneyMaskedTextController.numberValue > 0) {
                       final body = {
-                        'cost': _MoneyMaskedTextController.numberValue * 100
+                        'cost': moneyMaskedTextController.numberValue * 100
                       };
                       await GetIt.I<Backend>()
                           .put('/drink/${drink.id}', jsonEncode(body));
                     }
                   } finally {
+                    setState(() {});
+                    Navigator.pop(context);
                     Navigator.pop(context);
                     return;
                   }
@@ -334,6 +328,8 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                       await GetIt.I<Backend>()
                           .put('/drink/${drink.id}', jsonEncode(body));
                     }
+                    setState(() {});
+                    Navigator.pop(context);
                     Navigator.pop(context);
                   } catch (e) {
                     return;
@@ -359,7 +355,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
     TextEditingController _TextEditingController = new TextEditingController();
     MoneyMaskedTextController _MoneyMaskedTextController =
         new MoneyMaskedTextController(
-            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+            initialValue: 0, decimalSeparator: ',', thousandSeparator: '.', rightSymbol: '€');
 
     await showDialog(
         context: context,
@@ -398,15 +394,6 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                           controller: _MoneyMaskedTextController,
                           keyboardType: TextInputType.numberWithOptions(
                               signed: false, decimal: true),
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.allow(
-                                RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
-                            TextInputFormatter.withFunction(
-                              (oldValue, newValue) => newValue.copyWith(
-                                text: newValue.text.replaceAll('.', ','),
-                              ),
-                            ),
-                          ],
                           textInputAction: TextInputAction.done,
                         ))
                   ],

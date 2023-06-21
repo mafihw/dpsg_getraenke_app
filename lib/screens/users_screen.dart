@@ -10,9 +10,9 @@ import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
+import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:get_it/get_it.dart';
 
 import '../shared/custom_app_bar.dart';
@@ -320,9 +320,9 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
   }
 
   Future<void> geldBuchen(User user) async {
-    MoneyMaskedTextController _MoneyMaskedTextController =
-        new MoneyMaskedTextController(
-            decimalSeparator: '.', thousandSeparator: ',', rightSymbol: '€');
+    final MoneyMaskedTextController moneyMaskedTextController =
+        MoneyMaskedTextController(
+            initialValue: 0, decimalSeparator: ',', thousandSeparator: '.', rightSymbol: '€');
     await showDialog(
         context: context,
         builder: (context) {
@@ -338,18 +338,9 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                     child: TextField(
                       style: TextStyle(fontSize: 20),
                       textAlign: TextAlign.right,
-                      controller: _MoneyMaskedTextController,
+                      controller: moneyMaskedTextController,
                       keyboardType: TextInputType.numberWithOptions(
                           signed: false, decimal: true),
-                      inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'[0-9]+[,.]{0,1}[0-9]*')),
-                        TextInputFormatter.withFunction(
-                          (oldValue, newValue) => newValue.copyWith(
-                            text: newValue.text.replaceAll('.', ','),
-                          ),
-                        ),
-                      ],
                     ))
               ],
             ),
@@ -364,10 +355,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
               ElevatedButton(
                 child: Text('Bestätigen'),
                 onPressed: () async {
-                  if (_MoneyMaskedTextController.numberValue > 0) {
+                  if (moneyMaskedTextController.numberValue > 0) {
                     final body = {
                       'uuid': user.id,
-                      'value': _MoneyMaskedTextController.numberValue * 100
+                      'value': moneyMaskedTextController.numberValue * 100
                     };
                     try {
                       await GetIt.I<Backend>()
