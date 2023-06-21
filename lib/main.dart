@@ -12,7 +12,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'connection/notification_service.dart';
 
-const String appVersion = '1.2.0';
+const String appVersion = '1.3.0';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<dynamic> _onDidReceiveLocalNotification(
