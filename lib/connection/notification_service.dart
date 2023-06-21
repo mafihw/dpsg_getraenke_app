@@ -18,10 +18,10 @@ class NotificationService {
 
   Future<void> init(Future<dynamic> Function(int, String?, String?, String?)? onDidReceive) async {
     final AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('icon_500px');
+    AndroidInitializationSettings('ic_monochrome');
 
-    final IOSInitializationSettings initializationSettingsIOS =
-    IOSInitializationSettings(
+    final DarwinInitializationSettings initializationSettingsIOS =
+    DarwinInitializationSettings(
       onDidReceiveLocalNotification: onDidReceive,
     );
 
@@ -32,11 +32,11 @@ class NotificationService {
         macOS: null);
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: selectNotification);
+        onDidReceiveNotificationResponse: selectNotification);
   }
 
 
-  Future selectNotification(String? payload) async {
+  Future selectNotification(NotificationResponse? payload) async {
     if(await GetIt.instance<Backend>().sendLocalPurchasesToServer()){
       print("Offline purchases send");
     } else {
@@ -57,7 +57,7 @@ class NotificationService {
             android: AndroidNotificationDetails(
                 channel_id,
                 applicationName,
-                channelDescription,
+                channelDescription: channelDescription,
                 enableVibration: false)
         )
     );
