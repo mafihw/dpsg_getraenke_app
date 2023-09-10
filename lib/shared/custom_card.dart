@@ -1,7 +1,7 @@
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 
-Widget buildCard({required child, Function? onTap}) {
+Widget buildCard({required child, Function? onTap, Function? onLongPress}) {
   return Padding(
     padding: const EdgeInsets.all(2.0),
     child: Card(
@@ -14,6 +14,7 @@ Widget buildCard({required child, Function? onTap}) {
       ) :
       InkWell(
         onTap: () => onTap(),
+        onLongPress: onLongPress == null ? null : () => onLongPress(),
         customBorder:
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(

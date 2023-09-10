@@ -9,6 +9,7 @@ import 'package:dpsg_app/screens/newDrinks_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
+import 'package:dpsg_app/screens/laflamme_screen.dart';
 import 'package:dpsg_app/shared/about_dialog.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
@@ -43,12 +44,21 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DrawerHeader(
+          DrawerHeader(
             decoration: BoxDecoration(
               color: kMainColor,
             ),
-            child: Image(
-              image: AssetImage('assets/icon_500px.png'),
+            child: GestureDetector(onLongPress: () async {
+              await Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LaFlammeScreen()),
+                      (Route<dynamic> route) => route.isFirst);
+              updateHomeScreen();
+              Navigator.pop(context);
+            },
+              child: Image(
+                image: AssetImage('assets/icon_500px.png'),
+              ),
             ),
           ),
           NotificationListener<OverscrollIndicatorNotification>(
@@ -156,6 +166,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Rechtliches'),
         onTap: () => displayAboutDialog(context),
       ),
+
       ListTile(
         leading: Icon(Icons.logout),
         title: const Text('Abmelden'),
@@ -165,6 +176,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
               context,
               MaterialPageRoute(builder: (context) => LoginScreen()),
               (Route<dynamic> route) => false);
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.people),
+        title: const Text('La Flamme'),
+        onTap: () async {
+          await Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const LaFlammeScreen()),
+                  (Route<dynamic> route) => route.isFirst);
+          updateHomeScreen();
+          Navigator.pop(context);
         },
       ),
     ];
