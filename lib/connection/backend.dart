@@ -36,7 +36,7 @@ class Backend {
   File? loginFile;
   late Map<String, String> headers;
   LocalDB? localStorage;
-  String apiurl = oldApiUrl;
+  String apiurl = newApiUrl;
   static bool refreshingToken = false;
 
   Future<void> init() async {
@@ -70,7 +70,7 @@ class Backend {
   Future<void> setApiUrl() async {
     if (usingLocalAPI) {
       apiurl = localApiUrl;
-    } else {
+    } /* else {
       try {
         final response = await http
             .get(Uri.parse('$apiurl/api/test'))
@@ -81,7 +81,7 @@ class Backend {
       } catch (e) {
         apiurl = newApiUrl;
       }
-    }
+    }*/
     developer.log('API-Url set to: ' + apiurl);
   }
 
@@ -294,13 +294,12 @@ class Backend {
         return true;
       } else {
         developer.log(
-          'No Connection to API at $apiurl. Code: ${response.statusCode}');
+            'No Connection to API at $apiurl. Code: ${response.statusCode}');
         isOnline = false;
         return false;
       }
     } catch (error) {
-      developer.log(
-          'No Connection to API at $apiurl. Status: $error');
+      developer.log('No Connection to API at $apiurl. Status: $error');
       isOnline = false;
       return false;
     }
