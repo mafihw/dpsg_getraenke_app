@@ -82,7 +82,7 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
                         style: TextStyle(fontSize: 20),
                       ),
                       Text(
-                        'Datum: ${DateFormat('dd.MM.yyyy, kk:mm').format(newDrink.date.toLocal())}',
+                        'Datum: ${DateFormat('dd.MM.yyyy, HH:mm').format(newDrink.date.toLocal())}',
                         style: TextStyle(fontSize: 14),
                       ),
                       Text(
