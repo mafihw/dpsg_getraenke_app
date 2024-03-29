@@ -41,18 +41,19 @@ class Drink {
 Future<List<Drink>> fetchDrinks() async {
   var database = GetIt.I<LocalDB>();
   List<Drink> drinks = [];
-  if(GetIt.I<Backend>().isOnline) {
-  try {
-    final response = await GetIt.instance<Backend>().get('/drink');
-    if (response != null) {
-      for (var drinkJson in response) {
-        drinks.add(Drink.fromJson(drinkJson));
+  if (GetIt.I<Backend>().isOnline) {
+    try {
+      final response = await GetIt.instance<Backend>().get('/drink');
+      if (response != null) {
+        for (var drinkJson in response) {
+          drinks.add(Drink.fromJson(drinkJson));
+        }
+        await database.insertDrinks(drinks);
+        _checkShortcutDrink(drinks);
       }
-      await database.insertDrinks(drinks);
+    } catch (e) {
+      developer.log(e.toString());
     }
-  } catch (e) {
-    developer.log(e.toString());
-  }
   }
 
   if (drinks.isEmpty) {
@@ -60,4 +61,22 @@ Future<List<Drink>> fetchDrinks() async {
   }
 
   return drinks;
+}
+
+Future<void> _checkShortcutDrink(List<Drink> drinks) async {
+  String? shortcutDrinkId =
+      await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
+  if (shortcutDrinkId != null) {
+    Drink? shortcutDrink;
+    try {
+      shortcutDrink = drinks
+          .where((element) => element.id.toString() == shortcutDrinkId)
+          .first;
+    } catch (_) {}
+    if (shortcutDrink == null ||
+        !shortcutDrink.active ||
+        shortcutDrink.deleted) {
+      await GetIt.I<LocalDB>().removeSettingByKey('shortcutDrink');
+    }
+  }
 }
