@@ -2,6 +2,7 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
+import 'package:dpsg_app/screens/registration_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
@@ -104,9 +105,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   bool validation() {
     _nameValid = _nameController.text.isNotEmpty;
-    _mailValid = RegExp(
-            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-        .hasMatch(_mailController.text);
+    _mailValid = emailValidationPattern.hasMatch(_mailController.text);
     _passwordValid = _passwordController.text.length >= 8 ||
         _passwordController.text.isEmpty;
     _passwordCheckValid =
