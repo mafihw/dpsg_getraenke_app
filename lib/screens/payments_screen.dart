@@ -86,31 +86,33 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       Payments.forEach((payment) {
         PaymentsCards.add(buildCard(
             child: Row(
-              children: [
-                Icon(Icons.euro),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${DateFormat('dd.MM.yyyy, kk:mm').format(payment.date.toLocal())}',
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      if (widget.userId == null)
-                        Text(
-                          'Nutzer: ' + (payment.userName == null ? '-' : payment.userName!),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      Text(
-                        'Betrag: ${((payment.value / 100)).toStringAsFixed(2).replaceAll('.', ',')} €',
-                        style: TextStyle(fontSize: 14),
-                      )
-                    ],
+          children: [
+            const Icon(Icons.euro),
+            Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    DateFormat('dd.MM.yyyy, HH:mm')
+                        .format(payment.date.toLocal()),
+                    style: const TextStyle(fontSize: 20),
                   ),
-                )
-              ],
-            )));
+                  if (widget.userId == null)
+                    Text(
+                      'Nutzer: ' +
+                          (payment.userName == null ? '-' : payment.userName!),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  Text(
+                    'Betrag: ${((payment.value / 100)).toStringAsFixed(2).replaceAll('.', ',')} €',
+                    style: const TextStyle(fontSize: 14),
+                  )
+                ],
+              ),
+            )
+          ],
+        )));
       });
       return SingleChildScrollView(
         child: Column(

@@ -48,7 +48,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        DateFormat('dd.MM.yyyy, kk:mm')
+                        DateFormat('dd.MM.yyyy, HH:mm')
                             .format(inventory.date.toLocal()),
                         style: TextStyle(fontSize: 20),
                       ),

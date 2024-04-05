@@ -215,7 +215,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       style: const TextStyle(fontSize: 14),
                     ),
                   Text(
-                    DateFormat('dd.MM.yyyy, kk:mm')
+                    DateFormat('dd.MM.yyyy, HH:mm')
                         .format(purchase.date.toLocal()),
                     style: const TextStyle(fontSize: 14),
                   ),
