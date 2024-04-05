@@ -178,18 +178,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
               (Route<dynamic> route) => false);
         },
       ),
-      ListTile(
-        leading: const Icon(Icons.people),
-        title: const Text('La Flamme'),
-        onTap: () async {
-          await Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const LaFlammeScreen()),
-                  (Route<dynamic> route) => route.isFirst);
-          updateHomeScreen();
-          Navigator.pop(context);
-        },
-      ),
     ];
     return listTiles;
   }

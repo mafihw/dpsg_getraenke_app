@@ -1,15 +1,14 @@
+import 'dart:convert';
 import 'dart:math';
 
-import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 
 import '../shared/custom_app_bar.dart';
 import '../shared/custom_drawer.dart';
-
-enum sortModes { name, balance }
+import 'package:get_it/get_it.dart';
+import 'package:dpsg_app/connection/database.dart';
 
 class LaFlammeScreen extends StatefulWidget {
   const LaFlammeScreen({Key? key}) : super(key: key);
@@ -47,7 +46,6 @@ class Category {
     if (this.status == Status.alleAktiv) {
       while (i.moveNext()) {
         i.current.activated = false;
-        developer.log('deactivated');
       }
       this.status = Status.alleInAktiv;
     } else {
@@ -82,11 +80,8 @@ class Flammkuchen {
 }
 
 class _LaFlammeScreenState extends State<LaFlammeScreen> {
-  User? selectedUser = null;
-  int selectedGroup = 0;
-  String sortMode = sortModes.name.name;
   List<Category> categories = [];
-  List<Flammkuchen> letzteFlammkuchen = [];
+  List<String> letzteFlammkuchen = [];
   var numGenerator = new Random();
 
   _LaFlammeScreenState() {
@@ -163,6 +158,17 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
     categories.add(suess);
   }
 
+  @override
+  void initState() {
+    ladeFlammkuchen();
+    super.initState();
+  }
+
+  void ladeFlammkuchen() async {
+    String letzteFlammkuchenString = await GetIt.I<LocalDB>().getSettingByKey('letzteFlammkuchen') ?? "[]";
+    letzteFlammkuchen = (jsonDecode(letzteFlammkuchenString) as List<dynamic>).cast<String>();
+  }
+
   void performRebuild() {
     setState(() {});
   }
@@ -207,9 +213,7 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
           ),
           onTap: () {
             category.setActivated();
-            setState(() {
-              developer.log('set state');
-            });
+            setState(() {});
           },
           onLongPress: () {
             setState(() {
@@ -278,8 +282,7 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
       body: body,
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: this.getBottomNavigationBar(context),
-      floatingActionButton: selectedUser == null
-          ? FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(
               backgroundColor: kSecondaryColor,
               onPressed: () {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -287,8 +290,7 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
               },
               icon: const Icon(Icons.replay_outlined),
               label: const Text("Würfeln"),
-            )
-          : null,
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       resizeToAvoidBottomInset: false,
     );
@@ -325,16 +327,18 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
         ),
         duration: Duration(hours: 5),
         dismissDirection: DismissDirection.vertical,
-        action: SnackBarAction(
+        action: activatedFlammkuchen.length > 0 ? SnackBarAction(
             label: 'speichern',
             textColor: kColorScheme.onPrimary,
             onPressed: () async {
               if (ausgewaehlterFlammkuchen != null) {
-                letzteFlammkuchen.add(ausgewaehlterFlammkuchen);
+                letzteFlammkuchen.add(snackMsg);
               }
+              String letzteFlammkuchenJson = jsonEncode(letzteFlammkuchen);
+              await GetIt.I<LocalDB>().setSettingByKey('letzteFlammkuchen', letzteFlammkuchenJson);
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            }));
-    await ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            }) : null);
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   Widget getBottomNavigationBar(BuildContext context) {
@@ -379,8 +383,7 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
           mainAxisSize: MainAxisSize.max,
           children: [
             Expanded(
-              child: Text(
-                flammkuchen.name + " (" + flammkuchen.categoryName! + ")",
+              child: Text(flammkuchen,
                 style: TextStyle(fontSize: 20),
                 softWrap: true,
               ),
@@ -390,13 +393,31 @@ class _LaFlammeScreenState extends State<LaFlammeScreen> {
       )));
     }
     showModalBottomSheet(
-      isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
-      context: context,
-      builder: (context) => Container(
-          constraints: BoxConstraints(maxHeight: 400),
-          child: SingleChildScrollView(
-              child: Column(children: flammkuchenCards.reversed.toList()))),
-    );
+        isScrollControlled: true,
+        backgroundColor: kBackgroundColor,
+        context: context,
+        builder: (context) => Container(
+              constraints: BoxConstraints(maxHeight: 400),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            this.letzteFlammkuchen = [];
+                            Navigator.pop(context);
+                            setState(() {});
+                          },
+                          icon: Icon(Icons.delete))
+                    ],
+                  ),
+                  Divider(),
+                  SingleChildScrollView(
+                      child:
+                          Column(children: flammkuchenCards.reversed.toList())),
+                ],
+              ),
+            ));
   }
 }
