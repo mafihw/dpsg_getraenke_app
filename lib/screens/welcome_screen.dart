@@ -408,11 +408,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Future<Drink?> _getCurrentlySelectedShortcutDrink() async {
+    var drinks = await fetchDrinks();
     String? id = await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
     if (id != null) {
-      var drinks = await fetchDrinks();
       for (Drink drink in drinks) {
-        if (drink.id.toString() == id) {
+        if (drink.id.toString() == id && !drink.deleted && drink.active) {
           return drink;
         }
       }
