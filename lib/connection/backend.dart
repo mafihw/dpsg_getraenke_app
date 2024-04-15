@@ -310,7 +310,8 @@ class Backend {
     if (isOnline) {
       List<Purchase> unsentPurchases =
           await GetIt.instance<LocalDB>().getUnsentPurchases();
-      for (var element in unsentPurchases) {
+      for (var element
+          in unsentPurchases.where((element) => element.amount > 0)) {
         final body = {
           "uuid": element.userId,
           "userBookedId": element.userBookedId,

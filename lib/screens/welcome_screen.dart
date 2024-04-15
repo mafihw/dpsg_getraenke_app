@@ -29,7 +29,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     with WidgetsBindingObserver {
   User? currentUser;
   final Purchase? lastPurchase = null;
-  Timer timer = Timer(const Duration(seconds: 5), () {});
+  Timer? timer;
   bool connecting = false;
   int reconnectCounter = 0;
 
@@ -60,12 +60,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.inactive && timer.isActive) {
-      timer.cancel();
+    if (state == AppLifecycleState.inactive &&
+        timer != null &&
+        timer!.isActive) {
+      timer?.cancel();
       int drinks = drinksPending;
       drinksPending = 0;
-      await purchaseDrink(
-          currentUser!.id, currentUser!.id, shortcutDrink!, drinks);
+      if (drinks > 0) {
+        await purchaseDrink(
+            currentUser!.id, currentUser!.id, shortcutDrink!, drinks);
+      }
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       setState(() {});
     } else if (state == AppLifecycleState.resumed) {
@@ -230,7 +234,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MyProfileScreen(),
+                      builder: (context) => const MyProfileScreen(),
                     ),
                   );
                   setState(() {});
@@ -312,17 +316,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         return Hero(
                             tag: 'syncWarning',
                             child: IconButton(
-                              icon: Icon(
-                                Icons.sync_problem_rounded,
-                                color: kWarningColor
-                              ),
-                              onPressed: () {
-                                setState((){
-                                  GetIt.instance<Backend>().sendLocalPurchasesToServer();
-                                });
+                              icon: const Icon(Icons.sync_problem_rounded,
+                                  color: kWarningColor),
+                              onPressed: () async {
+                                await GetIt.instance<Backend>()
+                                    .sendLocalPurchasesToServer();
+                                setState(() {});
                               },
-                            )
-                        );
+                            ));
                       } else {
                         return Container();
                       }
@@ -338,9 +339,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text('Schnellwahltaste',
+                            const Text('Schnellwahltaste',
                                 style: TextStyle(fontSize: 16)),
-                            Icon(
+                            const Icon(
                               Icons.add,
                               size: 48,
                             ),
@@ -349,7 +350,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                     '1x ${shortcutDrink!.name} buchen',
                                     textAlign: TextAlign.center,
                                   )
-                                : Text(
+                                : const Text(
                                     'Lange gedrückt halten zum Auswählen',
                                     textAlign: TextAlign.center,
                                   ),
@@ -502,7 +503,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           .then((value) async {
         if (value == SnackBarClosedReason.action) {
           drinksPending = 0;
-          timer.cancel();
+          timer?.cancel();
         } else if (value == SnackBarClosedReason.timeout) {
           int drinks = drinksPending;
           drinksPending = 0;
@@ -514,8 +515,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   void restartTimer() {
-    if (timer.isActive) {
-      timer.cancel();
+    if (timer != null && timer!.isActive) {
+      timer!.cancel();
     }
     timer = Timer(
         const Duration(seconds: 5),
