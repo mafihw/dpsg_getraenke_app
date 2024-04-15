@@ -474,9 +474,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Future<void> _openPaypal(double amount) async {
-    Uri url = Uri.parse(
-        'https://paypal.me/Bierkasse1947/${amount.toString().replaceAll('.', ',')}');
+    String paypalUrl = 'https://paypal.com/paypalme/Bierkasse1947';
+    if (amount > 0) paypalUrl += '/${amount}EUR';
+    Uri url = Uri.parse(paypalUrl);
     try {
+      developer.log('Opening URL: $paypalUrl');
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
       developer.log("url $url cant be launched: $e");
