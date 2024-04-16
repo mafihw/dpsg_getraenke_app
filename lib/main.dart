@@ -16,10 +16,7 @@ const String appVersion = '1.3.0';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 Future<dynamic> _onDidReceiveLocalNotification(
-    int id,
-    String? title,
-    String? body,
-    String? payload) async {}
+    int id, String? title, String? body, String? payload) async {}
 void main() async {
   HttpOverrides.global = MyHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +24,8 @@ void main() async {
   GetIt.instance.registerSingleton<Backend>(Backend());
   GetIt.instance.registerSingleton<PermissionSystem>(PermissionSystem());
   GetIt.instance.registerSingleton<NotificationService>(NotificationService());
-  await GetIt.instance<NotificationService>().init(_onDidReceiveLocalNotification);
+  await GetIt.instance<NotificationService>()
+      .init(_onDidReceiveLocalNotification);
   await GetIt.I<LocalDB>().init();
   await GetIt.I<Backend>().init();
   await GetIt.I<PermissionSystem>().init();
@@ -40,7 +38,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MyHomePage();
+    return const MyHomePage();
   }
 }
 
@@ -59,34 +57,29 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget screen;
     var backend = GetIt.instance<Backend>();
     if (backend.isLoggedIn && backend.loggedInUser != null) {
-      screen = FutureBuilder<bool>(
-        future: GetIt.I<Backend>().refreshData(),
-        builder: ((context, snapshot) {
-          if (GetIt.I<Backend>().loggedInUser!.role != 'none') {
-            return HomeScreen();
-          } else {
-            return NotVerifiedScreen();
-          }
-        }),
-      );
+      if (GetIt.I<Backend>().loggedInUser!.role != 'none') {
+        screen = const HomeScreen();
+      } else {
+        screen = NotVerifiedScreen();
+      }
     } else {
       GetIt.I<Backend>().logout();
       screen = LoginScreen();
     }
     return MaterialApp(
-        home: screen,
-        navigatorKey: navigatorKey, // Setting a global key for navigator
-        theme: ThemeData(
-            colorScheme: kColorScheme,
-            snackBarTheme: snackBarTheme,
-            dialogTheme: const DialogTheme(backgroundColor: kBackgroundColor),
-            checkboxTheme: CheckboxThemeData(
-                fillColor: MaterialStateProperty.all(kPrimaryColor)),
-        ),
-        localizationsDelegates: GlobalMaterialLocalizations.delegates,
-          supportedLocales: const [
-            Locale('de'),
-          ],
+      home: screen,
+      navigatorKey: navigatorKey, // Setting a global key for navigator
+      theme: ThemeData(
+        colorScheme: kColorScheme,
+        snackBarTheme: snackBarTheme,
+        dialogTheme: const DialogTheme(backgroundColor: kBackgroundColor),
+        checkboxTheme: CheckboxThemeData(
+            fillColor: MaterialStateProperty.all(kPrimaryColor)),
+      ),
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [
+        Locale('de'),
+      ],
     );
   }
 }
