@@ -208,6 +208,7 @@ class Backend {
             loggedInUserId = loggedInUser!.id;
             await localStorage!.setLoggedInUserId(loggedInUser!.id);
             await localStorage!.saveLoginInformation(loggedInUser!, token);
+            await handleOfflinePurchasesAfterLogin(loggedInUser!.id);
             if (response.headers.containsKey("set-cookie")) {
               final cookie = response.headers["set-cookie"]!
                   .split(";")
@@ -260,10 +261,20 @@ class Backend {
       await element.delete(recursive: true);
     });*/
     localStorage!.removeLoggedInUserId();
-    localStorage!.removeAllUnsentPurchases();
+    // localStorage!.removeAllUnsentPurchases(); // Commented because unsent purchases are now removed if a new user logs in
     loginInformation = null;
     loggedInUser = null;
     isLoggedIn = false;
+  }
+
+  Future<void> handleOfflinePurchasesAfterLogin(String userId) async {
+    List<Purchase> unsent = await localStorage!.getUnsentPurchases();
+    if (unsent.isNotEmpty && unsent.first.userBookedId != userId) {
+      developer.log('New user logged in. Removing unsent purchases');
+      localStorage!.removeAllUnsentPurchases();
+    } else if (unsent.isNotEmpty) {
+      await sendLocalPurchasesToServer();
+    }
   }
 
   Future<bool> refreshData() async {
