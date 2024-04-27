@@ -15,7 +15,8 @@ import 'package:get_it/get_it.dart';
 
 import '../connection/notification_service.dart';
 
-NotificationService _notificationService = GetIt.instance<NotificationService>();
+NotificationService _notificationService =
+    GetIt.instance<NotificationService>();
 
 class DrinkScreen extends StatefulWidget {
   DrinkScreen({Key? key, required this.userId}) : super(key: key);
@@ -349,6 +350,7 @@ Future<void> purchaseDrink(
       amount: amount,
       cost: drink.cost,
       date: DateTime.now(),
+      deleted: false,
       drinkName: drink.name);
 
   if (await GetIt.instance<Backend>().checkConnection()) {

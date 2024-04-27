@@ -1,9 +1,14 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/model/permissions.dart';
+import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/offline-screen.dart';
+import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
+import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -121,10 +126,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                   initialDate: startDate,
                   firstDate: DateTime(2021, 12, 01),
                   lastDate: endDate);
-              if (selectedDate != null)
+              if (selectedDate != null) {
                 setState(() {
                   startDate = selectedDate;
                 });
+              }
             },
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -145,10 +151,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                   initialDate: endDate,
                   firstDate: startDate,
                   lastDate: DateTime.now());
-              if (selectedDate != null)
+              if (selectedDate != null) {
                 setState(() {
                   endDate = selectedDate;
                 });
+              }
             },
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
@@ -168,7 +175,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     final String dateStartSearchString =
         '?from=' + (startDate.millisecondsSinceEpoch / 1000).toStringAsFixed(0);
     final String dateEndSearchString = '&to=' +
-        (endDate.add(Duration(days: 1)).millisecondsSinceEpoch / 1000)
+        (endDate.add(const Duration(days: 1)).millisecondsSinceEpoch / 1000)
             .toStringAsFixed(0);
     final String userSearchString = userId != null ? '&userId=' + userId : '';
     await GetIt.instance<Backend>().sendLocalPurchasesToServer();
@@ -178,25 +185,21 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         userSearchString);
   }
 
-  Widget buildCard({required Row child, required Function onTap}) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: child,
-        ),
-      ),
-    );
+  Future<dynamic> deletePurchase(int purchaseId) async {
+    try {
+      await GetIt.instance<Backend>().delete('/purchase/$purchaseId', null);
+    } catch (e) {
+      log('Error deleting purchase: $e');
+    }
   }
 
   List<Widget> _buildPurchasesCards(List<Purchase> purchases) {
     List<Widget> purchasesCards = [];
     purchases.sort((a, b) => b.date.compareTo(a.date));
-    purchases.forEach((purchase) {
+    for (var purchase in purchases) {
       purchasesCards.add(buildCard(
+          background:
+              purchase.deleted ? Colors.grey[600]!.withOpacity(0.4) : null,
           child: Row(
             children: [
               const Padding(
@@ -206,7 +209,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${purchase.amount} x ${purchase.drinkName}',
+                    '${purchase.deleted ? 'Storniert: ' : ''}${purchase.amount} x ${purchase.drinkName}',
                     style: const TextStyle(fontSize: 20),
                   ),
                   if (widget.userId == null)
@@ -219,11 +222,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                         .format(purchase.date.toLocal()),
                     style: const TextStyle(fontSize: 14),
                   ),
-                  if (widget.userId != null)
-                    Text(
-                      '${((purchase.cost / 100) * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                  Text(
+                    '${((purchase.cost / 100) * purchase.amount).toStringAsFixed(2).replaceAll('.', ',')} €',
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   ((widget.userId != null &&
                               purchase.userBookedId != widget.userId) ||
                           (purchase.userBookedId != purchase.userId &&
@@ -237,9 +239,91 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               )
             ],
           ),
-          onTap: () {}));
-    });
+          onTap: () {
+            if (GetIt.I<Backend>().isOnline &&
+                (GetIt.I<PermissionSystem>()
+                            .userHasPermission(Permission.canEditOtherUsers) &&
+                        purchase.userBookedName.trim() != '' &&
+                        purchase.userBookedId !=
+                            GetIt.I<Backend>().loggedInUserId ||
+                    !purchase.deleted)) {
+              showCustomModalSheet(purchase);
+            }
+          }));
+    }
     return purchasesCards;
+  }
+
+  showCustomModalSheet(Purchase purchase) {
+    showModalBottomSheet(
+      isScrollControlled: true,
+      backgroundColor: kBackgroundColor,
+      context: context,
+      builder: (context) => Wrap(children: [
+        Center(
+          child: Padding(
+              padding: const EdgeInsets.only(top: 10.0),
+              child: Text(
+                  '${purchase.amount}x ${purchase.drinkName} für ${(purchase.cost * purchase.amount / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
+                  style: const TextStyle(fontSize: 30))),
+        ),
+        const Padding(
+            padding: EdgeInsets.only(left: 10.0, right: 10.0),
+            child: Divider(thickness: 2)),
+        !purchase.deleted
+            ? buildSettingCard(
+                icon: Icons.cancel,
+                name: 'Buchung stornieren',
+                onTap: () async {
+                  await deletePurchase(purchase.id);
+                  Navigator.pop(context);
+                  setState(() {});
+                },
+              )
+            : Container(),
+        GetIt.I<PermissionSystem>()
+                    .userHasPermission(Permission.canEditOtherUsers) &&
+                purchase.userBookedName.trim() != '' &&
+                purchase.userBookedId != GetIt.I<Backend>().loggedInUserId
+            ? buildSettingCard(
+                icon: Icons.person,
+                name: purchase.userBookedName,
+                onTap: () async {
+                  User user = User.fromJson(await GetIt.I<Backend>()
+                      .get('/user/${purchase.userBookedId}'));
+                  await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(
+                                currentUser: user,
+                                rebuild: () {
+                                  setState(() {});
+                                },
+                              )));
+                  Navigator.pop(context);
+                  setState(() {});
+                },
+              )
+            : Container(),
+        const SizedBox(height: 15),
+      ]),
+    );
+  }
+
+  Widget buildSettingCard(
+      {required IconData icon, required String name, required Function onTap}) {
+    final child = Row(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Icon(icon, size: 40),
+        Padding(
+            padding: const EdgeInsets.only(left: 20.0),
+            child: Text(name,
+                style: const TextStyle(fontSize: 20),
+                textAlign: TextAlign.center))
+      ],
+    );
+    return buildCard(child: child, onTap: onTap);
   }
 
   Widget _buildOnlinePurchases(dynamic input) {

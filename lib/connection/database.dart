@@ -23,7 +23,7 @@ class LocalDB {
       // open or create the database file
       database = await openDatabase(
           join(await getDatabasesPath(), 'dpsg-database.db'),
-          version: 2,
+          version: 3,
           onCreate: (db, _) async => await _createTables(db),
           onUpgrade: ((db, oldVersion, newVersion) async =>
               await _handleUpdate(db, oldVersion, newVersion)));
@@ -52,13 +52,17 @@ class LocalDB {
   Future<void> _handleUpdate(
       Database db, int oldVersion, int newVersion) async {
     developer.log('Updating local database');
-    if (newVersion > 1) {
+    if (newVersion > 1 && oldVersion <= 1) {
       await db.execute(
           'CREATE TABLE IF NOT EXISTS friends(uuid STRING PRIMARY KEY, userName STRING)');
       await db.execute(
           "ALTER TABLE unsentPurchases ADD COLUMN userBookedId STRING");
       await db.execute(
           "ALTER TABLE unsentPurchases ADD COLUMN userBookedName STRING");
+    }
+    if (newVersion > 2 && oldVersion <= 2) {
+      await db
+          .execute("ALTER TABLE unsentPurchases ADD COLUMN deleted INTEGER");
     }
   }
 
@@ -132,6 +136,7 @@ class LocalDB {
           amount: maps[index]['amount'],
           cost: maps[index]['cost'],
           date: DateTime.parse(maps[index]['date']),
+          deleted: (maps[index]['deleted'] ?? 0) > 0,
           drinkName: maps[index]['drinkName'],
           userName: maps[index]['userName'],
         );

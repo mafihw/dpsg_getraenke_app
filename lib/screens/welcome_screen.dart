@@ -448,7 +448,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       try {
         final response = await backend.get('/purchase?userId=$userId');
         if (response != null && response.isNotEmpty) {
-          purchase = Purchase.fromJson(response.last);
+          purchase = Purchase.fromJson(response
+              .where((e) => (e['deleted'] != null && e['deleted'] == 0))
+              .last);
           localStorage.setLastPurchase(purchase);
         }
       } catch (e) {

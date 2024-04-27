@@ -9,6 +9,7 @@ class Purchase {
   DateTime date;
   String? drinkName;
   String? userName;
+  bool deleted;
 
   Purchase(
       {required this.id,
@@ -19,6 +20,7 @@ class Purchase {
       required this.amount,
       required this.cost,
       required this.date,
+      required this.deleted,
       this.drinkName,
       this.userName});
 
@@ -27,11 +29,12 @@ class Purchase {
     final drinkId = data['drinkId'] as int;
     final userId = data['userId'] as String;
     var userBookedId = data['userBookedId'] as String;
-    if(userBookedId == '') userBookedId = data['userId'] as String;
+    if (userBookedId == '') userBookedId = data['userId'] as String;
     final userBookedName = data['userBookedName'] ?? '';
     final amount = data['amount'] as int;
     final cost = int.parse(data['cost'].toString());
     final date = DateTime.parse(data['date']);
+    final deleted = ((data['deleted'] as int?) ?? 0) > 0;
     final drinkName = data['drinkName'];
     final userName = data['userName'];
     return Purchase(
@@ -43,6 +46,7 @@ class Purchase {
         amount: amount,
         cost: cost,
         date: date,
+        deleted: deleted,
         drinkName: drinkName,
         userName: userName);
   }
@@ -56,6 +60,7 @@ class Purchase {
         'amount': amount,
         'cost': cost,
         'date': date.toString(),
+        'deleted': deleted ? 1 : 0,
         'drinkName': drinkName,
         'userName': userName
       };
