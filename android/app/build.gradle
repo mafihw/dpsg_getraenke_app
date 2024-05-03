@@ -47,7 +47,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "de.dpsg_gladbach.app"
+        applicationId "de.dpsggladbach.app"
         minSdkVersion 21
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()

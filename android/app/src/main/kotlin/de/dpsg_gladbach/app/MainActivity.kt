@@ -1,4 +1,4 @@
-package de.dpsg_gladbach.app
+package de.dpsggladbach.app
 
 import io.flutter.embedding.android.FlutterActivity
 
