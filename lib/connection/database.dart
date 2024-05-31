@@ -39,7 +39,7 @@ class LocalDB {
     developer.log('Creating local Database');
     List<String> createStatements = [
       'CREATE TABLE drinks(id INTEGER PRIMARY KEY, cost INTEGER, name STRING, active INTEGER, deleted INTEGER)',
-      'CREATE TABLE unsentPurchases(id INTEGER PRIMARY KEY AUTOINCREMENT, drinkId INTEGER, userId STRING, userBookedId STRING, amount INTEGER, cost INTEGER, date STRING, drinkName STRING, userName STRING, userBookedName STRING)',
+      'CREATE TABLE unsentPurchases(id INTEGER PRIMARY KEY AUTOINCREMENT, drinkId INTEGER, userId STRING, userBookedId STRING, amount INTEGER, cost INTEGER, date STRING, drinkName STRING, userName STRING, userBookedName STRING, deleted INTEGER)',
       'CREATE TABLE settings(userId STRING, key STRING, value, STRING, PRIMARY KEY (userId, key))',
       'CREATE TABLE friends(uuid STRING PRIMARY KEY, userName STRING)',
     ];
