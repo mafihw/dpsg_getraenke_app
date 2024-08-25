@@ -29,9 +29,7 @@ class PermissionSystem {
   Future<List<Permission>> fetchPermissions() async {
     List<Permission> fetchedPermissions = [];
     var backend = GetIt.instance<Backend>();
-    if (backend.isOnline &&
-        backend.isInitialized &&
-        backend.isLoggedIn) {
+    if (backend.isOnlineMode) {
       //try to fetch data from server
       try {
         final response = await backend.get('/permissions');

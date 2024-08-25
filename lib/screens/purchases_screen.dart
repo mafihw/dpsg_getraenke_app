@@ -56,7 +56,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       ),
       drawer: const CustomDrawer(),
       body: () {
-        if (GetIt.I<Backend>().isOnline) {
+        if (GetIt.I<Backend>().isOnlineMode) {
           return Column(children: [
             getFilters(),
             Expanded(
@@ -240,7 +240,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             ],
           ),
           onTap: () {
-            if (GetIt.I<Backend>().isOnline &&
+            if (GetIt.I<Backend>().isOnlineMode &&
                 (GetIt.I<PermissionSystem>()
                             .userHasPermission(Permission.canEditOtherUsers) &&
                         purchase.userBookedName.trim() != '' &&

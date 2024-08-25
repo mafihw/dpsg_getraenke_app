@@ -30,7 +30,7 @@ class _OfflineCheckState extends State<OfflineCheck> {
         setState(() {});
       },
     );
-    return GetIt.I<Backend>().isOnline
+    return GetIt.I<Backend>().isOnlineMode
         ? widget.builder.call(context)
         : offlineWidget;
   }
@@ -78,9 +78,11 @@ class _OfflineWarningState extends State<OfflineWarning>
               });
               if (!connecting) {
                 connecting = true;
-                await GetIt.I<Backend>()
-                    .checkConnection()
-                    .then((value) => {setState(() => connecting = false)});
+                await GetIt.I<Backend>().checkConnection();
+                if (!GetIt.I<Backend>().isTokenValid) {
+                  await GetIt.I<Backend>().refreshToken();
+                }
+                setState(() => connecting = false);
                 widget.refresh.call();
               }
             },

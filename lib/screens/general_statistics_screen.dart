@@ -37,10 +37,8 @@ class _GeneralStatisticsScreenState extends State<GeneralStatisticsScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Statistiken"),
       drawer: const CustomDrawer(),
-      body: (GetIt.I<Backend>().isOnline)
-          ?
-          //
-          Column(children: [
+      body: (GetIt.I<Backend>().isOnlineMode)
+          ? Column(children: [
               Expanded(
                   child: FutureBuilder<dynamic>(
                       future: getStatistics(),

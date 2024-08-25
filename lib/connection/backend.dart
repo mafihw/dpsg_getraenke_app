@@ -38,10 +38,13 @@ class Backend {
   LocalDB? localStorage;
   String apiurl = newApiUrl;
   static bool refreshingToken = false;
+  bool isTokenValid = true;
+  get isOnlineMode => isInitialized && isOnline && isLoggedIn && isTokenValid;
 
   Future<void> init() async {
     await setApiUrl();
     await checkConnection();
+
     try {
       localStorage = GetIt.I<LocalDB>();
       loggedInUserId = await localStorage!.getLoggedInUserId();
@@ -53,6 +56,8 @@ class Backend {
           loggedInUser = loginInformation['user'];
           token = loginInformation['token'];
           isInitialized = true;
+          isTokenValid = await checkTokenValidity();
+          if (!isTokenValid) isTokenValid = await autoRefreshToken();
           headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token'
@@ -194,10 +199,12 @@ class Backend {
       return false;
     } else {
       try {
-        final response = await http.post(Uri.parse('$apiurl/auth/login'),
-            headers: <String, String>{'Content-Type': 'application/json'},
-            body: jsonEncode(
-                <String, String>{'email': email, 'password': password}));
+        final response = await http
+            .post(Uri.parse('$apiurl/auth/login'),
+                headers: <String, String>{'Content-Type': 'application/json'},
+                body: jsonEncode(
+                    <String, String>{'email': email, 'password': password}))
+            .timeout(const Duration(seconds: 10));
         developer.log(response.statusCode.toString());
         developer.log(response.body);
         if (response.statusCode == 200) {
@@ -278,7 +285,7 @@ class Backend {
   }
 
   Future<bool> refreshData() async {
-    if (!isOnline || !isInitialized || !isLoggedIn) {
+    if (!isOnlineMode) {
       return false;
     } else {
       try {
@@ -302,7 +309,8 @@ class Backend {
           'Checking Connection to API at $apiurl. Status: ${response.statusCode}');
       if (response.statusCode == 200) {
         isOnline = true;
-        return true;
+        if (isLoggedIn) isTokenValid = await checkTokenValidity();
+        return isOnlineMode;
       } else {
         developer.log(
             'No Connection to API at $apiurl. Code: ${response.statusCode}');
@@ -354,12 +362,12 @@ class Backend {
   }
 
   Future<Map<String, String>> getHeader() async {
-    if (await checkTokenValidity()) {
-      return headers;
-    } else {
-      developer.log('Token has to be refreshed');
-      return headers;
-    }
+    isTokenValid = await checkTokenValidity();
+    headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token'
+    };
+    return headers;
   }
 
   Future<bool> checkTokenValidity() async {
@@ -371,22 +379,20 @@ class Backend {
                 .millisecondsSinceEpoch)) {
       return Future(() => true);
     } else {
-      if (payload.containsKey('exp') &&
-          (payload['exp'] * 1000 >
-              DateTime.now()
-                  .add(const Duration(seconds: 30))
-                  .millisecondsSinceEpoch)) {
-        autoRefreshToken();
-        return Future(() => true);
+      developer.log('Token has to be refreshed. Attemting now ...');
+      bool isRefreshed = await autoRefreshToken();
+      if (isRefreshed) {
+        developer.log('Token has successfuly been refreshed!');
       } else {
-        return Future(() async => await autoRefreshToken());
+        developer.log('Token could not be refreshed.');
       }
+      return isRefreshed;
     }
   }
 
   Future<bool> autoRefreshToken() async {
     if (refreshingToken) {
-      return Future(() => false);
+      return Future.value(false);
     }
     refreshingToken = true;
     final refreshToken = await localStorage!.getSettingByKey("refreshToken");
@@ -421,31 +427,15 @@ class Backend {
             await localStorage!.setSettingByKey("token", token!);
             developer.log('AccessToken has been refreshed');
             refreshingToken = false;
-            return Future(() => true);
-          } else {
-            refreshingToken = false;
-            return Future(() => true);
-          }
-        } else {
-          if (response.statusCode == 409) {
-            await this.refreshToken();
-            refreshingToken = false;
-            return Future(() => true);
-          } else {
-            refreshingToken = false;
-            return Future(() => true);
+            return Future.value(true);
           }
         }
       } catch (e) {
         developer.log(e.toString());
-        refreshingToken = false;
-        return Future(() => true);
       }
-    } else {
-      await this.refreshToken();
-      refreshingToken = false;
-      return Future(() => true);
     }
+    refreshingToken = false;
+    return Future.value(false);
   }
 
   Future<void> refreshToken() async {
@@ -460,7 +450,7 @@ class Backend {
     bool isRefreshingToken = false;
     String? _errorText;
     await showDialog(
-        barrierDismissible: false,
+        barrierDismissible: true,
         context: navigatorKey.currentContext!,
         builder: (context) {
           return StatefulBuilder(builder: (context, setState) {

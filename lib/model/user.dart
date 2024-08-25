@@ -43,7 +43,7 @@ class User {
 
 Future<User> fetchUser() async {
   User? user;
-  if (GetIt.I<Backend>().isOnline) {
+  if (GetIt.I<Backend>().isOnlineMode) {
     GetIt.I<PermissionSystem>().fetchPermissions();
     String id = GetIt.I<Backend>().loggedInUserId!;
 

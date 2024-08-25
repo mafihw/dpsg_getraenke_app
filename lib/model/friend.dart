@@ -28,7 +28,7 @@ class Friend {
 Future<List<Friend>> fetchFriends() async {
   var database = GetIt.I<LocalDB>();
   List<Friend> friends = [];
-  if (GetIt.I<Backend>().isOnline) {
+  if (GetIt.I<Backend>().isOnlineMode) {
     try {
       final response = await GetIt.I<Backend>().get('/friend');
       if (response != null) {

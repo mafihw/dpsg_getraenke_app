@@ -41,7 +41,7 @@ class Drink {
 Future<List<Drink>> fetchDrinks() async {
   var database = GetIt.I<LocalDB>();
   List<Drink> drinks = [];
-  if (GetIt.I<Backend>().isOnline) {
+  if (GetIt.I<Backend>().isOnlineMode) {
     try {
       final response = await GetIt.instance<Backend>().get('/drink');
       if (response != null) {

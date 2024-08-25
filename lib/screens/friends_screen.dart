@@ -261,7 +261,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           icon: Icons.person_off,
           name: 'Freundschaft kündigen',
           onTap: () async {
-            if (GetIt.I<Backend>().isOnline) {
+            if (GetIt.I<Backend>().isOnlineMode) {
               await showDialog(
                   context: context,
                   builder: (context) => AlertDialog(

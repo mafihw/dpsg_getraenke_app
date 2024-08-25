@@ -42,10 +42,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (GetIt.instance<Backend>().isOnline &&
-          !(await GetIt.instance<Backend>().checkTokenValidity())) {
-        await GetIt.instance<Backend>().refreshToken();
-      }
       await fetchUser();
     });
     WidgetsBinding.instance.addObserver(this);
@@ -164,10 +160,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   });
                   if (!connecting) {
                     connecting = true;
-                    await GetIt.I<Backend>().checkConnection().then((value) => {
-                          Future.delayed(const Duration(seconds: 1))
-                              .then((_) => setState(() => connecting = false))
-                        });
+                    await GetIt.I<Backend>().checkConnection();
+                    if (!GetIt.I<Backend>().isTokenValid) {
+                      await GetIt.I<Backend>().refreshToken();
+                    }
+                    Future.delayed(const Duration(seconds: 1))
+                        .then((_) => setState(() => connecting = false));
                   } else {
                     setState(() {});
                   }
@@ -216,7 +214,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            if (!GetIt.I<Backend>().isOnline) offlineInfo(),
+            if (!GetIt.I<Backend>().isOnlineMode) offlineInfo(),
             buildCard(
                 child: Column(
                   children: [
@@ -442,7 +440,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     var localStorage = GetIt.I<LocalDB>();
     String userId = backend.loggedInUserId!;
     Purchase? purchase;
-    if (backend.isOnline) {
+    if (backend.isOnlineMode) {
       await backend.sendLocalPurchasesToServer();
       //try to fetch data from server
       try {
