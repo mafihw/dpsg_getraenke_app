@@ -6,10 +6,11 @@ import 'package:get_it/get_it.dart';
 import 'home_screen.dart';
 
 final emailValidationPattern = RegExp(
-    r'''(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])''');
+  r'''(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])''',
+);
 
 class RegistrationScreen extends StatefulWidget {
-  RegistrationScreen({Key? key}) : super(key: key);
+  const RegistrationScreen({super.key});
 
   @override
   State<RegistrationScreen> createState() => _RegistrationScreenState();
@@ -44,8 +45,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   bool validation() {
     return nameTextController.text.isNotEmpty &&
-        RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-            .hasMatch(emailTextController.text) &&
+        RegExp(
+          r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+        ).hasMatch(emailTextController.text) &&
         passwordTextController.text.length >= 8 &&
         confirmPasswordTextController.text == passwordTextController.text;
   }
@@ -61,7 +63,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   bool validatePassword() {
-    _passwordValid = passwordTextController.text.length >= 8 ||
+    _passwordValid =
+        passwordTextController.text.length >= 8 ||
         passwordTextController.text.isEmpty;
     return _passwordValid;
   }
@@ -75,127 +78,130 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: kBackgroundColor,
-        resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: const Text('Registrierung'),
-        ),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
+      backgroundColor: kBackgroundColor,
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(title: const Text('Registrierung')),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const Hero(
+                tag: 'icon_hero',
+                child: Image(
+                  image: AssetImage('assets/icon_500px.png'),
+                  height: 150.0,
+                ),
+              ),
+              const SizedBox(height: 30),
+              TextField(
+                textInputAction: TextInputAction.next,
+                controller: nameTextController,
+                keyboardType: TextInputType.name,
+                autofocus: true,
+                focusNode: nameFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Name',
+                  focusedBorder: _nameValid ? validBorder : invalidBorder,
+                  enabledBorder: _nameValid ? validBorder : invalidBorder,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    validateName();
+                  });
+                },
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                textInputAction: TextInputAction.next,
+                controller: emailTextController,
+                keyboardType: TextInputType.emailAddress,
+                focusNode: emailFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  focusedBorder: _mailValid ? validBorder : invalidBorder,
+                  enabledBorder: _mailValid ? validBorder : invalidBorder,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    validateMail();
+                  });
+                },
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                textInputAction: TextInputAction.next,
+                controller: passwordTextController,
+                obscureText: true,
+                focusNode: passwordFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Passwort',
+                  focusedBorder: _passwordValid ? validBorder : invalidBorder,
+                  enabledBorder: _passwordValid ? validBorder : invalidBorder,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    validatePassword();
+                  });
+                },
+              ),
+              const SizedBox(height: 15),
+              TextField(
+                textInputAction: TextInputAction.done,
+                controller: confirmPasswordTextController,
+                obscureText: true,
+                focusNode: confirmPasswordFocusNode,
+                decoration: InputDecoration(
+                  labelText: 'Passwort wiederholen',
+                  focusedBorder: _passwordCheckValid
+                      ? validBorder
+                      : invalidBorder,
+                  enabledBorder: _passwordCheckValid
+                      ? validBorder
+                      : invalidBorder,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    validatePasswordConfirm();
+                  });
+                },
+                onSubmitted: (value) {
+                  if (validation()) {
+                    registration();
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Hero(
-                    tag: 'icon_hero',
-                    child: Image(
-                      image: AssetImage('assets/icon_500px.png'),
-                      height: 150.0,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  TextField(
-                    textInputAction: TextInputAction.next,
-                    controller: nameTextController,
-                    keyboardType: TextInputType.name,
-                    autofocus: true,
-                    focusNode: nameFocusNode,
-                    decoration: InputDecoration(
-                      labelText: 'Name',
-                      focusedBorder: _nameValid ? validBorder : invalidBorder,
-                      enabledBorder: _nameValid ? validBorder : invalidBorder,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        validateName();
-                      });
+                  OutlinedButton(
+                    onPressed: () {
+                      backButtonPressed();
                     },
+                    child: const Text('Zurück'),
                   ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    textInputAction: TextInputAction.next,
-                    controller: emailTextController,
-                    keyboardType: TextInputType.emailAddress,
-                    focusNode: emailFocusNode,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      focusedBorder: _mailValid ? validBorder : invalidBorder,
-                      enabledBorder: _mailValid ? validBorder : invalidBorder,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        validateMail();
-                      });
-                    },
+                  ElevatedButton(
+                    onPressed: validation() ? registration : null,
+                    child: currentlyLoggingIn
+                        ? SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: CircularProgressIndicator(
+                              color: Colors.blue.shade800,
+                            ),
+                          )
+                        : const Text('Registrieren'),
                   ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    textInputAction: TextInputAction.next,
-                    controller: passwordTextController,
-                    obscureText: true,
-                    focusNode: passwordFocusNode,
-                    decoration: InputDecoration(
-                      labelText: 'Passwort',
-                      focusedBorder:
-                          _passwordValid ? validBorder : invalidBorder,
-                      enabledBorder:
-                          _passwordValid ? validBorder : invalidBorder,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        validatePassword();
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 15),
-                  TextField(
-                    textInputAction: TextInputAction.done,
-                    controller: confirmPasswordTextController,
-                    obscureText: true,
-                    focusNode: confirmPasswordFocusNode,
-                    decoration: InputDecoration(
-                      labelText: 'Passwort wiederholen',
-                      focusedBorder:
-                          _passwordCheckValid ? validBorder : invalidBorder,
-                      enabledBorder:
-                          _passwordCheckValid ? validBorder : invalidBorder,
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        validatePasswordConfirm();
-                      });
-                    },
-                    onSubmitted: (value) {
-                      if (validation()) {
-                        registration();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      OutlinedButton(
-                          onPressed: () {
-                            backButtonPressed();
-                          },
-                          child: const Text('Zurück')),
-                      ElevatedButton(
-                        onPressed: validation() ? registration : null,
-                        child: currentlyLoggingIn
-                            ? SizedBox(
-                                height: 25,
-                                width: 25,
-                                child: CircularProgressIndicator(
-                                    color: Colors.blue.shade800))
-                            : const Text('Registrieren'),
-                      ),
-                    ],
-                  )
-                ]),
+                ],
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   void registration() async {
@@ -211,14 +217,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       )) {
         if (GetIt.instance<Backend>().loggedInUser!.role != 'none') {
           Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-              (route) => false);
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
+          );
         } else {
           Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => NotVerifiedScreen(true)),
-              (route) => false);
+            context,
+            MaterialPageRoute(
+              builder: (context) => NotVerifiedScreen(fromRegistration: true),
+            ),
+            (route) => false,
+          );
         }
         setState(() {
           currentlyLoggingIn = false;

@@ -22,11 +22,12 @@ class LocalDB {
     try {
       // open or create the database file
       database = await openDatabase(
-          join(await getDatabasesPath(), 'dpsg-database.db'),
-          version: 3,
-          onCreate: (db, _) async => await _createTables(db),
-          onUpgrade: ((db, oldVersion, newVersion) async =>
-              await _handleUpdate(db, oldVersion, newVersion)));
+        join(await getDatabasesPath(), 'dpsg-database.db'),
+        version: 3,
+        onCreate: (db, _) async => await _createTables(db),
+        onUpgrade: ((db, oldVersion, newVersion) async =>
+            await _handleUpdate(db, oldVersion, newVersion)),
+      );
       isInitialized = true;
       return true;
     } catch (e) {
@@ -50,19 +51,26 @@ class LocalDB {
   }
 
   Future<void> _handleUpdate(
-      Database db, int oldVersion, int newVersion) async {
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     developer.log('Updating local database');
     if (newVersion > 1 && oldVersion <= 1) {
       await db.execute(
-          'CREATE TABLE IF NOT EXISTS friends(uuid STRING PRIMARY KEY, userName STRING)');
+        'CREATE TABLE IF NOT EXISTS friends(uuid STRING PRIMARY KEY, userName STRING)',
+      );
       await db.execute(
-          "ALTER TABLE unsentPurchases ADD COLUMN userBookedId STRING");
+        "ALTER TABLE unsentPurchases ADD COLUMN userBookedId STRING",
+      );
       await db.execute(
-          "ALTER TABLE unsentPurchases ADD COLUMN userBookedName STRING");
+        "ALTER TABLE unsentPurchases ADD COLUMN userBookedName STRING",
+      );
     }
     if (newVersion > 2 && oldVersion <= 2) {
-      await db
-          .execute("ALTER TABLE unsentPurchases ADD COLUMN deleted INTEGER");
+      await db.execute(
+        "ALTER TABLE unsentPurchases ADD COLUMN deleted INTEGER",
+      );
     }
   }
 
@@ -124,8 +132,9 @@ class LocalDB {
 
   Future<List<Purchase>> getUnsentPurchases() async {
     if (isInitialized) {
-      final List<Map<String, dynamic>> maps =
-          await database!.query('unsentPurchases');
+      final List<Map<String, dynamic>> maps = await database!.query(
+        'unsentPurchases',
+      );
       return List.generate(maps.length, (index) {
         return Purchase(
           id: maps[index]['id'],
@@ -156,19 +165,13 @@ class LocalDB {
         {'key': 'balance', 'value': user.balance},
       ];
       if (user.weight != null) {
-        values.add(
-          {'key': 'weight', 'value': user.weight},
-        );
+        values.add({'key': 'weight', 'value': user.weight});
       }
       if (user.gender != null) {
-        values.add(
-          {'key': 'gender', 'value': user.gender},
-        );
+        values.add({'key': 'gender', 'value': user.gender});
       }
       if (token != null) {
-        values.add(
-          {'key': 'token', 'value': token},
-        );
+        values.add({'key': 'token', 'value': token});
       }
       Batch batch = database!.batch();
       for (Map<String, dynamic> value in values) {
@@ -205,10 +208,12 @@ class LocalDB {
         ];
         Map<String, dynamic> values = {};
         for (var key in keys) {
-          var value = await database!.query('settings',
-              columns: ['value'],
-              where: 'key = ? AND userId = ?',
-              whereArgs: [key, loggedInUserId]);
+          var value = await database!.query(
+            'settings',
+            columns: ['value'],
+            where: 'key = ? AND userId = ?',
+            whereArgs: [key, loggedInUserId],
+          );
           if (value.isNotEmpty) {
             values.addAll({key: value.first.values.first});
           }
@@ -239,8 +244,11 @@ class LocalDB {
         'userId': null,
         'value': userId,
       };
-      database!.insert('settings', entry,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      database!.insert(
+        'settings',
+        entry,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
       return true;
     } else {
       return false;
@@ -257,11 +265,13 @@ class LocalDB {
   }
 
   Future<String?> getLoggedInUserId() async {
-    var userId = await database!.query('settings',
-        columns: ['value'], where: 'key = ?', whereArgs: ['loggedInId']);
-    String? loggedInUserId = userId.first.values.first != null
-        ? userId.first.values.first.toString()
-        : null;
+    var userId = await database!.query(
+      'settings',
+      columns: ['value'],
+      where: 'key = ?',
+      whereArgs: ['loggedInId'],
+    );
+    String? loggedInUserId = userId.firstOrNull?.values.firstOrNull?.toString();
     return loggedInUserId;
   }
 
@@ -272,8 +282,11 @@ class LocalDB {
         'key': 'lastPurchase',
         'value': jsonEncode(purchase.toJson()),
       };
-      database!.insert('settings', entry,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      database!.insert(
+        'settings',
+        entry,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
       return true;
     } else {
       return false;
@@ -282,13 +295,16 @@ class LocalDB {
 
   Future<Purchase?> getLastPurchase() async {
     if (isInitialized && _loggedInUserId != null) {
-      var value = await database!.query('settings',
-          columns: ['value'],
-          where: 'userId = ? AND key = ?',
-          whereArgs: [_loggedInUserId, 'lastPurchase']);
+      var value = await database!.query(
+        'settings',
+        columns: ['value'],
+        where: 'userId = ? AND key = ?',
+        whereArgs: [_loggedInUserId, 'lastPurchase'],
+      );
       if (value.isNotEmpty) {
         return Purchase.fromJson(
-            jsonDecode(value.first.values.first.toString()));
+          jsonDecode(value.first.values.first.toString()),
+        );
       }
     }
     return null;
@@ -301,8 +317,11 @@ class LocalDB {
         'key': key,
         'value': value,
       };
-      database!.insert('settings', entry,
-          conflictAlgorithm: ConflictAlgorithm.replace);
+      database!.insert(
+        'settings',
+        entry,
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
       return true;
     } else {
       return false;
@@ -311,10 +330,12 @@ class LocalDB {
 
   Future<String?> getSettingByKey(String key) async {
     if (isInitialized && _loggedInUserId != null) {
-      var value = await database!.query('settings',
-          columns: ['value'],
-          where: 'userId = ? AND key = ?',
-          whereArgs: [_loggedInUserId, key]);
+      var value = await database!.query(
+        'settings',
+        columns: ['value'],
+        where: 'userId = ? AND key = ?',
+        whereArgs: [_loggedInUserId, key],
+      );
       if (value.isNotEmpty) {
         return value.first.values.first.toString();
       }
@@ -324,9 +345,11 @@ class LocalDB {
 
   Future<bool> removeSettingByKey(String key) async {
     if (isInitialized && _loggedInUserId != null) {
-      return await database!.delete('settings',
-              where: 'userId = ? AND key = ?',
-              whereArgs: [_loggedInUserId, key]) >
+      return await database!.delete(
+            'settings',
+            where: 'userId = ? AND key = ?',
+            whereArgs: [_loggedInUserId, key],
+          ) >
           0;
     }
     return false;

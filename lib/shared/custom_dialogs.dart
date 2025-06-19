@@ -1,8 +1,11 @@
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 
-AlertDialog CustomAlertDialog({required Widget? title, required Widget? content,
-    required actions }) {
+AlertDialog customAlertDialog({
+  required Widget? title,
+  required Widget? content,
+  required actions,
+}) {
   return AlertDialog(
     backgroundColor: kBackgroundColor,
     title: title,
@@ -15,23 +18,24 @@ AlertDialog CustomAlertDialog({required Widget? title, required Widget? content,
 }
 
 class CustomStatefulAlertDialog extends StatefulWidget {
-  Widget? title;
-  Widget? content;
-  List<Widget>? actions;
+  final Widget? title;
+  final Widget? content;
+  final List<Widget>? actions;
 
-  CustomStatefulAlertDialog(
-      {
-        Key? key,
-        required Widget? title,
-        required Widget? content,
-        required actions
-      }) : super(key: key);
+  const CustomStatefulAlertDialog({
+    super.key,
+    required this.title,
+    this.content,
+    this.actions,
+  });
 
   @override
-  State<CustomStatefulAlertDialog> createState() => _CustomStatefulAlertDialogState(
-      title: title,
-      content: content,
-      actions: actions);
+  State<CustomStatefulAlertDialog> createState() =>
+      _CustomStatefulAlertDialogState(
+        title: title,
+        content: content,
+        actions: actions,
+      );
 }
 
 class _CustomStatefulAlertDialogState extends State<CustomStatefulAlertDialog> {
@@ -39,23 +43,24 @@ class _CustomStatefulAlertDialogState extends State<CustomStatefulAlertDialog> {
   Widget? content;
   List<Widget>? actions;
 
-  _CustomStatefulAlertDialogState(
-  {
+  _CustomStatefulAlertDialogState({
     required Widget? title,
     required Widget? content,
-    required actions
+    required actions,
   });
 
   @override
   Widget build(BuildContext context) {
-    return CustomAlertDialog(title: title, content: content, actions: actions);
+    return customAlertDialog(title: title, content: content, actions: actions);
   }
 }
-Future<DateTime?> selectDate(
-    { required BuildContext context,
-      required DateTime initialDate,
-      required DateTime firstDate,
-      required DateTime lastDate}) {
+
+Future<DateTime?> selectDate({
+  required BuildContext context,
+  required DateTime initialDate,
+  required DateTime firstDate,
+  required DateTime lastDate,
+}) {
   return showDatePicker(
     context: context,
     initialDate: initialDate,

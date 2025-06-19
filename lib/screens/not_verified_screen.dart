@@ -8,8 +8,8 @@ import 'package:get_it/get_it.dart';
 import '../connection/backend.dart';
 
 class NotVerifiedScreen extends StatefulWidget {
-  NotVerifiedScreen([this.fromRegistration]);
-  bool? fromRegistration = false;
+  final bool? fromRegistration;
+  const NotVerifiedScreen({super.key, this.fromRegistration});
 
   @override
   State<NotVerifiedScreen> createState() => _NotVerifiedScreenState();
@@ -19,7 +19,7 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
   bool currentlyRefreshing = false;
   @override
   Widget build(BuildContext context) {
-    widget.fromRegistration ??= false;
+    final bool fromRegistration = widget.fromRegistration ?? false;
     if (currentlyRefreshing) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -45,14 +45,12 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
                         color: kPrimaryColor,
                         size: 96,
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
+                      const SizedBox(height: 20),
                       const Text(
                         'Konto nicht bestätigt',
                         style: TextStyle(fontSize: 36),
                       ),
-                      if (widget.fromRegistration!)
+                      if (fromRegistration)
                         const Text(
                           'Deine Registrierung war erfolgreich.',
                           textAlign: TextAlign.center,
@@ -70,40 +68,44 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                      onPressed: () {
-                        GetIt.instance<Backend>().logout();
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoginScreen()),
-                            (Route<dynamic> route) => false);
-                      },
-                      icon: const Icon(Icons.logout)),
+                    onPressed: () {
+                      GetIt.instance<Backend>().logout();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                        (Route<dynamic> route) => false,
+                      );
+                    },
+                    icon: const Icon(Icons.logout),
+                  ),
                   IconButton(
-                      onPressed: () async {
-                        setState(() {
-                          currentlyRefreshing = true;
-                        });
-                        await GetIt.instance<Backend>().refreshData();
+                    onPressed: () async {
+                      setState(() {
+                        currentlyRefreshing = true;
+                      });
+                      await GetIt.instance<Backend>().refreshData();
 
-                        if (GetIt.instance<Backend>().loggedInUser!.role !=
-                            'none') {
-                          Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen()),
-                              (route) => false);
-                        } else {
-                          Future.delayed(const Duration(seconds: 8), () {
-                            setState(() {
-                              currentlyRefreshing = false;
-                            });
+                      if (GetIt.instance<Backend>().loggedInUser!.role !=
+                          'none') {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      } else {
+                        Future.delayed(const Duration(seconds: 8), () {
+                          setState(() {
+                            currentlyRefreshing = false;
                           });
-                        }
-                      },
-                      icon: const Icon(Icons.refresh)),
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.refresh),
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),

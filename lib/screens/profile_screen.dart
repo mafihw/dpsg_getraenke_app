@@ -1,7 +1,7 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
-import 'package:dpsg_app/screens/offline-screen.dart';
+import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
@@ -12,7 +12,7 @@ import 'package:get_it/get_it.dart';
 import 'dart:developer' as developer;
 
 class MyProfileScreen extends StatefulWidget {
-  const MyProfileScreen({Key? key}) : super(key: key);
+  const MyProfileScreen({super.key});
 
   @override
   State<MyProfileScreen> createState() => _MyProfileScreenState();
@@ -38,9 +38,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 }
 
 class UserProfileScreen extends StatefulWidget {
-  UserProfileScreen(
-      {Key? key, required this.currentUser, required this.rebuild})
-      : super(key: key);
+  UserProfileScreen({
+    super.key,
+    required this.currentUser,
+    required this.rebuild,
+  });
 
   User currentUser;
   final Function rebuild;
@@ -106,7 +108,8 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   bool validation() {
     _nameValid = _nameController.text.isNotEmpty;
     _mailValid = emailValidationPattern.hasMatch(_mailController.text);
-    _passwordValid = _passwordController.text.length >= 8 ||
+    _passwordValid =
+        _passwordController.text.length >= 8 ||
         _passwordController.text.isEmpty;
     _passwordCheckValid =
         _passwordCheckController.text == _passwordController.text;
@@ -123,8 +126,10 @@ class UserProfileScreenState extends State<UserProfileScreen> {
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: MediaQuery.of(context).viewInsets.bottom == 0
           ? FloatingActionButton.extended(
-              backgroundColor:
-                  _allValid || !editMode ? kSecondaryColor : Colors.grey,
+              foregroundColor: Colors.white,
+              backgroundColor: _allValid || !editMode
+                  ? kSecondaryColor
+                  : Colors.grey,
               disabledElevation: 0,
               onPressed: _allValid && editMode
                   ? () async {
@@ -136,17 +141,20 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                         // Progress indicator while saving
                         barrierDismissible: false,
                         context: context,
-                        builder: ((context) => WillPopScope(
-                            onWillPop: () async => false,
-                            child: const Expanded(
-                                child: Center(
-                                    child: CircularProgressIndicator())))),
+                        builder: ((context) => PopScope(
+                          onPopInvokedWithResult: (_, _) async => false,
+                          child: const Expanded(
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                        )),
                       );
                       try {
                         bool passwordCorrect = false;
                         if (editsOwnAccount! && oldPassword.isNotEmpty) {
-                          passwordCorrect = await GetIt.I<Backend>()
-                              .login(widget.currentUser.email, oldPassword);
+                          passwordCorrect = await GetIt.I<Backend>().login(
+                            widget.currentUser.email,
+                            oldPassword,
+                          );
                           success = passwordCorrect;
                         }
                         if (!editsOwnAccount! || passwordCorrect) {
@@ -167,10 +175,10 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                       }
                     }
                   : !_allValid && editMode
-                      ? null
-                      : () {
-                          Navigator.pop(context);
-                        },
+                  ? null
+                  : () {
+                      Navigator.pop(context);
+                    },
               icon: Icon(editMode ? Icons.save : Icons.arrow_back),
               label: Text(editMode ? 'Speichern' : "Zurück"),
             )
@@ -180,176 +188,182 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         padding: const EdgeInsets.all(20.0),
         child: OfflineCheck(
           builder: ((context) => SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    const Text('Profil', style: TextStyle(fontSize: 24)),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          if (editMode) {
+                            restoreDefaults();
+                          } else {
+                            editMode = true;
+                          }
+                        });
+                      },
+                      icon: Icon(editMode ? Icons.cancel_outlined : Icons.edit),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    TextField(
+                      autofocus: true,
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        helperText: 'Name',
+                        focusedBorder: _nameValid ? validBorder : invalidBorder,
+                        enabledBorder: _nameValid ? validBorder : invalidBorder,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      readOnly: !editMode,
+                      onChanged: (value) {
+                        setState(() {
+                          validation();
+                        });
+                      },
+                    ),
+                    TextField(
+                      controller: _mailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        helperText: 'Email',
+                        focusedBorder: _mailValid ? validBorder : invalidBorder,
+                        enabledBorder: _mailValid ? validBorder : invalidBorder,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      readOnly: !editMode,
+                      onChanged: (value) {
+                        setState(() {
+                          validation();
+                        });
+                      },
+                    ),
+                    TextField(
+                      obscureText: true,
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        helperText: 'Passwort',
+                        hintText: 'Unverändert',
+                        hintStyle: const TextStyle(fontSize: 10),
+                        focusedBorder: _passwordValid
+                            ? validBorder
+                            : invalidBorder,
+                        enabledBorder: _passwordValid
+                            ? validBorder
+                            : invalidBorder,
+                      ),
+                      textInputAction: TextInputAction.next,
+                      readOnly: !editMode,
+                      onChanged: (value) {
+                        setState(() {
+                          validation();
+                        });
+                      },
+                      onSubmitted: (value) {
+                        if (value.isNotEmpty) {
+                          FocusScope.of(context).nextFocus();
+                        }
+                      },
+                    ),
+                    Focus(
+                      child: Visibility(
+                        visible:
+                            _passwordController.text.isNotEmpty && editMode,
+                        child: TextField(
+                          obscureText: true,
+                          controller: _passwordCheckController,
+                          decoration: InputDecoration(
+                            helperText: 'Neues Passwort bestätigen',
+                            focusedBorder: _passwordCheckValid
+                                ? validBorder
+                                : invalidBorder,
+                            enabledBorder: _passwordCheckValid
+                                ? validBorder
+                                : invalidBorder,
+                          ),
+                          textInputAction: TextInputAction.done,
+                          readOnly: !editMode,
+                          onChanged: (value) {
+                            setState(() {
+                              validation();
+                            });
+                          },
+                        ),
+                      ),
+                    ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Profil',
-                          style: TextStyle(fontSize: 24),
-                        ),
-                        IconButton(
-                            onPressed: () {
-                              setState(() {
-                                if (editMode) {
-                                  restoreDefaults();
-                                } else {
-                                  editMode = true;
-                                }
-                              });
-                            },
-                            icon: Icon(
-                                editMode ? Icons.cancel_outlined : Icons.edit))
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        TextField(
-                          autofocus: true,
-                          controller: _nameController,
-                          decoration: InputDecoration(
-                            helperText: 'Name',
-                            focusedBorder:
-                                _nameValid ? validBorder : invalidBorder,
-                            enabledBorder:
-                                _nameValid ? validBorder : invalidBorder,
-                          ),
-                          textInputAction: TextInputAction.next,
-                          readOnly: !editMode,
-                          onChanged: (value) {
-                            setState(() {
-                              validation();
-                            });
-                          },
-                        ),
-                        TextField(
-                          controller: _mailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            helperText: 'Email',
-                            focusedBorder:
-                                _mailValid ? validBorder : invalidBorder,
-                            enabledBorder:
-                                _mailValid ? validBorder : invalidBorder,
-                          ),
-                          textInputAction: TextInputAction.next,
-                          readOnly: !editMode,
-                          onChanged: (value) {
-                            setState(() {
-                              validation();
-                            });
-                          },
-                        ),
-                        TextField(
-                          obscureText: true,
-                          controller: _passwordController,
-                          decoration: InputDecoration(
-                            helperText: 'Passwort',
-                            hintText: 'Unverändert',
-                            hintStyle: const TextStyle(fontSize: 10),
-                            focusedBorder:
-                                _passwordValid ? validBorder : invalidBorder,
-                            enabledBorder:
-                                _passwordValid ? validBorder : invalidBorder,
-                          ),
-                          textInputAction: TextInputAction.next,
-                          readOnly: !editMode,
-                          onChanged: (value) {
-                            setState(() {
-                              validation();
-                            });
-                          },
-                          onSubmitted: (value) {
-                            if (value.isNotEmpty)
-                              FocusScope.of(context).nextFocus();
-                          },
-                        ),
-                        Focus(
-                          child: Visibility(
-                            visible:
-                                _passwordController.text.isNotEmpty && editMode,
-                            child: TextField(
-                              obscureText: true,
-                              controller: _passwordCheckController,
-                              decoration: InputDecoration(
-                                helperText: 'Neues Passwort bestätigen',
-                                focusedBorder: _passwordCheckValid
-                                    ? validBorder
-                                    : invalidBorder,
-                                enabledBorder: _passwordCheckValid
-                                    ? validBorder
-                                    : invalidBorder,
-                              ),
-                              textInputAction: TextInputAction.done,
-                              readOnly: !editMode,
-                              onChanged: (value) {
-                                setState(() {
-                                  validation();
-                                });
-                              },
+                        const Text('Rolle'),
+                        DropdownButton(
+                          value: userRole,
+                          dropdownColor: kMainColor,
+                          alignment: AlignmentDirectional.topStart,
+                          items: <DropdownMenuItem<String>>[
+                            DropdownMenuItem(
+                              value: 'admin',
+                              child: Text('Admin'),
                             ),
-                          ),
+                            DropdownMenuItem(
+                              value: 'user',
+                              child: Text('User'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'none',
+                              child: Text('Deaktiviert'),
+                            ),
+                          ],
+                          onChanged: editsOwnAccount! || !editMode
+                              ? null
+                              : (String? value) {
+                                  setState(() {
+                                    userRole = value;
+                                  });
+                                },
                         ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Rolle'),
-                            DropdownButton(
-                                value: userRole,
-                                dropdownColor: kMainColor,
-                                alignment: AlignmentDirectional.topStart,
-                                items: <DropdownMenuItem<String>>[
-                                  DropdownMenuItem(
-                                      child: Text('Admin'), value: 'admin'),
-                                  DropdownMenuItem(
-                                      child: Text('User'), value: 'user'),
-                                  DropdownMenuItem(
-                                      child: Text('Deaktiviert'), value: 'none')
-                                ],
-                                onChanged: editsOwnAccount! || !editMode
-                                    ? null
-                                    : (String? value) {
-                                        setState(() {
-                                          userRole = value;
-                                        });
-                                      }),
-                          ],
-                        )
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            if (editsOwnAccount!)
-                              OutlinedButton.icon(
-                                  onPressed: () {
-                                    GetIt.instance<Backend>().logout();
-                                    Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                LoginScreen()),
-                                        (Route<dynamic> route) => false);
-                                  },
-                                  icon: const Icon(Icons.logout),
-                                  label: const Text('Abmelden')),
-                            OutlinedButton.icon(
-                                onPressed: _deleteProfile,
-                                icon: const Icon(Icons.delete),
-                                label: const Text('Konto löschen')),
-                          ],
-                        )
                       ],
                     ),
                   ],
                 ),
-              )),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (editsOwnAccount!)
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              GetIt.instance<Backend>().logout();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LoginScreen(),
+                                ),
+                                (Route<dynamic> route) => false,
+                              );
+                            },
+                            icon: const Icon(Icons.logout),
+                            label: const Text('Abmelden'),
+                          ),
+                        OutlinedButton.icon(
+                          onPressed: _deleteProfile,
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Konto löschen'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )),
         ),
       ),
     );
@@ -357,19 +371,22 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<bool> _save() async {
     String body = '{';
-    body += _nameController.text.isNotEmpty &&
+    body +=
+        _nameController.text.isNotEmpty &&
             (_nameController.text != widget.currentUser.name)
         ? '\n"name": "${_nameController.text}",'
         : '';
-    body += _mailController.text.isNotEmpty &&
+    body +=
+        _mailController.text.isNotEmpty &&
             (_mailController.text != widget.currentUser.email)
         ? '\n"email": "${_mailController.text}",'
         : '';
     body += _passwordController.text.isNotEmpty
         ? '\n"password": "${_passwordController.text}",'
         : '';
-    body +=
-        userRole != widget.currentUser.role ? '\n"roleId": "${userRole}",' : '';
+    body += userRole != widget.currentUser.role
+        ? '\n"roleId": "$userRole",'
+        : '';
     if (body.lastIndexOf(',') > 0) {
       body = body.substring(0, body.lastIndexOf(','));
     }
@@ -390,7 +407,8 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         changedCurrentUser = await fetchUser();
       } else {
         changedCurrentUser = User.fromJson(
-            await GetIt.I<Backend>().get('/user/${widget.currentUser.id}'));
+          await GetIt.I<Backend>().get('/user/${widget.currentUser.id}'),
+        );
       }
       setState(() {
         widget.currentUser = changedCurrentUser;
@@ -409,74 +427,83 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<bool> _deleteProfile() async {
     await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              title: const Text('Warnung'),
-              content: Text(
-                  'Möchtest du ${editsOwnAccount! ? 'dein' : 'dieses'} Konto wirklich löschen? ${editsOwnAccount! ? 'Du wirst dich' : 'Man wird sich'} nicht mehr mit diesem Konto anmelden können!'),
-              actions: [
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  label: const Text('Abbrechen'),
-                  icon: const Icon(Icons.cancel),
-                ),
-                ElevatedButton.icon(
-                  label: const Text('Konto Löschen'),
-                  icon: const Icon(Icons.delete),
-                  onPressed: () async {
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Warnung'),
+        content: Text(
+          'Möchtest du ${editsOwnAccount! ? 'dein' : 'dieses'} Konto wirklich löschen? ${editsOwnAccount! ? 'Du wirst dich' : 'Man wird sich'} nicht mehr mit diesem Konto anmelden können!',
+        ),
+        actions: [
+          OutlinedButton.icon(
+            onPressed: () => Navigator.pop(context),
+            label: const Text('Abbrechen'),
+            icon: const Icon(Icons.cancel),
+          ),
+          ElevatedButton.icon(
+            label: const Text('Konto Löschen'),
+            icon: const Icon(Icons.delete),
+            onPressed: () async {
+              if (editsOwnAccount!) {
+                oldPassword = await _enterOldPassword();
+              }
+              try {
+                bool passwordCorrect = false;
+                if (editsOwnAccount!) {
+                  passwordCorrect =
+                      (oldPassword.isNotEmpty &&
+                      await GetIt.I<Backend>().login(
+                        widget.currentUser.email,
+                        oldPassword,
+                      ));
+                }
+                if (!editsOwnAccount! || passwordCorrect) {
+                  if (!editsOwnAccount! ||
+                      await GetIt.instance<Backend>()
+                          .sendLocalPurchasesToServer()) {
+                    await GetIt.instance<Backend>().delete(
+                      '/user/${widget.currentUser.id}',
+                      null,
+                    );
                     if (editsOwnAccount!) {
-                      oldPassword = await _enterOldPassword();
+                      GetIt.instance<Backend>().logout();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                        (Route<dynamic> route) => false,
+                      );
+                    } else {
+                      Navigator.pop(context);
+                      _displayError('Löschen erfolgreich!');
                     }
-                    try {
-                      bool passwordCorrect = false;
-                      if (editsOwnAccount!) {
-                        passwordCorrect = (oldPassword.isNotEmpty &&
-                            await GetIt.I<Backend>()
-                                .login(widget.currentUser.email, oldPassword));
-                      }
-                      if (!editsOwnAccount! || passwordCorrect) {
-                        if (!editsOwnAccount! ||
-                            await GetIt.instance<Backend>()
-                                .sendLocalPurchasesToServer()) {
-                          await GetIt.instance<Backend>()
-                              .delete('/user/${widget.currentUser.id}', null);
-                          if (editsOwnAccount!) {
-                            GetIt.instance<Backend>().logout();
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => LoginScreen()),
-                                (Route<dynamic> route) => false);
-                          } else {
-                            Navigator.pop(context);
-                            _displayError('Löschen erfolgreich!');
-                          }
-                        } else {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Fehler'),
-                              content: const Text(
-                                  'Konto konnte nicht gelöscht werden, weil es noch nicht synchronisierte Käufe gibt.'),
-                              actions: [
-                                ElevatedButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Okay'))
-                              ],
-                            ),
-                          );
-                        }
-                      } else if (oldPassword.isNotEmpty) {
-                        throw (Exception('wrong password'));
-                      }
-                    } catch (e) {
-                      developer.log(e.toString());
-                      _displayError('Fehler beim Löschen!');
-                    }
-                  },
-                ),
-              ],
-            ));
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Fehler'),
+                        content: const Text(
+                          'Konto konnte nicht gelöscht werden, weil es noch nicht synchronisierte Käufe gibt.',
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Okay'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } else if (oldPassword.isNotEmpty) {
+                  throw (Exception('wrong password'));
+                }
+              } catch (e) {
+                developer.log(e.toString());
+                _displayError('Fehler beim Löschen!');
+              }
+            },
+          ),
+        ],
+      ),
+    );
 
     return true;
   }
@@ -484,45 +511,52 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   Future<String> _enterOldPassword() async {
     String enteredPassword = '';
     await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Profil ändern'),
-            content: Column(mainAxisSize: MainAxisSize.min, children: [
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Profil ändern'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               const Text(
-                  'Um die Aktion zu bestätigen, gib bitte dein aktuelles Passwort ein.'),
+                'Um die Aktion zu bestätigen, gib bitte dein aktuelles Passwort ein.',
+              ),
               TextField(
                 autofocus: true,
                 obscureText: true,
                 onChanged: (value) => enteredPassword = value,
-              )
-            ]),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  enteredPassword = '';
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.cancel),
-              ),
-              IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(Icons.check),
               ),
             ],
-          );
-        });
+          ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                enteredPassword = '';
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.cancel),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.check),
+            ),
+          ],
+        );
+      },
+    );
     return enteredPassword;
   }
 
   void _displayError(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(text),
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 5),
-    ));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+      ),
+    );
 
     setState(() {
       restoreDefaults();

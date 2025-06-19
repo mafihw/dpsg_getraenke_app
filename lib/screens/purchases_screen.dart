@@ -5,7 +5,7 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/model/user.dart';
-import 'package:dpsg_app/screens/offline-screen.dart';
+import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_card.dart';
@@ -19,31 +19,42 @@ import '../shared/custom_bottom_bar.dart';
 import '../shared/custom_drawer.dart';
 
 class PurchasesScreen extends StatefulWidget {
-  const PurchasesScreen({Key? key, this.userId}) : super(key: key);
+  const PurchasesScreen({super.key, this.userId});
   final String? userId;
   @override
   State<PurchasesScreen> createState() => _PurchasesScreenState();
 }
 
 class _PurchasesScreenState extends State<PurchasesScreen> {
-  var startDate =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-          .subtract(const Duration(days: 90));
-  var endDate =
-      DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+  var startDate = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  ).subtract(const Duration(days: 90));
+  var endDate = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
 
   final Widget _noPurchasesScreen = Center(
-      child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: const [
         Icon(Icons.person_search, size: 150),
         SizedBox(height: 20),
         SizedBox(
-            width: 250,
-            child: Text('Du hast bisher noch nichts gekauft ...',
-                style: TextStyle(fontSize: 25), textAlign: TextAlign.center))
-      ]));
+          width: 250,
+          child: Text(
+            'Du hast bisher noch nichts gekauft ...',
+            style: TextStyle(fontSize: 25),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -57,49 +68,55 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       drawer: const CustomDrawer(),
       body: () {
         if (GetIt.I<Backend>().isOnlineMode) {
-          return Column(children: [
-            getFilters(),
-            Expanded(
+          return Column(
+            children: [
+              getFilters(),
+              Expanded(
                 child: FutureBuilder<dynamic>(
-                    future: getPurchases(widget.userId),
-                    builder: (context, snapshot2) {
-                      if (snapshot2.hasData) {
-                        if (snapshot2.data.isEmpty) {
-                          return _noPurchasesScreen;
-                        } else {
-                          return _buildOnlinePurchases(snapshot2.data!);
-                        }
-                      } else if (snapshot2.hasError) {
+                  future: getPurchases(widget.userId),
+                  builder: (context, snapshot2) {
+                    if (snapshot2.hasData) {
+                      if (snapshot2.data.isEmpty) {
                         return _noPurchasesScreen;
                       } else {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return _buildOnlinePurchases(snapshot2.data!);
                       }
-                    }))
-          ]);
+                    } else if (snapshot2.hasError) {
+                      return _noPurchasesScreen;
+                    } else {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                  },
+                ),
+              ),
+            ],
+          );
         } else {
           //app is not connected to server
           if (widget.userId == null) {
             return _noPurchasesScreen;
           } else {
             return FutureBuilder<List<Purchase>>(
-                future: GetIt.I<LocalDB>().getUnsentPurchases(),
-                builder: (context, snapshot2) {
-                  if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
-                    return _buildOfflinePurchases(snapshot2.data!);
-                  } else {
-                    return OfflineWarning(refresh: () {
+              future: GetIt.I<LocalDB>().getUnsentPurchases(),
+              builder: (context, snapshot2) {
+                if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
+                  return _buildOfflinePurchases(snapshot2.data!);
+                } else {
+                  return OfflineWarning(
+                    refresh: () {
                       setState(() {});
-                    });
-                  }
-                });
+                    },
+                  );
+                }
+              },
+            );
           }
         }
       }.call(),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
+        foregroundColor: Colors.white,
         backgroundColor: kSecondaryColor,
         onPressed: () {
           Navigator.pop(context);
@@ -122,10 +139,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           child: ElevatedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
-                  context: context,
-                  initialDate: startDate,
-                  firstDate: DateTime(2021, 12, 01),
-                  lastDate: endDate);
+                context: context,
+                initialDate: startDate,
+                firstDate: DateTime(2021, 12, 01),
+                lastDate: endDate,
+              );
               if (selectedDate != null) {
                 setState(() {
                   startDate = selectedDate;
@@ -133,12 +151,16 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               }
             },
             style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)))),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ),
+              ),
+            ),
             child: IntrinsicWidth(
-              child: Text('von: ' +
-                  DateFormat('dd.MM.yyyy').format(startDate.toLocal())),
+              child: Text(
+                'von: ${DateFormat('dd.MM.yyyy').format(startDate.toLocal())}',
+              ),
             ),
           ),
         ),
@@ -147,10 +169,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           child: ElevatedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
-                  context: context,
-                  initialDate: endDate,
-                  firstDate: startDate,
-                  lastDate: DateTime.now());
+                context: context,
+                initialDate: endDate,
+                firstDate: startDate,
+                lastDate: DateTime.now(),
+              );
               if (selectedDate != null) {
                 setState(() {
                   endDate = selectedDate;
@@ -158,12 +181,16 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               }
             },
             style: ButtonStyle(
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0)))),
+              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18.0),
+                ),
+              ),
+            ),
             child: IntrinsicWidth(
               child: Text(
-                  'bis: ' + DateFormat('dd.MM.yyyy').format(endDate.toLocal())),
+                'bis: ${DateFormat('dd.MM.yyyy').format(endDate.toLocal())}',
+              ),
             ),
           ),
         ),
@@ -173,16 +200,14 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
 
   Future<dynamic> getPurchases([String? userId]) async {
     final String dateStartSearchString =
-        '?from=' + (startDate.millisecondsSinceEpoch / 1000).toStringAsFixed(0);
-    final String dateEndSearchString = '&to=' +
-        (endDate.add(const Duration(days: 1)).millisecondsSinceEpoch / 1000)
-            .toStringAsFixed(0);
-    final String userSearchString = userId != null ? '&userId=' + userId : '';
+        '?from=${(startDate.millisecondsSinceEpoch / 1000).toStringAsFixed(0)}';
+    final String dateEndSearchString =
+        '&to=${(endDate.add(const Duration(days: 1)).millisecondsSinceEpoch / 1000).toStringAsFixed(0)}';
+    final String userSearchString = userId != null ? '&userId=$userId' : '';
     await GetIt.instance<Backend>().sendLocalPurchasesToServer();
-    return GetIt.instance<Backend>().get('/purchase' +
-        dateStartSearchString +
-        dateEndSearchString +
-        userSearchString);
+    return GetIt.instance<Backend>().get(
+      '/purchase$dateStartSearchString$dateEndSearchString$userSearchString',
+    );
   }
 
   Future<dynamic> deletePurchase(int purchaseId) async {
@@ -197,14 +222,17 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     List<Widget> purchasesCards = [];
     purchases.sort((a, b) => b.date.compareTo(a.date));
     for (var purchase in purchases) {
-      purchasesCards.add(buildCard(
-          background:
-              purchase.deleted ? Colors.grey[600]!.withOpacity(0.4) : null,
+      purchasesCards.add(
+        buildCard(
+          background: purchase.deleted
+              ? Colors.grey[600]!.withValues(alpha: 0.4)
+              : null,
           child: Row(
             children: [
               const Padding(
-                  padding: EdgeInsets.only(left: 5, right: 10),
-                  child: Icon(Icons.local_drink)),
+                padding: EdgeInsets.only(left: 5, right: 10),
+                child: Icon(Icons.local_drink),
+              ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -218,8 +246,9 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       style: const TextStyle(fontSize: 14),
                     ),
                   Text(
-                    DateFormat('dd.MM.yyyy, HH:mm')
-                        .format(purchase.date.toLocal()),
+                    DateFormat(
+                      'dd.MM.yyyy, HH:mm',
+                    ).format(purchase.date.toLocal()),
                     style: const TextStyle(fontSize: 14),
                   ),
                   Text(
@@ -232,95 +261,115 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                               widget.userId == null))
                       ? Text('Gebucht von ${purchase.userBookedName}')
                       : (widget.userId != null &&
-                              purchase.userId != widget.userId)
-                          ? Text('Gebucht für ${purchase.userName}')
-                          : const SizedBox(),
+                            purchase.userId != widget.userId)
+                      ? Text('Gebucht für ${purchase.userName}')
+                      : const SizedBox(),
                 ],
-              )
+              ),
             ],
           ),
           onTap: () {
             if (GetIt.I<Backend>().isOnlineMode &&
-                (GetIt.I<PermissionSystem>()
-                            .userHasPermission(Permission.canEditOtherUsers) &&
+                (GetIt.I<PermissionSystem>().userHasPermission(
+                          Permission.canEditOtherUsers,
+                        ) &&
                         purchase.userBookedName.trim() != '' &&
                         purchase.userBookedId !=
                             GetIt.I<Backend>().loggedInUserId ||
                     !purchase.deleted)) {
               showCustomModalSheet(purchase);
             }
-          }));
+          },
+        ),
+      );
     }
     return purchasesCards;
   }
 
-  showCustomModalSheet(Purchase purchase) {
+  void showCustomModalSheet(Purchase purchase) {
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: kBackgroundColor,
       context: context,
-      builder: (context) => Wrap(children: [
-        Center(
-          child: Padding(
+      builder: (context) => Wrap(
+        children: [
+          Center(
+            child: Padding(
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
-                  '${purchase.amount}x ${purchase.drinkName} für ${(purchase.cost * purchase.amount / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
-                  style: const TextStyle(fontSize: 30))),
-        ),
-        const Padding(
+                '${purchase.amount}x ${purchase.drinkName} für ${(purchase.cost * purchase.amount / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
+                style: const TextStyle(fontSize: 30),
+              ),
+            ),
+          ),
+          const Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2)),
-        !purchase.deleted
-            ? buildSettingCard(
-                icon: Icons.cancel,
-                name: 'Buchung stornieren',
-                onTap: () async {
-                  await deletePurchase(purchase.id);
-                  Navigator.pop(context);
-                  setState(() {});
-                },
-              )
-            : Container(),
-        GetIt.I<PermissionSystem>()
-                    .userHasPermission(Permission.canEditOtherUsers) &&
-                purchase.userBookedName.trim() != '' &&
-                purchase.userBookedId != GetIt.I<Backend>().loggedInUserId
-            ? buildSettingCard(
-                icon: Icons.person,
-                name: purchase.userBookedName,
-                onTap: () async {
-                  User user = User.fromJson(await GetIt.I<Backend>()
-                      .get('/user/${purchase.userBookedId}'));
-                  await Navigator.push(
+            child: Divider(thickness: 2),
+          ),
+          !purchase.deleted
+              ? buildSettingCard(
+                  icon: Icons.cancel,
+                  name: 'Buchung stornieren',
+                  onTap: () async {
+                    await deletePurchase(purchase.id);
+                    Navigator.pop(context);
+                    setState(() {});
+                  },
+                )
+              : Container(),
+          GetIt.I<PermissionSystem>().userHasPermission(
+                    Permission.canEditOtherUsers,
+                  ) &&
+                  purchase.userBookedName.trim() != '' &&
+                  purchase.userBookedId != GetIt.I<Backend>().loggedInUserId
+              ? buildSettingCard(
+                  icon: Icons.person,
+                  name: purchase.userBookedName,
+                  onTap: () async {
+                    User user = User.fromJson(
+                      await GetIt.I<Backend>().get(
+                        '/user/${purchase.userBookedId}',
+                      ),
+                    );
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => UserProfileScreen(
-                                currentUser: user,
-                                rebuild: () {
-                                  setState(() {});
-                                },
-                              )));
-                  Navigator.pop(context);
-                  setState(() {});
-                },
-              )
-            : Container(),
-        const SizedBox(height: 15),
-      ]),
+                        builder: (context) => UserProfileScreen(
+                          currentUser: user,
+                          rebuild: () {
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                    );
+                    Navigator.pop(context);
+                    setState(() {});
+                  },
+                )
+              : Container(),
+          const SizedBox(height: 15),
+        ],
+      ),
     );
   }
 
-  Widget buildSettingCard(
-      {required IconData icon, required String name, required Function onTap}) {
+  Widget buildSettingCard({
+    required IconData icon,
+    required String name,
+    required Function onTap,
+  }) {
     final child = Row(
       mainAxisSize: MainAxisSize.max,
       children: [
         Icon(icon, size: 40),
         Padding(
-            padding: const EdgeInsets.only(left: 20.0),
-            child: Text(name,
-                style: const TextStyle(fontSize: 20),
-                textAlign: TextAlign.center))
+          padding: const EdgeInsets.only(left: 20.0),
+          child: Text(
+            name,
+            style: const TextStyle(fontSize: 20),
+            textAlign: TextAlign.center,
+          ),
+        ),
       ],
     );
     return buildCard(child: child, onTap: onTap);
@@ -343,7 +392,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     );
   }
 
-  _buildOfflinePurchases(List<Purchase> purchases) {
+  SingleChildScrollView _buildOfflinePurchases(List<Purchase> purchases) {
     List<Widget> purchasesCards = [];
     purchasesCards.add(_buildNotSyncedInfo());
     purchasesCards.addAll(_buildPurchasesCards(purchases));
@@ -369,13 +418,10 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: const [
-                  Hero(
-                    tag: 'syncWarning',
-                    child: Icon(
-                      Icons.sync_problem_rounded,
-                      color: kWarningColor,
-                      size: 32,
-                    ),
+                  Icon(
+                    Icons.sync_problem_rounded,
+                    color: kWarningColor,
+                    size: 32,
                   ),
                   Padding(
                     padding: EdgeInsets.only(left: 12),
@@ -383,7 +429,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                       'Offline-Käufe',
                       style: TextStyle(color: Colors.black, fontSize: 18),
                     ),
-                  )
+                  ),
                 ],
               ),
               const Text(

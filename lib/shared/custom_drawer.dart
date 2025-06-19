@@ -5,7 +5,7 @@ import 'package:dpsg_app/screens/drinks_statistics_screen.dart';
 import 'package:dpsg_app/screens/friends_screen.dart';
 import 'package:dpsg_app/screens/general_statistics_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
-import 'package:dpsg_app/screens/newDrinks_screen.dart';
+import 'package:dpsg_app/screens/new_drinks_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
@@ -19,9 +19,9 @@ import '../connection/database.dart';
 import '../screens/users_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
-  final updateHomeScreen;
+  final Function()? updateHomeScreen;
 
-  const CustomDrawer({Key? key, this.updateHomeScreen}) : super(key: key);
+  const CustomDrawer({super.key, this.updateHomeScreen});
 
   @override
   State<CustomDrawer> createState() =>
@@ -29,7 +29,7 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
-  final updateHomeScreen;
+  final Function()? updateHomeScreen;
 
   _CustomDrawerState({this.updateHomeScreen});
 
@@ -44,12 +44,8 @@ class _CustomDrawerState extends State<CustomDrawer> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: kMainColor,
-            ),
-            child: Image(
-              image: AssetImage('assets/icon_500px.png'),
-            ),
+            decoration: BoxDecoration(color: kMainColor),
+            child: Image(image: AssetImage('assets/icon_500px.png')),
           ),
           NotificationListener<OverscrollIndicatorNotification>(
             onNotification: (overscroll) {
@@ -66,7 +62,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [...addListTilesToDrawer()],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -85,7 +81,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pop(context);
 
           Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
+          if (updateHomeScreen != null) updateHomeScreen!();
         },
       ),
       ListTile(
@@ -95,11 +91,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pop(context);
           final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
           Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => PurchasesScreen(userId: userId)),
-              (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
+            context,
+            MaterialPageRoute(
+              builder: (context) => PurchasesScreen(userId: userId),
+            ),
+            (Route<dynamic> route) => route.isFirst,
+          );
+          if (updateHomeScreen != null) updateHomeScreen!();
         },
       ),
       ListTile(
@@ -109,11 +107,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
           Navigator.pop(context);
           final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
           Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => PaymentsScreen(userId: userId)),
-              (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
+            context,
+            MaterialPageRoute(
+              builder: (context) => PaymentsScreen(userId: userId),
+            ),
+            (Route<dynamic> route) => route.isFirst,
+          );
+          if (updateHomeScreen != null) updateHomeScreen!();
         },
       ),
       ListTile(
@@ -121,10 +121,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Profil'),
         onTap: () async {
           await Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => MyProfileScreen()),
-              (Route<dynamic> route) => route.isFirst);
-          updateHomeScreen();
+            context,
+            MaterialPageRoute(builder: (context) => MyProfileScreen()),
+            (Route<dynamic> route) => route.isFirst,
+          );
+          if (updateHomeScreen != null) updateHomeScreen!();
           Navigator.pop(context);
         },
       ),
@@ -133,10 +134,11 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Freundschaften'),
         onTap: () async {
           await Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const FriendsScreen()),
-              (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
+            context,
+            MaterialPageRoute(builder: (context) => const FriendsScreen()),
+            (Route<dynamic> route) => route.isFirst,
+          );
+          if (updateHomeScreen != null) updateHomeScreen!();
           Navigator.pop(context);
         },
       ),
@@ -162,9 +164,10 @@ class _CustomDrawerState extends State<CustomDrawer> {
         onTap: () {
           GetIt.instance<Backend>().logout();
           Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-              (Route<dynamic> route) => false);
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
         },
       ),
     ];
@@ -173,123 +176,148 @@ class _CustomDrawerState extends State<CustomDrawer> {
 
   List<Widget> getAdminListTiles() {
     final adminListTiles = <Widget>[];
-    if (GetIt.I<PermissionSystem>()
-            .userHasPermission(Permission.canGetAllUsers) ||
-        GetIt.I<PermissionSystem>()
-            .userHasPermission(Permission.canEditDrinks)) {
-      adminListTiles.add(ExpansionTile(
-        title: Text("Verwaltung"),
-        leading: Icon(FontAwesomeIcons.lockOpen),
-        children: [
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canGetAllUsers))
-            ListTile(
-              leading: Icon(Icons.manage_accounts),
-              title: const Text('Nutzer'),
-              onTap: () async {
-                Navigator.pop(context);
-                await Navigator.pushAndRemoveUntil(
+    if (GetIt.I<PermissionSystem>().userHasPermission(
+          Permission.canGetAllUsers,
+        ) ||
+        GetIt.I<PermissionSystem>().userHasPermission(
+          Permission.canEditDrinks,
+        )) {
+      adminListTiles.add(
+        ExpansionTile(
+          title: Text("Verwaltung"),
+          leading: Icon(FontAwesomeIcons.lockOpen),
+          children: [
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canGetAllUsers,
+            ))
+              ListTile(
+                leading: Icon(Icons.manage_accounts),
+                title: const Text('Nutzer'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => UserAdministrationScreen()),
-                    (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            ),
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canEditDrinks))
-            ListTile(
-              leading: Icon(FontAwesomeIcons.wineBottle),
-              title: const Text('Getränke'),
-              onTap: () async {
-                Navigator.pop(context);
-                await Navigator.pushAndRemoveUntil(
+                      builder: (context) => UserAdministrationScreen(),
+                    ),
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canEditDrinks,
+            ))
+              ListTile(
+                leading: Icon(FontAwesomeIcons.wineBottle),
+                title: const Text('Getränke'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => DrinkAdministrationScreen()),
-                    (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            ),
-        ],
-      ));
-      adminListTiles.add(ExpansionTile(
-        title: Text("Statistiken"),
-        leading: Icon(FontAwesomeIcons.chartLine),
-        children: [
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canSeeAllPurchases))
-            ListTile(
-              leading: Icon(Icons.bar_chart),
-              title: const Text('Allgemein'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => GeneralStatisticsScreen()),
-                        (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            ),
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canEditDrinks))
-            ListTile(
-              leading: Icon(Icons.view_in_ar),
-              title: const Text('Bestand'),
-              onTap: () async {
-                Navigator.pop(context);
-                await Navigator.pushAndRemoveUntil(
+                      builder: (context) => DrinkAdministrationScreen(),
+                    ),
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+          ],
+        ),
+      );
+      adminListTiles.add(
+        ExpansionTile(
+          title: Text("Statistiken"),
+          leading: Icon(FontAwesomeIcons.chartLine),
+          children: [
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canSeeAllPurchases,
+            ))
+              ListTile(
+                leading: Icon(Icons.bar_chart),
+                title: const Text('Allgemein'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => DrinkStatisticsScreen()),
-                    (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            ),
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canSeeAllPurchases))
-            ListTile(
-              leading: Icon(Icons.history),
-              title: const Text('Buchungen'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
+                      builder: (context) => GeneralStatisticsScreen(),
+                    ),
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canEditDrinks,
+            ))
+              ListTile(
+                leading: Icon(Icons.view_in_ar),
+                title: const Text('Bestand'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DrinkStatisticsScreen(),
+                    ),
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canSeeAllPurchases,
+            ))
+              ListTile(
+                leading: Icon(Icons.history),
+                title: const Text('Buchungen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => PurchasesScreen()),
-                    (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            ),
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canSeeAllPurchases))
-            ListTile(
-              leading: Icon(Icons.add_home_outlined),
-              title: const Text('Einkäufe'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canSeeAllPurchases,
+            ))
+              ListTile(
+                leading: Icon(Icons.add_home_outlined),
+                title: const Text('Einkäufe'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => NewDrinksScreen()),
-                    (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            ),
-          if (GetIt.I<PermissionSystem>()
-              .userHasPermission(Permission.canSeeAllPurchases))
-            ListTile(
-              leading: Icon(Icons.payments),
-              title: const Text('Zahlungen'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushAndRemoveUntil(
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canSeeAllPurchases,
+            ))
+              ListTile(
+                leading: Icon(Icons.payments),
+                title: const Text('Zahlungen'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (context) => PaymentsScreen()),
-                    (Route<dynamic> route) => route.isFirst);
-                updateHomeScreen();
-              },
-            )
-        ],
-      ));
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  if (updateHomeScreen != null) updateHomeScreen!();
+                },
+              ),
+          ],
+        ),
+      );
     }
     return adminListTiles;
   }

@@ -19,7 +19,7 @@ import 'dart:developer' as developer;
 import '../shared/custom_dialogs.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  const WelcomeScreen({super.key});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();
@@ -64,7 +64,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       drinksPending = 0;
       if (drinks > 0) {
         await purchaseDrink(
-            currentUser!.id, currentUser!.id, shortcutDrink!, drinks);
+          currentUser!.id,
+          currentUser!.id,
+          shortcutDrink!,
+          drinks,
+        );
       }
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       setState(() {});
@@ -84,9 +88,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           if (snapshot.hasError) {
             return processSnapshotError(snapshot);
           } else {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
         }
       },
@@ -94,11 +96,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Widget buildCard(
-      {required Widget child,
-      required Function onTap,
-      Function()? onLongPress,
-      Widget? infoIcon}) {
+  Widget buildCard({
+    required Widget child,
+    required Function onTap,
+    Function()? onLongPress,
+    Widget? infoIcon,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
@@ -107,20 +110,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         child: InkWell(
           onTap: () => onTap(),
           onLongPress: onLongPress,
-          customBorder:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          customBorder: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Positioned(
-                top: 8,
-                right: 8,
-                child: infoIcon ?? Container(),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: child,
-              ),
+              Positioned(top: 8, right: 8, child: infoIcon ?? Container()),
+              Padding(padding: const EdgeInsets.all(20.0), child: child),
             ],
           ),
         ),
@@ -164,20 +161,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     if (!GetIt.I<Backend>().isTokenValid) {
                       await GetIt.I<Backend>().refreshToken();
                     }
-                    Future.delayed(const Duration(seconds: 1))
-                        .then((_) => setState(() => connecting = false));
+                    Future.delayed(
+                      const Duration(seconds: 1),
+                    ).then((_) => setState(() => connecting = false));
                   } else {
                     setState(() {});
                   }
                 },
                 icon: AnimatedRotation(
-                    duration: const Duration(seconds: 1),
-                    turns: reconnectCounter / 1,
-                    child: const Icon(Icons.refresh)),
+                  duration: const Duration(seconds: 1),
+                  turns: reconnectCounter / 1,
+                  child: const Icon(Icons.refresh),
+                ),
                 label: const Text('Verbinden'),
                 style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(kMainColor),
-                    foregroundColor: MaterialStateProperty.all(Colors.white)),
+                  backgroundColor: WidgetStateProperty.all(kMainColor),
+                  foregroundColor: WidgetStateProperty.all(Colors.white),
+                ),
               ),
             ],
           ),
@@ -186,7 +186,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Future<WelcomeScreenData> fetchWelcomeScreenData(context) async {
+  Future<WelcomeScreenData> fetchWelcomeScreenData(BuildContext context) async {
     return WelcomeScreenData(
       lastPurchase: await fetchLastPurchase(),
       user: await fetchUser(),
@@ -195,7 +195,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
-  Container processSnapshotData(snapshot) {
+  Container processSnapshotData(AsyncSnapshot snapshot) {
     currentUser = snapshot.data!.user;
     final Purchase? lastPurchase = snapshot.data!.lastPurchase;
     final int unsentPurchasesCost = snapshot.data!.unsentPurchasesCost;
@@ -204,9 +204,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     int daysUntilLastBooking = lastPurchase == null
         ? 0
         : DateTime(now.year, now.month, now.day)
-            .difference(DateTime(lastPurchase.date.year,
-                lastPurchase.date.month, lastPurchase.date.day))
-            .inDays;
+              .difference(
+                DateTime(
+                  lastPurchase.date.year,
+                  lastPurchase.date.month,
+                  lastPurchase.date.day,
+                ),
+              )
+              .inDays;
     return Container(
       color: kBackgroundColor,
       child: SingleChildScrollView(
@@ -216,27 +221,28 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           children: [
             if (!GetIt.I<Backend>().isOnlineMode) offlineInfo(),
             buildCard(
-                child: Column(
-                  children: [
-                    Text(
-                      'Hallo ${currentUser!.name}',
-                      style: const TextStyle(fontSize: 24),
-                    ),
-                    const Text(
-                      'Willkommen zurück!',
-                      style: TextStyle(fontSize: 18),
-                    )
-                  ],
-                ),
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MyProfileScreen(),
-                    ),
-                  );
-                  setState(() {});
-                }),
+              child: Column(
+                children: [
+                  Text(
+                    'Hallo ${currentUser!.name}',
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                  const Text(
+                    'Willkommen zurück!',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ],
+              ),
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyProfileScreen(),
+                  ),
+                );
+                setState(() {});
+              },
+            ),
             buildCard(
               child: Column(
                 children: [
@@ -247,7 +253,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   Text(
                     '${((currentUser!.balance - unsentPurchasesCost) / 100).toStringAsFixed(2).replaceAll('.', ',')} €',
                     style: const TextStyle(fontSize: 48),
-                  )
+                  ),
                 ],
               ),
               onTap: () async {
@@ -262,70 +268,70 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               },
             ),
             buildCard(
-                child: Column(
-                  children: [
-                    const Text(
-                      'Letzte Buchung:',
-                      style: TextStyle(fontSize: 24),
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
+              child: Column(
+                children: [
+                  const Text('Letzte Buchung:', style: TextStyle(fontSize: 24)),
+                  const SizedBox(height: 8),
+                  Text(
+                    daysUntilLastBooking == 0
+                        ? 'Heute'
+                        : daysUntilLastBooking == 1
+                        ? 'Gestern'
+                        : ' Vor $daysUntilLastBooking Tagen',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  Text(
+                    lastPurchase == null
+                        ? '-'
+                        : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100 * lastPurchase.amount).toStringAsFixed(2).replaceAll('.', ',')}€',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  if (lastPurchase != null &&
+                      lastPurchase.userId != GetIt.I<Backend>().loggedInUserId)
                     Text(
-                      daysUntilLastBooking == 0
-                          ? 'Heute'
-                          : daysUntilLastBooking == 1
-                              ? 'Gestern'
-                              : ' Vor $daysUntilLastBooking Tagen',
+                      'für ${lastPurchase.userName}',
                       style: const TextStyle(fontSize: 18),
                     ),
+                  if (lastPurchase != null &&
+                      lastPurchase.userBookedId !=
+                          GetIt.I<Backend>().loggedInUserId)
                     Text(
-                      lastPurchase == null
-                          ? '-'
-                          : '${lastPurchase.amount}x ${lastPurchase.drinkName} für ${(lastPurchase.cost / 100 * lastPurchase.amount).toStringAsFixed(2).replaceAll('.', ',')}€',
+                      'von ${lastPurchase.userBookedName}',
                       style: const TextStyle(fontSize: 18),
                     ),
-                    if (lastPurchase != null &&
-                        lastPurchase.userId !=
-                            GetIt.I<Backend>().loggedInUserId)
-                      Text('für ${lastPurchase.userName}',
-                          style: const TextStyle(fontSize: 18)),
-                    if (lastPurchase != null &&
-                        lastPurchase.userBookedId !=
-                            GetIt.I<Backend>().loggedInUserId)
-                      Text('von ${lastPurchase.userBookedName}',
-                          style: const TextStyle(fontSize: 18))
-                  ],
-                ),
-                onTap: () async {
-                  final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PurchasesScreen(userId: userId),
-                    ),
-                  );
-                  setState(() {});
+                ],
+              ),
+              onTap: () async {
+                final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PurchasesScreen(userId: userId),
+                  ),
+                );
+                setState(() {});
+              },
+              infoIcon: FutureBuilder<List>(
+                future: GetIt.I<LocalDB>().getUnsentPurchases(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    return IconButton(
+                      icon: const Icon(
+                        Icons.sync_problem_rounded,
+                        color: kWarningColor,
+                      ),
+                      onPressed: () async {
+                        await GetIt.instance<Backend>()
+                            .sendLocalPurchasesToServer();
+                        setState(() {});
+                      },
+                    );
+                  } else {
+                    return Container();
+                  }
                 },
-                infoIcon: FutureBuilder<List>(
-                    future: GetIt.I<LocalDB>().getUnsentPurchases(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                        return Hero(
-                            tag: 'syncWarning',
-                            child: IconButton(
-                              icon: const Icon(Icons.sync_problem_rounded,
-                                  color: kWarningColor),
-                              onPressed: () async {
-                                await GetIt.instance<Backend>()
-                                    .sendLocalPurchasesToServer();
-                                setState(() {});
-                              },
-                            ));
-                      } else {
-                        return Container();
-                      }
-                    })),
+              ),
+            ),
             IntrinsicHeight(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -334,48 +340,40 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 children: [
                   Expanded(
                     child: buildCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text('Schnellwahltaste',
-                                style: TextStyle(fontSize: 16)),
-                            const Icon(
-                              Icons.add,
-                              size: 48,
-                            ),
-                            shortcutDrink != null
-                                ? Text(
-                                    '1x ${shortcutDrink!.name} buchen',
-                                    textAlign: TextAlign.center,
-                                  )
-                                : const Text(
-                                    'Lange gedrückt halten zum Auswählen',
-                                    textAlign: TextAlign.center,
-                                  ),
-                          ],
-                        ),
-                        onTap: () async {
-                          if (shortcutDrink != null) {
-                            shortDrinkPurchase(currentUser!, shortcutDrink!);
-                          }
-                        },
-                        onLongPress: openShortcutSelector),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Schnellwahltaste',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          const Icon(Icons.add, size: 48),
+                          shortcutDrink != null
+                              ? Text(
+                                  '1x ${shortcutDrink!.name} buchen',
+                                  textAlign: TextAlign.center,
+                                )
+                              : const Text(
+                                  'Lange gedrückt halten zum Auswählen',
+                                  textAlign: TextAlign.center,
+                                ),
+                        ],
+                      ),
+                      onTap: () async {
+                        if (shortcutDrink != null) {
+                          shortDrinkPurchase(currentUser!, shortcutDrink!);
+                        }
+                      },
+                      onLongPress: openShortcutSelector,
+                    ),
                   ),
                   Expanded(
                     child: buildCard(
                       child: Column(
                         children: const [
-                          Text(
-                            'Bezahlen',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          SizedBox(
-                            height: 8,
-                          ),
-                          Icon(
-                            FontAwesomeIcons.paypal,
-                            size: 48,
-                          ),
+                          Text('Bezahlen', style: TextStyle(fontSize: 24)),
+                          SizedBox(height: 8),
+                          Icon(FontAwesomeIcons.paypal, size: 48),
                         ],
                       ),
                       onTap: () async {
@@ -385,23 +383,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  openShortcutSelector() async {
+  Future<void> openShortcutSelector() async {
     List<Drink> drinks = (await fetchDrinks())
         .where((element) => element.active && !element.deleted)
         .toList();
-    String? selected =
-        await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
+    String? selected = await GetIt.I<LocalDB>().getSettingByKey(
+      'shortcutDrink',
+    );
     await showDialog(
-        context: context,
-        builder: (context) =>
-            ShortcutSelector(available: drinks, currentlySelectedId: selected));
+      context: context,
+      builder: (context) =>
+          ShortcutSelector(available: drinks, currentlySelectedId: selected),
+    );
     setState(() {});
   }
 
@@ -418,21 +418,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     return null;
   }
 
-  Center processSnapshotError(snapshot) {
+  Center processSnapshotError(AsyncSnapshot snapshot) {
     return Center(
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
           const Icon(Icons.error, size: 150),
           const SizedBox(height: 20),
           SizedBox(
-              width: 250,
-              child: Text(
-                  'Userdaten konnten nicht geladen werden: ${snapshot.error}',
-                  style: const TextStyle(fontSize: 25),
-                  textAlign: TextAlign.center))
-        ]));
+            width: 250,
+            child: Text(
+              'Userdaten konnten nicht geladen werden: ${snapshot.error}',
+              style: const TextStyle(fontSize: 25),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<Purchase?> fetchLastPurchase() async {
@@ -446,9 +450,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       try {
         final response = await backend.get('/purchase?userId=$userId');
         if (response != null && response.isNotEmpty) {
-          purchase = Purchase.fromJson(response
-              .where((e) => (e['deleted'] != null && e['deleted'] == 0))
-              .last);
+          purchase = Purchase.fromJson(
+            response
+                .where((e) => (e['deleted'] != null && e['deleted'] == 0))
+                .last,
+          );
           localStorage.setLastPurchase(purchase);
         }
       } catch (e) {
@@ -464,10 +470,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   Future<int> calculateUnsentPurchasesCost() async {
     int cost = 0;
-    List<Purchase> unsentPurchases =
-        await GetIt.I<LocalDB>().getUnsentPurchases();
+    List<Purchase> unsentPurchases = await GetIt.I<LocalDB>()
+        .getUnsentPurchases();
     for (Purchase unsentPurchase in unsentPurchases.where(
-        (element) => element.userId == GetIt.I<Backend>().loggedInUserId)) {
+      (element) => element.userId == GetIt.I<Backend>().loggedInUserId,
+    )) {
       cost += unsentPurchase.cost * unsentPurchase.amount;
     }
     return cost;
@@ -486,23 +493,25 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   FutureOr<dynamic> shortDrinkPurchase(User user, Drink drink) async {
-    snackMsg.value =
-        (++drinksPending).toString() + ' ' + drink.name + ' gebucht';
+    snackMsg.value = '${++drinksPending} ${drink.name} gebucht';
     restartTimer();
     if (drinksPending == 1) {
       final snackBar = SnackBar(
-          content: SnackContent(snackMsg),
-          duration: Duration(minutes: 5),
-          action: SnackBarAction(
-              label: 'Rückgängig machen',
-              textColor: kColorScheme.onPrimary,
-              onPressed: () {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              }));
-      await ScaffoldMessenger.of(context)
-          .showSnackBar(snackBar)
-          .closed
-          .then((value) async {
+        behavior: SnackBarBehavior.floating,
+        actionOverflowThreshold: 1,
+        content: SnackContent(snackMsg),
+        duration: Duration(minutes: 5),
+        action: SnackBarAction(
+          label: 'Rückgängig machen',
+          textColor: kColorScheme.onPrimary,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      );
+      await ScaffoldMessenger.of(context).showSnackBar(snackBar).closed.then((
+        value,
+      ) async {
         if (value == SnackBarClosedReason.action) {
           drinksPending = 0;
           timer?.cancel();
@@ -520,19 +529,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     if (timer != null && timer!.isActive) {
       timer!.cancel();
     }
-    timer = Timer(
-        const Duration(seconds: 5),
-        () => {
-              ScaffoldMessenger.of(context)
-                  .hideCurrentSnackBar(reason: SnackBarClosedReason.timeout)
-            });
+    timer = Timer(const Duration(seconds: 5), () {
+      ScaffoldMessenger.of(
+        context,
+      ).hideCurrentSnackBar(reason: SnackBarClosedReason.timeout);
+    });
   }
 }
 
 class ShortcutSelector extends StatefulWidget {
-  ShortcutSelector(
-      {Key? key, required this.available, this.currentlySelectedId})
-      : super(key: key);
+  ShortcutSelector({
+    super.key,
+    required this.available,
+    this.currentlySelectedId,
+  });
   List<Drink> available;
   String? currentlySelectedId;
   @override
@@ -542,50 +552,56 @@ class ShortcutSelector extends StatefulWidget {
 class _ShortcutSelectorState extends State<ShortcutSelector> {
   @override
   Widget build(BuildContext context) {
-    return CustomAlertDialog(
+    return customAlertDialog(
       title: Text('Schnellwahltaste'),
-      content: Container(
+      content: SizedBox(
         width: double.maxFinite,
         child: ListView.builder(
           itemCount: widget.available.length,
           itemBuilder: ((context, index) {
             return CheckboxListTile(
-                title: Text(widget.available[index].name),
-                value: widget.available[index].id.toString() ==
-                    widget.currentlySelectedId,
-                onChanged: (_) {
-                  setState(() {
-                    if (widget.available[index].id.toString() ==
-                        widget.currentlySelectedId) {
-                      widget.currentlySelectedId = null;
-                    } else {
-                      widget.currentlySelectedId =
-                          widget.available[index].id.toString();
-                    }
-                  });
+              title: Text(widget.available[index].name),
+              value:
+                  widget.available[index].id.toString() ==
+                  widget.currentlySelectedId,
+              onChanged: (_) {
+                setState(() {
+                  if (widget.available[index].id.toString() ==
+                      widget.currentlySelectedId) {
+                    widget.currentlySelectedId = null;
+                  } else {
+                    widget.currentlySelectedId = widget.available[index].id
+                        .toString();
+                  }
                 });
+              },
+            );
           }),
         ),
       ),
       actions: [
         OutlinedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(Icons.cancel),
-            label: Text('Abbrechen')),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: Icon(Icons.cancel),
+          label: Text('Abbrechen'),
+        ),
         ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              if (widget.currentlySelectedId != null) {
-                GetIt.I<LocalDB>().setSettingByKey(
-                    'shortcutDrink', widget.currentlySelectedId.toString());
-              } else {
-                GetIt.I<LocalDB>().removeSettingByKey('shortcutDrink');
-              }
-            },
-            icon: Icon(Icons.save),
-            label: Text('Speichern')),
+          onPressed: () {
+            Navigator.pop(context);
+            if (widget.currentlySelectedId != null) {
+              GetIt.I<LocalDB>().setSettingByKey(
+                'shortcutDrink',
+                widget.currentlySelectedId.toString(),
+              );
+            } else {
+              GetIt.I<LocalDB>().removeSettingByKey('shortcutDrink');
+            }
+          },
+          icon: Icon(Icons.save),
+          label: Text('Speichern'),
+        ),
       ],
     );
   }
@@ -596,17 +612,18 @@ class WelcomeScreenData {
   Purchase? lastPurchase;
   int unsentPurchasesCost;
   Drink? shortcutDrink;
-  WelcomeScreenData(
-      {required this.user,
-      this.lastPurchase,
-      this.unsentPurchasesCost = 0,
-      this.shortcutDrink});
+  WelcomeScreenData({
+    required this.user,
+    this.lastPurchase,
+    this.unsentPurchasesCost = 0,
+    this.shortcutDrink,
+  });
 }
 
 class SnackContent extends StatelessWidget {
   final ValueNotifier<String> snackMsg;
 
-  SnackContent(this.snackMsg);
+  const SnackContent(this.snackMsg, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -616,10 +633,9 @@ class SnackContent extends StatelessWidget {
     /// We don't use the other builder args for this example so they are
     /// set to _ & __ just for readability.
     return ValueListenableBuilder<String>(
-        valueListenable: snackMsg,
-        builder: (_, msg, __) => Text(
-              msg,
-              style: TextStyle(color: kColorScheme.onPrimary),
-            ));
+      valueListenable: snackMsg,
+      builder: (_, msg, _) =>
+          Text(msg, style: TextStyle(color: kColorScheme.onPrimary)),
+    );
   }
 }

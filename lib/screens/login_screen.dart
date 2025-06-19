@@ -8,7 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -21,21 +21,23 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: kBackgroundColor,
-        resizeToAvoidBottomInset: false,
-        appBar: AppBar(
-          title: const Text('Login'),
-          actions: [
-            IconButton(
-                onPressed: () => displayAboutDialog(context),
-                icon: const Icon(Icons.info))
-          ],
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20),
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+      backgroundColor: kBackgroundColor,
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
+        title: const Text('Login'),
+        actions: [
+          IconButton(
+            onPressed: () => displayAboutDialog(context),
+            icon: const Icon(Icons.info),
+          ),
+        ],
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
               const Hero(
                 tag: 'icon_hero',
                 child: Image(
@@ -48,38 +50,31 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: emailTextController,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                ),
+                decoration: const InputDecoration(labelText: 'Email'),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               TextField(
                 controller: passwordTextController,
                 obscureText: true,
                 textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Passwort',
-                ),
+                decoration: const InputDecoration(labelText: 'Passwort'),
                 onSubmitted: (c) => login(),
               ),
-              const SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RegistrationScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text('Registrieren')),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RegistrationScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Registrieren'),
+                  ),
                   ElevatedButton(
                     onPressed: login,
                     child: currentlyLoggingIn
@@ -87,14 +82,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 25,
                             width: 25,
                             child: CircularProgressIndicator(
-                                color: Colors.blue.shade800))
+                              color: Colors.blue.shade800,
+                            ),
+                          )
                         : const Text('Anmelden'),
                   ),
                 ],
-              )
-            ]),
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   void login() async {
@@ -103,25 +102,28 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         currentlyLoggingIn = true;
       });
-      if (await GetIt.instance<Backend>()
-          .login(emailTextController.text, passwordTextController.text)) {
+      if (await GetIt.instance<Backend>().login(
+        emailTextController.text,
+        passwordTextController.text,
+      )) {
         await GetIt.instance<Backend>().refreshData();
         if (GetIt.instance<Backend>().loggedInUser!.role != 'none') {
           Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-              (route) => false);
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+            (route) => false,
+          );
         } else {
-          Navigator.push(context,
-              MaterialPageRoute(builder: ((context) => NotVerifiedScreen())));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: ((context) => NotVerifiedScreen())),
+          );
         }
         setState(() {
           currentlyLoggingIn = false;
         });
       } else {
-        const snackBar = SnackBar(
-          content: Text('Login fehlgeschlagen!'),
-        );
+        const snackBar = SnackBar(content: Text('Login fehlgeschlagen!'));
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
         setState(() {
           currentlyLoggingIn = false;

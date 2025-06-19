@@ -12,8 +12,8 @@ import '../shared/custom_card.dart';
 import '../shared/custom_drawer.dart';
 
 class InventoryDrinkScreen extends StatefulWidget {
-  InventoryDrinkScreen({Key? key, required this.drink}) : super(key: key);
-  Drink drink;
+  const InventoryDrinkScreen({super.key, required this.drink});
+  final Drink drink;
 
   @override
   State<InventoryDrinkScreen> createState() => _InventoryDrinkScreenState();
@@ -29,7 +29,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(appBarTitle: "Bestand " + widget.drink.name),
+      appBar: CustomAppBar(appBarTitle: "Bestand ${widget.drink.name}"),
       drawer: CustomDrawer(),
       body: FutureBuilder(
         builder: (context, AsyncSnapshot<dynamic> snapshot) {
@@ -39,53 +39,55 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
               Inventory? inventory;
               inventory = Inventory.fromJson(element);
 
-              inventoryCards.add(buildCard(
+              inventoryCards.add(
+                buildCard(
                   child: Row(
-                children: [
-                  Icon(Icons.date_range),
-                  SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        DateFormat('dd.MM.yyyy, HH:mm')
-                            .format(inventory.date.toLocal()),
-                        style: TextStyle(fontSize: 20),
+                      Icon(Icons.date_range),
+                      SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            DateFormat(
+                              'dd.MM.yyyy, HH:mm',
+                            ).format(inventory.date.toLocal()),
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          Text(
+                            "Soll-Bestand: ${inventory.amountCalculated} Fl.",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            "Ist-Bestand: ${inventory.amountActual} Fl.",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                "Differenz: ",
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              Text(
+                                "${inventory.amountActual - inventory.amountCalculated} Fl.",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color:
+                                      (inventory.amountActual -
+                                              inventory.amountCalculated) <
+                                          0
+                                      ? Colors.red
+                                      : Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      Text(
-                        "Soll-Bestand: " +
-                            inventory.amountCalculated.toString() +
-                            ' Fl.',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      Text(
-                        "Ist-Bestand: " +
-                            inventory.amountActual.toString() +
-                            ' Fl.',
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      Row(children: [
-                        Text(
-                          "Differenz: ",
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        Text(
-                            (inventory.amountActual -
-                                        inventory.amountCalculated)
-                                    .toString() +
-                                ' Fl.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: (inventory.amountActual -
-                                          inventory.amountCalculated) < 0
-                                  ? Colors.red
-                                  : Colors.green,
-                            ))
-                      ])
                     ],
-                  )
-                ],
-              )));
+                  ),
+                ),
+              );
             });
             return Column(
               children: [
@@ -96,9 +98,11 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
                     decoration: InputDecoration(
                       hintText: 'Suche',
                       suffixIcon: IconButton(
-                        icon: Icon(_searchTextController.text.isEmpty
-                            ? Icons.person_search
-                            : Icons.delete),
+                        icon: Icon(
+                          _searchTextController.text.isEmpty
+                              ? Icons.person_search
+                              : Icons.delete,
+                        ),
                         onPressed: () {
                           setState(() {
                             _searchTextController.clear();
@@ -117,12 +121,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ...inventoryCards,
-                        SizedBox(
-                          height: 20,
-                        )
-                      ],
+                      children: [...inventoryCards, SizedBox(height: 20)],
                     ),
                   ),
                 ),
@@ -131,27 +130,31 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
           } else {
             if (snapshot.hasError) {
               return Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
                     Icon(Icons.search_off, size: 150),
                     SizedBox(height: 20),
                     SizedBox(
-                        width: 250,
-                        child: Text('Keine Bestände gefunden...',
-                            style: TextStyle(fontSize: 25),
-                            textAlign: TextAlign.center))
-                  ]));
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
+                      width: 250,
+                      child: Text(
+                        'Keine Bestände gefunden...',
+                        style: TextStyle(fontSize: 25),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
               );
+            } else {
+              return Center(child: CircularProgressIndicator());
             }
           }
         },
-        future: GetIt.instance<Backend>()
-            .get('/inventory?drinkId=' + widget.drink.id.toString()),
+        future: GetIt.instance<Backend>().get(
+          '/inventory?drinkId=${widget.drink.id}',
+        ),
       ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),

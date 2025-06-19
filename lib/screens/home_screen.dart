@@ -10,7 +10,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: WelcomeScreen(),
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
+        foregroundColor: Colors.white,
         backgroundColor: kSecondaryColor,
         onPressed: () async {
           await Navigator.push(

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends AppBar {
-  CustomAppBar({Key? key, required this.appBarTitle, this.onIconPress})
-      : super(key: key);
+  CustomAppBar({super.key, required this.appBarTitle, this.onIconPress});
 
-  String appBarTitle;
-  Function? onIconPress;
+  final String appBarTitle;
+  final Function? onIconPress;
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();

@@ -1,12 +1,11 @@
 import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/screens/offline-screen.dart';
+import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
 
 import '../model/drink.dart';
@@ -16,7 +15,7 @@ import '../shared/custom_card.dart';
 import '../shared/custom_drawer.dart';
 
 class DrinkAdministrationScreen extends StatefulWidget {
-  const DrinkAdministrationScreen({Key? key}) : super(key: key);
+  const DrinkAdministrationScreen({super.key});
 
   @override
   State<DrinkAdministrationScreen> createState() =>
@@ -35,102 +34,113 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
     return Scaffold(
       appBar: CustomAppBar(appBarTitle: "Getränkeverwaltung"),
       drawer: CustomDrawer(),
-      body: OfflineCheck(builder: (context) {
-        return FutureBuilder(
-          builder: (context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.hasData) {
-              List<Widget> drinkCards = [];
-              snapshot.data!.forEach((element) {
-                Drink? drink;
-                drink = Drink.fromJson(element);
+      body: OfflineCheck(
+        builder: (context) {
+          return FutureBuilder(
+            builder: (context, AsyncSnapshot<dynamic> snapshot) {
+              if (snapshot.hasData) {
+                List<Widget> drinkCards = [];
+                snapshot.data!.forEach((element) {
+                  Drink? drink;
+                  drink = Drink.fromJson(element);
 
-                if (_searchTextController.text.isEmpty ||
-                    drink.name
-                        .toLowerCase()
-                        .contains(_searchTextController.text.toLowerCase())) {
-                  drinkCards.add(buildDrinkCard(
-                      drink: drink,
-                      onTap: () {
-                        showCustomModalSheet(drink!);
-                      }));
-                }
-              });
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _searchTextController,
-                      decoration: InputDecoration(
-                        hintText: 'Suche',
-                        suffixIcon: IconButton(
-                          icon: Icon(_searchTextController.text.isEmpty
-                              ? Icons.search
-                              : Icons.delete),
-                          onPressed: () {
-                            setState(() {
-                              _searchTextController.clear();
-                            });
-                            FocusManager.instance.primaryFocus?.unfocus();
-                          },
-                        ),
+                  if (_searchTextController.text.isEmpty ||
+                      drink.name.toLowerCase().contains(
+                        _searchTextController.text.toLowerCase(),
+                      )) {
+                    drinkCards.add(
+                      buildDrinkCard(
+                        drink: drink,
+                        onTap: () {
+                          showCustomModalSheet(drink!);
+                        },
                       ),
-                      onChanged: (query) {
-                        setState(() {});
-                      },
+                    );
+                  }
+                });
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        controller: _searchTextController,
+                        decoration: InputDecoration(
+                          hintText: 'Suche',
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _searchTextController.text.isEmpty
+                                  ? Icons.search
+                                  : Icons.delete,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _searchTextController.clear();
+                              });
+                              FocusManager.instance.primaryFocus?.unfocus();
+                            },
+                          ),
+                        ),
+                        onChanged: (query) {
+                          setState(() {});
+                        },
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          ...drinkCards,
-                          IconButton(
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            ...drinkCards,
+                            IconButton(
                               icon: const Icon(
-                                  Icons.add_circle_outline_outlined,
-                                  size: 40),
+                                Icons.add_circle_outline_outlined,
+                                size: 40,
+                              ),
                               onPressed: () {
                                 createNewDrink();
-                              }),
-                          const SizedBox(
-                            height: 30,
-                          )
-                        ],
+                              },
+                            ),
+                            const SizedBox(height: 30),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            } else {
-              if (snapshot.hasError) {
-                return Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: const [
-                      Icon(Icons.search_off, size: 150),
-                      SizedBox(height: 20),
-                      SizedBox(
-                          width: 250,
-                          child: Text('Keine Getränke gefunden...',
-                              style: TextStyle(fontSize: 25),
-                              textAlign: TextAlign.center))
-                    ]));
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
+                  ],
                 );
+              } else {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.search_off, size: 150),
+                        SizedBox(height: 20),
+                        SizedBox(
+                          width: 250,
+                          child: Text(
+                            'Keine Getränke gefunden...',
+                            style: TextStyle(fontSize: 25),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
               }
-            }
-          },
-          future: GetIt.instance<Backend>().get('/drink'),
-        );
-      }),
+            },
+            future: GetIt.instance<Backend>().get('/drink'),
+          );
+        },
+      ),
       backgroundColor: kBackgroundColor,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
+        foregroundColor: Colors.white,
         backgroundColor: kSecondaryColor,
         onPressed: () {
           Navigator.pop(context);
@@ -143,7 +153,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
     );
   }
 
-  Widget buildDrinkCard({required drink, required Function onTap}) {
+  Widget buildDrinkCard({required Drink drink, required Function onTap}) {
     final child = Row(
       children: [
         Icon(drink.active ? Icons.water_drop : Icons.close),
@@ -152,193 +162,215 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(drink.name, style: TextStyle(fontSize: 20)),
               Text(
-                drink.name,
-                style: TextStyle(fontSize: 20),
-              ),
-              Text(
-                "Preis: " +
-                    (drink.cost / 100).toStringAsFixed(2).replaceAll('.', ',') +
-                    " €",
+                "Preis: ${(drink.cost / 100).toStringAsFixed(2).replaceAll('.', ',')} €",
                 style: TextStyle(fontSize: 14),
               ),
             ],
           ),
-        )
+        ),
       ],
     );
     return buildCard(child: child, onTap: onTap);
   }
 
-  Widget buildSettingCard(
-      {required IconData icon, required String name, required Function onTap}) {
+  Widget buildSettingCard({
+    required IconData icon,
+    required String name,
+    required Function onTap,
+  }) {
     final child = Row(
       mainAxisSize: MainAxisSize.max,
       children: [
         Icon(icon, size: 40),
         Padding(
-            padding: const EdgeInsets.only(left: 20.0),
-            child: Text(name,
-                style: TextStyle(fontSize: 20), textAlign: TextAlign.center))
+          padding: const EdgeInsets.only(left: 20.0),
+          child: Text(
+            name,
+            style: TextStyle(fontSize: 20),
+            textAlign: TextAlign.center,
+          ),
+        ),
       ],
     );
     return buildCard(child: child, onTap: onTap);
   }
 
-  showCustomModalSheet(Drink drink) {
+  void showCustomModalSheet(Drink drink) {
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: kBackgroundColor,
       context: context,
-      builder: (context) => Wrap(children: [
-        Center(
-          child: Padding(
+      builder: (context) => Wrap(
+        children: [
+          Center(
+            child: Padding(
               padding: const EdgeInsets.only(top: 10.0),
-              child: Text(drink.name, style: TextStyle(fontSize: 30))),
-        ),
-        const Padding(
+              child: Text(drink.name, style: TextStyle(fontSize: 30)),
+            ),
+          ),
+          const Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2)),
-        buildSettingCard(
-          icon: Icons.euro,
-          name: 'Preis ändern',
-          onTap: () {
-            changePrice(drink);
-            setState(() {});
-          },
-        ),
-        buildSettingCard(
-          icon: Icons.text_snippet,
-          name: 'Name ändern',
-          onTap: () {
-            changeName(drink);
-            setState(() {});
-          },
-        ),
-        buildSettingCard(
-          icon: drink.active ? Icons.close : Icons.check,
-          name: drink.active ? 'Getränk deaktivieren' : 'Getränk aktivieren',
-          onTap: () {
-            changeStatus(drink);
-            setState(() {});
-          },
-        ),
-        SizedBox(height: 15),
-      ]),
+            child: Divider(thickness: 2),
+          ),
+          buildSettingCard(
+            icon: Icons.euro,
+            name: 'Preis ändern',
+            onTap: () {
+              changePrice(drink);
+              setState(() {});
+            },
+          ),
+          buildSettingCard(
+            icon: Icons.text_snippet,
+            name: 'Name ändern',
+            onTap: () {
+              changeName(drink);
+              setState(() {});
+            },
+          ),
+          buildSettingCard(
+            icon: drink.active ? Icons.close : Icons.check,
+            name: drink.active ? 'Getränk deaktivieren' : 'Getränk aktivieren',
+            onTap: () {
+              changeStatus(drink);
+              setState(() {});
+            },
+          ),
+          SizedBox(height: 15),
+        ],
+      ),
     );
   }
 
   Future<void> changePrice(Drink drink) async {
     final MoneyMaskedTextController moneyMaskedTextController =
-    MoneyMaskedTextController(
-        initialValue: drink.cost.toDouble() / 100, decimalSeparator: ',', thousandSeparator: '.', rightSymbol: '€');
+        MoneyMaskedTextController(
+          initialValue: drink.cost.toDouble() / 100,
+          decimalSeparator: ',',
+          thousandSeparator: '.',
+          rightSymbol: '€',
+        );
     await showDialog(
-        context: context,
-        builder: (context) {
-          return CustomAlertDialog(
-            title: Text('Preis ändern',
-                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Neuer Preis:", style: TextStyle(fontSize: 20)),
-                SizedBox(
-                    width: 100,
-                    child: TextField(
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.right,
-                      controller: moneyMaskedTextController,
-                      keyboardType: TextInputType.numberWithOptions(
-                          signed: false, decimal: true),
-                    )
-                )
-              ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () async {
-                  try {
-                    if (moneyMaskedTextController.numberValue > 0) {
-                      final body = {
-                        'cost': moneyMaskedTextController.numberValue * 100
-                      };
-                      await GetIt.I<Backend>()
-                          .put('/drink/${drink.id}', jsonEncode(body));
-                    }
-                  } finally {
-                    setState(() {});
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                    return;
-                  }
-                },
+      context: context,
+      builder: (context) {
+        return customAlertDialog(
+          title: Text(
+            'Preis ändern',
+            style: TextStyle(fontSize: 25),
+            textAlign: TextAlign.center,
+          ),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Neuer Preis:", style: TextStyle(fontSize: 20)),
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.right,
+                  controller: moneyMaskedTextController,
+                  keyboardType: TextInputType.numberWithOptions(
+                    signed: false,
+                    decimal: true,
+                  ),
+                ),
               ),
             ],
-          );
-        });
+          ),
+          actions: <Widget>[
+            OutlinedButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.pop(context);
+                return;
+              },
+            ),
+            ElevatedButton(
+              child: Text('Bestätigen'),
+              onPressed: () async {
+                try {
+                  if (moneyMaskedTextController.numberValue > 0) {
+                    final body = {
+                      'cost': moneyMaskedTextController.numberValue * 100,
+                    };
+                    await GetIt.I<Backend>().put(
+                      '/drink/${drink.id}',
+                      jsonEncode(body),
+                    );
+                  }
+                } finally {
+                  setState(() {});
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                }
+                return;
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> changeName(Drink drink) async {
-    TextEditingController _TextEditingController =
-    new TextEditingController();
+    TextEditingController textEditingController = TextEditingController();
     await showDialog(
-        context: context,
-        builder: (context) {
-          return CustomAlertDialog(
-            title: Text('Name ändern',
-                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
-            content: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Neuer Name:", style: TextStyle(fontSize: 20)),
-                SizedBox(
-                    width: 100,
-                    child: TextField(
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.right,
-                      controller: _TextEditingController,
-                      keyboardType: TextInputType.text,
-                    ))
-              ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
-              ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () async {
-                  try {
-                    if (_TextEditingController.text.length > 2) {
-                      final body = {
-                        'name': _TextEditingController.text
-                      };
-                      await GetIt.I<Backend>()
-                          .put('/drink/${drink.id}', jsonEncode(body));
-                    }
-                    setState(() {});
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  } catch (e) {
-                    return;
-                  }
-                },
+      context: context,
+      builder: (context) {
+        return customAlertDialog(
+          title: Text(
+            'Name ändern',
+            style: TextStyle(fontSize: 25),
+            textAlign: TextAlign.center,
+          ),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Neuer Name:", style: TextStyle(fontSize: 20)),
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  style: TextStyle(fontSize: 20),
+                  textAlign: TextAlign.right,
+                  controller: textEditingController,
+                  keyboardType: TextInputType.text,
+                ),
               ),
             ],
-          );
-        });
+          ),
+          actions: <Widget>[
+            OutlinedButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.pop(context);
+                return;
+              },
+            ),
+            ElevatedButton(
+              child: Text('Bestätigen'),
+              onPressed: () async {
+                try {
+                  if (textEditingController.text.length > 2) {
+                    final body = {'name': textEditingController.text};
+                    await GetIt.I<Backend>().put(
+                      '/drink/${drink.id}',
+                      jsonEncode(body),
+                    );
+                  }
+                  setState(() {});
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                } catch (e) {
+                  return;
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> changeStatus(Drink drink) async {
@@ -352,85 +384,97 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
   }
 
   Future<void> createNewDrink() async {
-    TextEditingController _TextEditingController = new TextEditingController();
-    MoneyMaskedTextController _MoneyMaskedTextController =
-        new MoneyMaskedTextController(
-            initialValue: 0, decimalSeparator: ',', thousandSeparator: '.', rightSymbol: '€');
+    TextEditingController textEditingController = TextEditingController();
+    MoneyMaskedTextController moneyMaskedTextController =
+        MoneyMaskedTextController(
+          initialValue: 0,
+          decimalSeparator: ',',
+          thousandSeparator: '.',
+          rightSymbol: '€',
+        );
 
     await showDialog(
-        context: context,
-        builder: (context) {
-          return CustomAlertDialog(
-            title: Text('Getränk hinzufügen',
-                style: TextStyle(fontSize: 25), textAlign: TextAlign.center),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Name:", style: TextStyle(fontSize: 20)),
-                    SizedBox(
-                        width: 100,
-                        child: TextField(
-                          autofocus: true,
-                          style: TextStyle(fontSize: 20),
-                          textAlign: TextAlign.right,
-                          controller: _TextEditingController,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                        ))
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text("Preis:", style: TextStyle(fontSize: 20)),
-                    SizedBox(
-                        width: 100,
-                        child: TextField(
-                          style: TextStyle(fontSize: 20),
-                          textAlign: TextAlign.right,
-                          controller: _MoneyMaskedTextController,
-                          keyboardType: TextInputType.numberWithOptions(
-                              signed: false, decimal: true),
-                          textInputAction: TextInputAction.done,
-                        ))
-                  ],
-                )
-              ],
-            ),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('Abbrechen'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  return;
-                },
+      context: context,
+      builder: (context) {
+        return customAlertDialog(
+          title: Text(
+            'Getränk hinzufügen',
+            style: TextStyle(fontSize: 25),
+            textAlign: TextAlign.center,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Name:", style: TextStyle(fontSize: 20)),
+                  SizedBox(
+                    width: 100,
+                    child: TextField(
+                      autofocus: true,
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.right,
+                      controller: textEditingController,
+                      keyboardType: TextInputType.name,
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                ],
               ),
-              ElevatedButton(
-                child: Text('Bestätigen'),
-                onPressed: () async {
-                  try {
-                    if ((_MoneyMaskedTextController.numberValue > 0) &&
-                        (_TextEditingController.text.isNotEmpty)) {
-                      final body = {
-                        'name': _TextEditingController.text,
-                        'cost': _MoneyMaskedTextController.numberValue * 100
-                      };
-                      await GetIt.I<Backend>().post('/drink', jsonEncode(body));
-                      setState(() {});
-                      Navigator.pop(context);
-                    }
-                  } catch (e) {
-                    setState(() {});
-                    Navigator.pop(context);
-                    return;
-                  }
-                },
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Preis:", style: TextStyle(fontSize: 20)),
+                  SizedBox(
+                    width: 100,
+                    child: TextField(
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.right,
+                      controller: moneyMaskedTextController,
+                      keyboardType: TextInputType.numberWithOptions(
+                        signed: false,
+                        decimal: true,
+                      ),
+                      textInputAction: TextInputAction.done,
+                    ),
+                  ),
+                ],
               ),
             ],
-          );
-        });
+          ),
+          actions: <Widget>[
+            OutlinedButton(
+              child: Text('Abbrechen'),
+              onPressed: () {
+                Navigator.pop(context);
+                return;
+              },
+            ),
+            ElevatedButton(
+              child: Text('Bestätigen'),
+              onPressed: () async {
+                try {
+                  if ((moneyMaskedTextController.numberValue > 0) &&
+                      (textEditingController.text.isNotEmpty)) {
+                    final body = {
+                      'name': textEditingController.text,
+                      'cost': moneyMaskedTextController.numberValue * 100,
+                    };
+                    await GetIt.I<Backend>().post('/drink', jsonEncode(body));
+                    setState(() {});
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  setState(() {});
+                  Navigator.pop(context);
+                  return;
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

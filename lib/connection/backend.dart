@@ -39,7 +39,8 @@ class Backend {
   String apiurl = newApiUrl;
   static bool refreshingToken = false;
   bool isTokenValid = true;
-  get isOnlineMode => isInitialized && isOnline && isLoggedIn && isTokenValid;
+  bool get isOnlineMode =>
+      isInitialized && isOnline && isLoggedIn && isTokenValid;
 
   Future<void> init() async {
     await setApiUrl();
@@ -50,8 +51,8 @@ class Backend {
       loggedInUserId = await localStorage!.getLoggedInUserId();
       isLoggedIn = loggedInUserId != null;
       if (isLoggedIn) {
-        Map<String, dynamic>? loginInformation =
-            await localStorage!.getLoginInformation();
+        Map<String, dynamic>? loginInformation = await localStorage!
+            .getLoginInformation();
         if (loginInformation != null) {
           loggedInUser = loginInformation['user'];
           token = loginInformation['token'];
@@ -60,7 +61,7 @@ class Backend {
           if (!isTokenValid) isTokenValid = await autoRefreshToken();
           headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token'
+            'Authorization': 'Bearer $token',
           };
           await refreshData();
         }
@@ -87,7 +88,7 @@ class Backend {
         apiurl = newApiUrl;
       }
     }*/
-    developer.log('API-Url set to: ' + apiurl);
+    developer.log('API-Url set to: $apiurl');
   }
 
   Future<dynamic> get(String uri) async {
@@ -95,7 +96,7 @@ class Backend {
       final response = await http
           .get(Uri.parse('$apiurl/api$uri'), headers: await getHeader())
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(response.statusCode.toString() + '  GET  ' + uri);
+      developer.log('${response.statusCode}  GET  $uri');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -114,8 +115,7 @@ class Backend {
       final response = await http
           .post(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer
-          .log(response.statusCode.toString() + '  POST  ' + uri + '  ' + body);
+      developer.log('${response.statusCode}  POST  $uri  $body');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -134,8 +134,7 @@ class Backend {
       final response = await http
           .patch(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(
-          response.statusCode.toString() + '  PATCH  ' + uri + '  ' + body);
+      developer.log('${response.statusCode}  PATCH  $uri  $body');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -154,8 +153,7 @@ class Backend {
       final response = await http
           .put(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer
-          .log(response.statusCode.toString() + '  PUT  ' + uri + '  ' + body);
+      developer.log('${response.statusCode}  PUT  $uri  $body');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -174,11 +172,7 @@ class Backend {
       final response = await http
           .delete(url, headers: await getHeader(), body: body)
           .timeout(const Duration(seconds: timeoutDuration));
-      developer.log(response.statusCode.toString() +
-          '  DELETE  ' +
-          uri +
-          '  ' +
-          (body ?? ''));
+      developer.log('${response.statusCode}  DELETE  $uri  ${body ?? ''}');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -200,10 +194,14 @@ class Backend {
     } else {
       try {
         final response = await http
-            .post(Uri.parse('$apiurl/auth/login'),
-                headers: <String, String>{'Content-Type': 'application/json'},
-                body: jsonEncode(
-                    <String, String>{'email': email, 'password': password}))
+            .post(
+              Uri.parse('$apiurl/auth/login'),
+              headers: <String, String>{'Content-Type': 'application/json'},
+              body: jsonEncode(<String, String>{
+                'email': email,
+                'password': password,
+              }),
+            )
             .timeout(const Duration(seconds: 10));
         developer.log(response.statusCode.toString());
         developer.log(response.body);
@@ -219,12 +217,16 @@ class Backend {
             if (response.headers.containsKey("set-cookie")) {
               final cookie = response.headers["set-cookie"]!
                   .split(";")
-                  .firstWhere((element) => element.contains("jwt="),
-                      orElse: () => "");
+                  .firstWhere(
+                    (element) => element.contains("jwt="),
+                    orElse: () => "",
+                  );
               final refreshToken = cookie != "" ? cookie.split("=")[1] : null;
               if (refreshToken != null) {
-                await localStorage!
-                    .setSettingByKey("refreshToken", refreshToken);
+                await localStorage!.setSettingByKey(
+                  "refreshToken",
+                  refreshToken,
+                );
               }
             }
             await init();
@@ -246,13 +248,15 @@ class Backend {
     if (!isInitialized) {
       return false;
     } else {
-      final response = await http.post(Uri.parse('$apiurl/auth/register'),
-          headers: <String, String>{'Content-Type': 'application/json'},
-          body: jsonEncode(<String, String>{
-            'email': email,
-            'password': password,
-            'name': name
-          }));
+      final response = await http.post(
+        Uri.parse('$apiurl/auth/register'),
+        headers: <String, String>{'Content-Type': 'application/json'},
+        body: jsonEncode(<String, String>{
+          'email': email,
+          'password': password,
+          'name': name,
+        }),
+      );
       developer.log(response.statusCode.toString());
       developer.log(response.body);
       if (response.statusCode == 201) {
@@ -306,14 +310,16 @@ class Backend {
           .get(Uri.parse('$apiurl/api/test'))
           .timeout(const Duration(seconds: 5));
       developer.log(
-          'Checking Connection to API at $apiurl. Status: ${response.statusCode}');
+        'Checking Connection to API at $apiurl. Status: ${response.statusCode}',
+      );
       if (response.statusCode == 200) {
         isOnline = true;
         if (isLoggedIn) isTokenValid = await checkTokenValidity();
         return isOnlineMode;
       } else {
         developer.log(
-            'No Connection to API at $apiurl. Code: ${response.statusCode}');
+          'No Connection to API at $apiurl. Code: ${response.statusCode}',
+        );
         isOnline = false;
         return false;
       }
@@ -327,10 +333,11 @@ class Backend {
   Future<bool> sendLocalPurchasesToServer() async {
     bool purchasesSent = false;
     if (isOnline) {
-      List<Purchase> unsentPurchases =
-          await GetIt.instance<LocalDB>().getUnsentPurchases();
-      for (var element
-          in unsentPurchases.where((element) => element.amount > 0)) {
+      List<Purchase> unsentPurchases = await GetIt.instance<LocalDB>()
+          .getUnsentPurchases();
+      for (var element in unsentPurchases.where(
+        (element) => element.amount > 0,
+      )) {
         final body = {
           "uuid": element.userId,
           "userBookedId": element.userBookedId,
@@ -346,11 +353,13 @@ class Backend {
           await Future.delayed(const Duration(milliseconds: 500));
           developer.log('Successfully sent offline purchase to server');
         } catch (error) {
-          developer.log('Error while sending offline purchase to server: ' +
-              error.toString());
+          developer.log(
+            'Error while sending offline purchase to server: $error',
+          );
           if (error.toString() == 'Exception: HTTP 403') {
             developer.log(
-                'HTTP 403 Forbidden error while sending offline purchase. Deleting the purchase now.');
+              'HTTP 403 Forbidden error while sending offline purchase. Deleting the purchase now.',
+            );
             developer.log('Purchase to be deleted: ${element.toJson()}');
             await GetIt.instance<LocalDB>().removeUnsentPurchase(element);
           }
@@ -365,7 +374,7 @@ class Backend {
     isTokenValid = await checkTokenValidity();
     headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token'
+      'Authorization': 'Bearer $token',
     };
     return headers;
   }
@@ -402,25 +411,31 @@ class Backend {
             DateTime.now().millisecondsSinceEpoch &&
         loggedInUser != null) {
       try {
-        final response = await http.post(Uri.parse('$apiurl/auth/refresh'),
-            headers: <String, String>{
-              'Content-Type': 'application/json',
-              'Cookie': 'jwt=$refreshToken'
-            },
-            body: jsonEncode(<String, String>{'email': loggedInUser!.email}));
-        developer.log(response.statusCode.toString() + '  /auth/refresh');
+        final response = await http.post(
+          Uri.parse('$apiurl/auth/refresh'),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Cookie': 'jwt=$refreshToken',
+          },
+          body: jsonEncode(<String, String>{'email': loggedInUser!.email}),
+        );
+        developer.log('${response.statusCode}  /auth/refresh');
         if (response.statusCode == 200) {
           token = json.decode(response.body)['token'];
           if (loggedInUser != null && token != null) {
             if (response.headers.containsKey("set-cookie")) {
               final cookie = response.headers["set-cookie"]!
                   .split(";")
-                  .firstWhere((element) => element.contains("jwt="),
-                      orElse: () => "");
+                  .firstWhere(
+                    (element) => element.contains("jwt="),
+                    orElse: () => "",
+                  );
               final refreshToken = cookie != "" ? cookie.split("=")[1] : null;
               if (refreshToken != null) {
-                await localStorage!
-                    .setSettingByKey("refreshToken", refreshToken);
+                await localStorage!.setSettingByKey(
+                  "refreshToken",
+                  refreshToken,
+                );
                 developer.log('RefreshToken has been refreshed');
               }
             }
@@ -445,34 +460,38 @@ class Backend {
   }
 
   Future<String?> _showDialog(String email) async {
-    TextEditingController _textFieldController = TextEditingController();
+    TextEditingController textFieldController = TextEditingController();
     String? userInput;
     bool isRefreshingToken = false;
-    String? _errorText;
+    String? errorText;
     await showDialog(
-        barrierDismissible: true,
-        context: navigatorKey.currentContext!,
-        builder: (context) {
-          return StatefulBuilder(builder: (context, setState) {
-            return CustomAlertDialog(
+      barrierDismissible: true,
+      context: navigatorKey.currentContext!,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return customAlertDialog(
               title: const Text('Passwort eingeben'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                      "Account muss neu validiert werden. Bitte Passwort erneut eingeben."),
+                    "Account muss neu validiert werden. Bitte Passwort erneut eingeben.",
+                  ),
                   const SizedBox(height: 10),
                   TextField(
-                    controller: _textFieldController,
+                    controller: textFieldController,
                     decoration: InputDecoration(
-                        hintText: "Passwort", errorText: _errorText),
+                      hintText: "Passwort",
+                      errorText: errorText,
+                    ),
                     obscureText: true,
-                    onChanged: (_text) {
+                    onChanged: (text) {
                       setState(() {
-                        _errorText = null;
+                        errorText = null;
                       });
                     },
-                  )
+                  ),
                 ],
               ),
               actions: <Widget>[
@@ -492,15 +511,17 @@ class Backend {
                           height: 25,
                           width: 25,
                           child: CircularProgressIndicator(
-                              color: Colors.blue.shade800))
+                            color: Colors.blue.shade800,
+                          ),
+                        )
                       : const Text('Bestätigen'),
                   onPressed: () async {
-                    if (_textFieldController.text.isNotEmpty &&
+                    if (textFieldController.text.isNotEmpty &&
                         !isRefreshingToken) {
                       setState(() {
                         isRefreshingToken = true;
                       });
-                      if (await login(email, _textFieldController.text)) {
+                      if (await login(email, textFieldController.text)) {
                         setState(() {
                           isRefreshingToken = false;
                         });
@@ -509,13 +530,13 @@ class Backend {
                       } else {
                         setState(() {
                           isRefreshingToken = false;
-                          _errorText = 'Passwort falsch!';
+                          errorText = 'Passwort falsch!';
                         });
                       }
                     } else {
                       if (!isRefreshingToken) {
                         setState(() {
-                          _errorText = 'Passwort falsch!';
+                          errorText = 'Passwort falsch!';
                         });
                       }
                     }
@@ -523,8 +544,10 @@ class Backend {
                 ),
               ],
             );
-          });
-        });
+          },
+        );
+      },
+    );
     return userInput;
   }
 }
