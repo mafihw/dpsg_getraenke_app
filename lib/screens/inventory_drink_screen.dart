@@ -1,6 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/inventory.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -41,6 +40,7 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
 
               inventoryCards.add(
                 buildCard(
+                  context: context,
                   child: Row(
                     children: [
                       Icon(Icons.date_range),
@@ -156,10 +156,11 @@ class _InventoryDrinkScreenState extends State<InventoryDrinkScreen> {
           '/inventory?drinkId=${widget.drink.id}',
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },

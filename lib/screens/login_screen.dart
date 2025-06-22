@@ -2,7 +2,6 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
 import 'package:dpsg_app/shared/about_dialog.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'home_screen.dart';
@@ -21,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Login'),
@@ -73,16 +72,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: const Text('Registrieren'),
+                    child: Text('Registrieren'),
                   ),
-                  ElevatedButton(
+                  OutlinedButton.icon(
+                    icon: currentlyLoggingIn ? null : Icon(Icons.login),
                     onPressed: login,
-                    child: currentlyLoggingIn
+                    label: currentlyLoggingIn
                         ? SizedBox(
                             height: 25,
-                            width: 25,
-                            child: CircularProgressIndicator(
-                              color: Colors.blue.shade800,
+                            width: 82,
+                            child: Center(
+                              child: SizedBox(
+                                height: 25,
+                                width: 25,
+                                child: CircularProgressIndicator(
+                                  color: Colors.blue.shade800,
+                                ),
+                              ),
                             ),
                           )
                         : const Text('Anmelden'),
@@ -123,7 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
           currentlyLoggingIn = false;
         });
       } else {
-        const snackBar = SnackBar(content: Text('Login fehlgeschlagen!'));
+        SnackBar snackBar = SnackBar(
+          content: Text(
+            'Login fehlgeschlagen!',
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          ),
+        );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
         setState(() {
           currentlyLoggingIn = false;

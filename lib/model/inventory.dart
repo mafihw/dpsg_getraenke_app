@@ -7,15 +7,15 @@ class Inventory {
   DateTime date;
   String? drinkName;
 
-  Inventory(
-      {required this.id,
-      required this.drinkId,
-      required this.userCreatedId,
-      required this.amountActual,
-      required this.amountCalculated,
-      required this.date,
-      this.drinkName
-      });
+  Inventory({
+    required this.id,
+    required this.drinkId,
+    required this.userCreatedId,
+    required this.amountActual,
+    required this.amountCalculated,
+    required this.date,
+    this.drinkName,
+  });
 
   factory Inventory.fromJson(Map<String, dynamic> data) {
     final id = data['id'] as int;
@@ -26,13 +26,14 @@ class Inventory {
     final date = DateTime.parse(data['date']);
     final drinkName = data['drinkName'];
     return Inventory(
-        id: id,
-        drinkId: drinkId,
-        userCreatedId: userCreatedId,
-        amountActual: amountActual,
-        amountCalculated: amountCalculated,
-        date: date,
-        drinkName: drinkName);
+      id: id,
+      drinkId: drinkId,
+      userCreatedId: userCreatedId,
+      amountActual: amountActual,
+      amountCalculated: amountCalculated,
+      date: date,
+      drinkName: drinkName,
+    );
   }
 
   Map toJson() => {
@@ -42,6 +43,6 @@ class Inventory {
     'amountActual': amountActual,
     'amountCalculated': amountCalculated,
     'date': date.toString(),
-    'drinkName': drinkName
+    'drinkName': drinkName,
   };
 }

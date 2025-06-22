@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/connection/database.dart';
@@ -22,27 +23,52 @@ void main() async {
   await GetIt.I<LocalDB>().init();
   await GetIt.I<Backend>().init();
   await GetIt.I<PermissionSystem>().init();
-  runApp(const MyApp());
+  ColorScheme colorScheme = await GetIt.I<LocalDB>().getColorScheme();
+  runApp(MyApp(colorScheme: colorScheme));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final ColorScheme colorScheme;
+  const MyApp({super.key, required this.colorScheme});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return const MyHomePage();
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription? _settingsSubsciption;
+  ColorScheme? colorScheme;
+
+  @override
+  void initState() {
+    colorScheme = widget.colorScheme;
+    _settingsSubsciption = GetIt.I<LocalDB>().settingsStream.stream.listen((
+      event,
+    ) {
+      if (event.containsKey('colorScheme')) {
+        setState(() {
+          colorScheme = kColorSchemes
+              .firstWhere(
+                (item) => item.name == event['colorScheme'],
+                orElse: () => kColorSchemes.first,
+              )
+              .colorScheme;
+        });
+      }
+    });
+    if (GetIt.I<Backend>().isLoggedIn &&
+        GetIt.I<Backend>().loggedInUser == null) {
+      GetIt.I<Backend>().logout();
+    }
+    super.initState();
   }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  dispose() {
+    _settingsSubsciption?.cancel();
+    super.dispose();
+  }
 
-class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     Widget screen;
@@ -54,18 +80,73 @@ class _MyHomePageState extends State<MyHomePage> {
         screen = NotVerifiedScreen();
       }
     } else {
-      GetIt.I<Backend>().logout();
       screen = LoginScreen();
     }
     return MaterialApp(
       home: screen,
       navigatorKey: navigatorKey, // Setting a global key for navigator
       theme: ThemeData(
-        colorScheme: kColorScheme,
-        snackBarTheme: snackBarTheme,
-        dialogTheme: const DialogThemeData(backgroundColor: kBackgroundColor),
+        colorScheme: colorScheme!,
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: colorScheme!.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        dialogTheme: DialogThemeData(
+          backgroundColor: colorScheme!.primaryContainer,
+        ),
         checkboxTheme: CheckboxThemeData(
-          fillColor: WidgetStateProperty.all(kPrimaryColor),
+          fillColor: WidgetStateProperty.all(colorScheme!.primary),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            elevation: 2,
+            side: BorderSide(style: BorderStyle.none),
+            foregroundColor: colorScheme!.onPrimary,
+            backgroundColor: colorScheme!.primary,
+            disabledBackgroundColor: colorScheme!.primary.withValues(
+              alpha: 0.22,
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          fillColor: colorScheme!.primaryContainer,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme!.onSurface.withAlpha(80),
+              width: 1,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: colorScheme!.onSurface, width: 1),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme!.onSurface.withAlpha(80),
+              width: 1,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme!.onSurface.withAlpha(80),
+              width: 1,
+            ),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: colorScheme!.onSecondary,
+            backgroundColor: colorScheme!.secondary,
+            disabledBackgroundColor: colorScheme!.primary.withValues(
+              alpha: 0.22,
+            ),
+          ),
         ),
       ),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

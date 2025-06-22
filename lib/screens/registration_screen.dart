@@ -1,6 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'home_screen.dart';
@@ -33,13 +32,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _passwordValid = true;
   bool _passwordCheckValid = true;
 
-  var validBorder = const OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.white, width: 1.0),
-  );
-
-  var invalidBorder = const OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.red, width: 1.0),
-  );
+  InputBorder? getInvalidBorder(BuildContext context) =>
+      Theme.of(context).inputDecorationTheme.focusedBorder?.copyWith(
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.error,
+          width: 1.0,
+        ),
+      );
 
   bool currentlyLoggingIn = false;
 
@@ -78,7 +77,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(title: const Text('Registrierung')),
       body: Center(
@@ -104,8 +103,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 focusNode: nameFocusNode,
                 decoration: InputDecoration(
                   labelText: 'Name',
-                  focusedBorder: _nameValid ? validBorder : invalidBorder,
-                  enabledBorder: _nameValid ? validBorder : invalidBorder,
+                  focusedBorder: _nameValid ? null : getInvalidBorder(context),
+                  enabledBorder: _nameValid ? null : getInvalidBorder(context),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -121,8 +120,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 focusNode: emailFocusNode,
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  focusedBorder: _mailValid ? validBorder : invalidBorder,
-                  enabledBorder: _mailValid ? validBorder : invalidBorder,
+                  focusedBorder: _mailValid ? null : getInvalidBorder(context),
+                  enabledBorder: _mailValid ? null : getInvalidBorder(context),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -138,8 +137,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 focusNode: passwordFocusNode,
                 decoration: InputDecoration(
                   labelText: 'Passwort',
-                  focusedBorder: _passwordValid ? validBorder : invalidBorder,
-                  enabledBorder: _passwordValid ? validBorder : invalidBorder,
+                  focusedBorder: _passwordValid
+                      ? null
+                      : getInvalidBorder(context),
+                  enabledBorder: _passwordValid
+                      ? null
+                      : getInvalidBorder(context),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -156,11 +159,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 decoration: InputDecoration(
                   labelText: 'Passwort wiederholen',
                   focusedBorder: _passwordCheckValid
-                      ? validBorder
-                      : invalidBorder,
+                      ? null
+                      : getInvalidBorder(context),
                   enabledBorder: _passwordCheckValid
-                      ? validBorder
-                      : invalidBorder,
+                      ? null
+                      : getInvalidBorder(context),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -183,7 +186,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     },
                     child: const Text('Zurück'),
                   ),
-                  ElevatedButton(
+                  OutlinedButton(
                     onPressed: validation() ? registration : null,
                     child: currentlyLoggingIn
                         ? SizedBox(
@@ -234,8 +237,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           currentlyLoggingIn = false;
         });
       } else {
-        const snackBar = SnackBar(
-          content: Text('Registrierung fehlgeschlagen!'),
+        SnackBar snackBar = SnackBar(
+          content: Text(
+            'Registrierung fehlgeschlagen!',
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          ),
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
         setState(() {

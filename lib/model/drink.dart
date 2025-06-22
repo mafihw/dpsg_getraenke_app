@@ -10,12 +10,13 @@ class Drink {
   bool active;
   bool deleted;
 
-  Drink(
-      {required this.id,
-      required this.name,
-      required this.cost,
-      required this.active,
-      required this.deleted});
+  Drink({
+    required this.id,
+    required this.name,
+    required this.cost,
+    required this.active,
+    required this.deleted,
+  });
 
   factory Drink.fromJson(Map<String, dynamic> data) {
     final id = data['id'];
@@ -24,7 +25,12 @@ class Drink {
     final active = int.parse(data['active'].toString()) > 0;
     final deleted = int.parse(data['deleted'].toString()) > 0;
     return Drink(
-        id: id, name: name, cost: cost, active: active, deleted: deleted);
+      id: id,
+      name: name,
+      cost: cost,
+      active: active,
+      deleted: deleted,
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -64,8 +70,9 @@ Future<List<Drink>> fetchDrinks() async {
 }
 
 Future<void> _checkShortcutDrink(List<Drink> drinks) async {
-  String? shortcutDrinkId =
-      await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
+  String? shortcutDrinkId = await GetIt.I<LocalDB>().getSettingByKey(
+    'shortcutDrink',
+  );
   if (shortcutDrinkId != null) {
     Drink? shortcutDrink;
     try {

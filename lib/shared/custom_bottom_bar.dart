@@ -1,4 +1,3 @@
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomBottomBar extends StatelessWidget {
@@ -7,7 +6,7 @@ class CustomBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomAppBar(
       elevation: 5,
-      color: kMainColor,
+      color: Theme.of(context).colorScheme.surface,
       child: SizedBox(
         height: 60,
         child: Row(

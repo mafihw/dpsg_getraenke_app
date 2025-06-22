@@ -1,13 +1,13 @@
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 
 AlertDialog customAlertDialog({
   required Widget? title,
   required Widget? content,
   required actions,
+  required backgroundColor,
 }) {
   return AlertDialog(
-    backgroundColor: kBackgroundColor,
+    backgroundColor: backgroundColor,
     title: title,
     content: content,
     actions: actions,
@@ -51,7 +51,12 @@ class _CustomStatefulAlertDialogState extends State<CustomStatefulAlertDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return customAlertDialog(title: title, content: content, actions: actions);
+    return customAlertDialog(
+      title: title,
+      content: content,
+      actions: actions,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+    );
   }
 }
 

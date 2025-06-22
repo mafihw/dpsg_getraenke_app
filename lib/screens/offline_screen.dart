@@ -1,5 +1,4 @@
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
@@ -57,9 +56,19 @@ class _OfflineWarningState extends State<OfflineWarning>
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off, color: kPrimaryColor, size: 72),
-          const Center(
-            child: Text('Offline-Modus', textScaler: TextScaler.linear(1.5)),
+          Icon(
+            Icons.cloud_off,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+            size: 72,
+          ),
+          Center(
+            child: Text(
+              'Offline-Modus',
+              textScaler: TextScaler.linear(1.5),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
+            ),
           ),
           const SizedBox(height: 20),
           OutlinedButton.icon(
@@ -87,11 +96,14 @@ class _OfflineWarningState extends State<OfflineWarning>
           ),
           const SizedBox(height: 20),
           AnimatedOpacity(
-            opacity: refreshCounter > 5 ? 1 : 0,
+            opacity: refreshCounter > 3 ? 1 : 0,
             duration: const Duration(seconds: 2),
-            child: const Text(
+            child: Text(
               'Wenn du eine Verbindung hast, aber die App trotzdem nicht funktioniert, melde dich bitte bei den Verantwortlichen!',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
           ),
         ],

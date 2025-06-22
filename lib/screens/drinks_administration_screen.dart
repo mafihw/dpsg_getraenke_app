@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
@@ -137,11 +136,11 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           );
         },
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -172,7 +171,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
         ),
       ],
     );
-    return buildCard(child: child, onTap: onTap);
+    return buildCard(child: child, context: context, onTap: onTap);
   }
 
   Widget buildSettingCard({
@@ -194,25 +193,34 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
         ),
       ],
     );
-    return buildCard(child: child, onTap: onTap);
+    return buildCard(child: child, context: context, onTap: onTap);
   }
 
   void showCustomModalSheet(Drink drink) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
       builder: (context) => Wrap(
         children: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(top: 10.0),
-              child: Text(drink.name, style: TextStyle(fontSize: 30)),
+              child: Text(
+                drink.name,
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2),
+            child: Divider(
+              thickness: 2,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           buildSettingCard(
             icon: Icons.euro,
@@ -256,6 +264,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       context: context,
       builder: (context) {
         return customAlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Text(
             'Preis ändern',
             style: TextStyle(fontSize: 25),
@@ -320,6 +329,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       context: context,
       builder: (context) {
         return customAlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Text(
             'Name ändern',
             style: TextStyle(fontSize: 25),
@@ -397,6 +407,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       context: context,
       builder: (context) {
         return customAlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Text(
             'Getränk hinzufügen',
             style: TextStyle(fontSize: 25),

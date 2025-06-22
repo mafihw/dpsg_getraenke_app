@@ -7,7 +7,6 @@ import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
@@ -85,6 +84,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
 
                 userCards.add(
                   buildCard(
+                    context: context,
                     child: Row(
                       children: [
                         Icon(
@@ -164,7 +164,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          color: kColorScheme.surface,
+                          color: Theme.of(context).colorScheme.surface,
                           onSelected: (SortModes item) {
                             setState(() {
                               sortMode = item.name;
@@ -224,12 +224,12 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
           future: GetIt.instance<Backend>().get('/user'),
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: selectedUser == null
           ? FloatingActionButton.extended(
-              foregroundColor: Colors.white,
-              backgroundColor: kSecondaryColor,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -261,25 +261,34 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
         ),
       ],
     );
-    return buildCard(child: child, onTap: onTap);
+    return buildCard(context: context, child: child, onTap: onTap);
   }
 
   void showCustomModalSheet(User user) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
       builder: (context) => Wrap(
         children: [
           Center(
             child: Padding(
               padding: const EdgeInsets.only(top: 10.0),
-              child: Text(user.name, style: TextStyle(fontSize: 30)),
+              child: Text(
+                user.name,
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              ),
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2),
+            child: Divider(
+              thickness: 2,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           if (GetIt.I<PermissionSystem>().userHasPermission(
             Permission.canPayForOthers,
@@ -362,6 +371,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       context: context,
       builder: (context) {
         return customAlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Text(
             'Geld buchen',
             style: TextStyle(fontSize: 25),
@@ -404,15 +414,25 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                   try {
                     await GetIt.I<Backend>().post('/payment', jsonEncode(body));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Zahlung wurde gespeichert!'),
+                      SnackBar(
+                        content: Text(
+                          'Zahlung wurde gespeichert!',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
                       ),
                     );
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fehler beim Speichern der Zahlung!'),
-                        backgroundColor: kWarningColor,
+                      SnackBar(
+                        content: Text(
+                          'Fehler beim Speichern der Zahlung!',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                        backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                     );
                   }

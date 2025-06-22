@@ -4,7 +4,6 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/drink_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
@@ -119,22 +118,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
                     ],
                   ),
                 ),
+                OutlinedButton.icon(
+                  icon: Icon(Icons.person_add_alt),
+                  onPressed: () => addFriendPopup(),
+                  label: const Text('Freund*in hinzufügen'),
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ...friendCards,
-                        IconButton(
-                          icon: const Icon(Icons.person_add_alt, size: 40),
-                          onPressed: () async {
-                            await addFriendPopup();
-                            performRebuild();
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                      children: [...friendCards],
                     ),
                   ),
                 ),
@@ -167,12 +161,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
         },
         future: fetchFriends(),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: selectedUser == null
           ? FloatingActionButton.extended(
-              foregroundColor: Colors.white,
-              backgroundColor: kSecondaryColor,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
               onPressed: () {
                 Navigator.pop(context);
               },
@@ -190,7 +184,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: Theme.of(context).colorScheme.surface,
         child: InkWell(
           onTap: () => onTap(),
           customBorder: RoundedRectangleBorder(
@@ -211,7 +205,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: Theme.of(context).colorScheme.surface,
         child: InkWell(
           onTap: () => onTap(),
           customBorder: RoundedRectangleBorder(
@@ -242,7 +236,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Future<void> showCustomModalSheet(Friend friend) async {
     await showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
       builder: (context) => Wrap(
         children: [
@@ -251,13 +245,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
                 friend.userName,
-                style: const TextStyle(fontSize: 30),
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2),
+            child: Divider(
+              thickness: 2,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           buildSettingCard(
             icon: FontAwesomeIcons.wineBottle,
@@ -285,7 +285,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       'Möchtest du ${friend.userName} aus deiner Freundesliste entfernen?',
                     ),
                     actions: [
-                      ElevatedButton.icon(
+                      OutlinedButton.icon(
                         onPressed: () => Navigator.pop(context),
                         icon: const Icon(Icons.cancel),
                         label: const Text('Nein'),
@@ -304,8 +304,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Dafür brauchst du eine Internetverbindung'),
+                  SnackBar(
+                    content: Text(
+                      'Dafür brauchst du eine Internetverbindung',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
                   ),
                 );
               }
@@ -339,8 +344,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const TabBar(
-                  indicatorColor: kPrimaryColor,
+                TabBar(
+                  indicatorColor: Theme.of(context).colorScheme.primary,
                   tabs: [
                     Tab(text: 'Mein QR-Code'),
                     Tab(text: 'QR-Code scannen'),
@@ -365,8 +370,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             ),
                           ),
                           version: QrVersions.auto,
-                          backgroundColor: kPrimaryColor,
-                          foregroundColor: kMainColor,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.surface,
                           size: 200,
                         ),
                       ),
@@ -402,6 +411,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ],
       ),
     );
+    setState(() {});
   }
 
   Future<void> friendConfirmationPopup(String name, String uuid) async {
@@ -437,7 +447,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           "Hier hast du die Möglichkeit, andere Personen als Freunde hinzuzufügen. Die Personen die du hinzufügst können dann über ihr Smartphone Getränke für dich buchen und du für sie. Um jemanden zu deiner Freundesliste hinzuzufügen, scanne einfach den QR-Code der Person.\nDie Codes sind aus Sicherheitsgründen 5 Minuten gültig.",
         ),
         actions: [
-          ElevatedButton.icon(
+          OutlinedButton.icon(
             onPressed: () => Navigator.pop(c),
             icon: const Icon(Icons.check),
             label: const Text('Alles klar!'),
@@ -457,11 +467,21 @@ class _FriendsScreenState extends State<FriendsScreen> {
       if (friends.where((element) => element.uuid == uuid).isNotEmpty) {
         developer.log('Friend is already added!');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Du bist bereits mit $name befreundet...')),
+          SnackBar(
+            content: Text(
+              'Du bist bereits mit $name befreundet...',
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
+          ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Hinzufügen von $name')),
+          SnackBar(
+            content: Text(
+              'Fehler beim Hinzufügen von $name',
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
+          ),
         );
       }
     }
@@ -473,7 +493,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
       await GetIt.I<Backend>().delete('/friend', jsonEncode(body));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Fehler beim Entfernen von $name')),
+        SnackBar(
+          content: Text(
+            'Fehler beim Entfernen von $name',
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+          ),
+        ),
       );
       developer.log('Error while removing friend: $e');
     }

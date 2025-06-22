@@ -7,7 +7,6 @@ import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -113,11 +112,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
           }
         }
       }.call(),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -136,7 +135,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
+          child: OutlinedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
                 context: context,
@@ -166,7 +165,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
+          child: OutlinedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
                 context: context,
@@ -224,8 +223,11 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     for (var purchase in purchases) {
       purchasesCards.add(
         buildCard(
+          context: context,
           background: purchase.deleted
-              ? Colors.grey[600]!.withValues(alpha: 0.4)
+              ? HSLColor.fromColor(
+                  Theme.of(context).colorScheme.surface,
+                ).withLightness(0.9).withAlpha(0.7).toColor()
               : null,
           child: Row(
             children: [
@@ -289,7 +291,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   void showCustomModalSheet(Purchase purchase) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
       builder: (context) => Wrap(
         children: [
@@ -298,13 +300,19 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
                 '${purchase.amount}x ${purchase.drinkName} für ${(purchase.cost * purchase.amount / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
-                style: const TextStyle(fontSize: 30),
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2),
+            child: Divider(
+              thickness: 2,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           !purchase.deleted
               ? buildSettingCard(
@@ -372,7 +380,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         ),
       ],
     );
-    return buildCard(child: child, onTap: onTap);
+    return buildCard(context: context, child: child, onTap: onTap);
   }
 
   Widget _buildOnlinePurchases(dynamic input) {
@@ -410,31 +418,37 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kPrimaryColor,
+        color: Theme.of(context).colorScheme.primary,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(
-                    Icons.sync_problem_rounded,
-                    color: kWarningColor,
+                    Icons.cloud_off_outlined,
+                    color: Theme.of(context).colorScheme.error,
                     size: 32,
                   ),
                   Padding(
                     padding: EdgeInsets.only(left: 12),
                     child: Text(
                       'Offline-Käufe',
-                      style: TextStyle(color: Colors.black, fontSize: 18),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const Text(
+              Text(
                 'Die hier aufgelisteten Käufe sind vorgemerkt und werden erst übernommen, wenn du die App mit einer aktiven Internetverbindung öffnest.',
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),

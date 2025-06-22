@@ -11,18 +11,19 @@ class Purchase {
   String? userName;
   bool deleted;
 
-  Purchase(
-      {required this.id,
-      required this.drinkId,
-      required this.userId,
-      required this.userBookedId,
-      required this.userBookedName,
-      required this.amount,
-      required this.cost,
-      required this.date,
-      required this.deleted,
-      this.drinkName,
-      this.userName});
+  Purchase({
+    required this.id,
+    required this.drinkId,
+    required this.userId,
+    required this.userBookedId,
+    required this.userBookedName,
+    required this.amount,
+    required this.cost,
+    required this.date,
+    required this.deleted,
+    this.drinkName,
+    this.userName,
+  });
 
   factory Purchase.fromJson(Map<String, dynamic> data) {
     final id = data['id'] as int;
@@ -38,30 +39,31 @@ class Purchase {
     final drinkName = data['drinkName'];
     final userName = data['userName'];
     return Purchase(
-        id: id,
-        drinkId: drinkId,
-        userId: userId,
-        userBookedId: userBookedId,
-        userBookedName: userBookedName,
-        amount: amount,
-        cost: cost,
-        date: date,
-        deleted: deleted,
-        drinkName: drinkName,
-        userName: userName);
+      id: id,
+      drinkId: drinkId,
+      userId: userId,
+      userBookedId: userBookedId,
+      userBookedName: userBookedName,
+      amount: amount,
+      cost: cost,
+      date: date,
+      deleted: deleted,
+      drinkName: drinkName,
+      userName: userName,
+    );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'drinkId': drinkId,
-        'userId': userId,
-        'userBookedId': userBookedId,
-        'userBookedName': userBookedName,
-        'amount': amount,
-        'cost': cost,
-        'date': date.toString(),
-        'deleted': deleted ? 1 : 0,
-        'drinkName': drinkName,
-        'userName': userName
-      };
+    'id': id,
+    'drinkId': drinkId,
+    'userId': userId,
+    'userBookedId': userBookedId,
+    'userBookedName': userBookedName,
+    'amount': amount,
+    'cost': cost,
+    'date': date.toString(),
+    'deleted': deleted ? 1 : 0,
+    'drinkName': drinkName,
+    'userName': userName,
+  };
 }

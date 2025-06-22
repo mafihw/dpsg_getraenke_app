@@ -6,7 +6,6 @@ import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/purchase.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
@@ -60,7 +59,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                       );
                       setState(() {});
                     },
-                    color: kMainColor,
+                    color: Theme.of(context).colorScheme.surface,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -128,11 +127,11 @@ class _DrinkScreenState extends State<DrinkScreen> {
           }
         },
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -144,14 +143,14 @@ class _DrinkScreenState extends State<DrinkScreen> {
   }
 
   Widget buildFriendCard(String uuid, List<Friend> friends) {
-    friends;
+    bool bookingForSelf = userId == GetIt.I<Backend>().loggedInUserId;
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: (userId == GetIt.I<Backend>().loggedInUserId)
-            ? kPrimaryColor
-            : kSecondaryColor,
+        color: (bookingForSelf)
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.secondary,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(
@@ -159,19 +158,39 @@ class _DrinkScreenState extends State<DrinkScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(Icons.people, color: Colors.black, size: 32),
-                  const Padding(
+                  Icon(
+                    Icons.people,
+                    color: bookingForSelf
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSecondary,
+                    size: 32,
+                  ),
+                  Padding(
                     padding: EdgeInsets.only(left: 12),
                     child: Text(
                       'Du buchst für:',
-                      style: TextStyle(color: Colors.black, fontSize: 18),
+                      style: TextStyle(
+                        color: bookingForSelf
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSecondary,
+                        fontSize: 18,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 20),
                   DropdownButton<String>(
-                    iconEnabledColor: Colors.black,
-                    style: const TextStyle(color: Colors.black, fontSize: 18),
-                    dropdownColor: kPrimaryColor,
+                    iconEnabledColor: bookingForSelf
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSecondary,
+                    style: TextStyle(
+                      color: bookingForSelf
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context).colorScheme.onSecondary,
+                      fontSize: 18,
+                    ),
+                    dropdownColor: bookingForSelf
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.secondary,
                     items: List.generate(
                       friends.length,
                       (index) => DropdownMenuItem(
@@ -206,7 +225,7 @@ class BuyDialog extends StatelessWidget {
     final TextEditingController controller = TextEditingController();
     controller.text = "1";
     return Dialog(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
@@ -310,6 +329,9 @@ class BuyDialog extends StatelessWidget {
                       SnackBar(
                         content: Text(
                           'Du hast ${amountSelected}x ${drink.name} ${userName != null ? 'für $userName ' : ''}gebucht.',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
                         ),
                       ),
                     );

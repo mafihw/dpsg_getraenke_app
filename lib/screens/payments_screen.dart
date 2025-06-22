@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -69,11 +68,11 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           future: getPayments(widget.userId),
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -101,6 +100,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       for (var payment in payments) {
         paymentsCards.add(
           buildCard(
+            context: context,
             child: Row(
               children: [
                 const Icon(Icons.euro),
@@ -172,7 +172,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
+          child: OutlinedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
                 context: context,
@@ -202,7 +202,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
+          child: OutlinedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
                 context: context,

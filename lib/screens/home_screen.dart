@@ -1,7 +1,6 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/welcome_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
@@ -25,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       appBar: CustomAppBar(
         appBarTitle: 'DPSG Gladbach Getränke',
         onIconPress: _update,
@@ -34,8 +33,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: WelcomeScreen(),
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () async {
           await Navigator.push(
             context,

@@ -13,14 +13,15 @@ class User {
   int? weight;
   String? gender;
 
-  User(
-      {required this.id,
-      required this.role,
-      required this.email,
-      required this.name,
-      required this.balance,
-      this.weight,
-      this.gender});
+  User({
+    required this.id,
+    required this.role,
+    required this.email,
+    required this.name,
+    required this.balance,
+    this.weight,
+    this.gender,
+  });
 
   factory User.fromJson(Map<String, dynamic> data) {
     final id = data['id'] as String;
@@ -31,13 +32,14 @@ class User {
     final weight = int.tryParse(data['weight'].toString());
     final gender = data['gender'];
     return User(
-        id: id,
-        role: role,
-        email: email,
-        name: name,
-        balance: balance,
-        weight: weight,
-        gender: gender);
+      id: id,
+      role: role,
+      email: email,
+      name: name,
+      balance: balance,
+      weight: weight,
+      gender: gender,
+    );
   }
 }
 

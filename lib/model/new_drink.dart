@@ -6,13 +6,14 @@ class NewDrink {
   String userCreatedId;
   String drinkName;
 
-  NewDrink(
-      {required this.id,
-      required this.drinkId,
-      required this.amount,
-      required this.date,
-      required this.userCreatedId,
-      required this.drinkName});
+  NewDrink({
+    required this.id,
+    required this.drinkId,
+    required this.amount,
+    required this.date,
+    required this.userCreatedId,
+    required this.drinkName,
+  });
 
   factory NewDrink.fromJson(Map<String, dynamic> data) {
     final id = data['id'];
@@ -22,11 +23,12 @@ class NewDrink {
     final userCreatedId = data['userCreatedId'] as String;
     final drinkName = data['drinkName'] as String;
     return NewDrink(
-        id: id,
-        drinkId: drinkId,
-        amount: amount,
-        date: date,
-        userCreatedId: userCreatedId,
-        drinkName: drinkName);
+      id: id,
+      drinkId: drinkId,
+      amount: amount,
+      date: date,
+      userCreatedId: userCreatedId,
+      drinkName: drinkName,
+    );
   }
 }

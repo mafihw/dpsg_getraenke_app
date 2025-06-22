@@ -10,7 +10,6 @@ import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/about_dialog.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
@@ -39,12 +38,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
       // Add a ListView to the drawer. This ensures the user can scroll
       // through the options in the drawer if there isn't enough vertical
       // space to fit everything.
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: kMainColor),
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+            ),
             child: Image(image: AssetImage('assets/icon_500px.png')),
           ),
           NotificationListener<OverscrollIndicatorNotification>(
@@ -79,7 +80,6 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Übersicht'),
         onTap: () {
           Navigator.pop(context);
-
           Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
           if (updateHomeScreen != null) updateHomeScreen!();
         },
@@ -89,13 +89,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Kürzliche Buchungen'),
         onTap: () async {
           Navigator.pop(context);
+          Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
           final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
-          Navigator.pushAndRemoveUntil(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => PurchasesScreen(userId: userId),
             ),
-            (Route<dynamic> route) => route.isFirst,
           );
           if (updateHomeScreen != null) updateHomeScreen!();
         },
@@ -105,13 +105,13 @@ class _CustomDrawerState extends State<CustomDrawer> {
         title: const Text('Zahlungen'),
         onTap: () async {
           Navigator.pop(context);
+          Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
           final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
-          Navigator.pushAndRemoveUntil(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => PaymentsScreen(userId: userId),
             ),
-            (Route<dynamic> route) => route.isFirst,
           );
           if (updateHomeScreen != null) updateHomeScreen!();
         },
@@ -120,26 +120,26 @@ class _CustomDrawerState extends State<CustomDrawer> {
         leading: Icon(Icons.fingerprint),
         title: const Text('Profil'),
         onTap: () async {
-          await Navigator.pushAndRemoveUntil(
+          Navigator.pop(context);
+          Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
+          await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MyProfileScreen()),
-            (Route<dynamic> route) => route.isFirst,
           );
           if (updateHomeScreen != null) updateHomeScreen!();
-          Navigator.pop(context);
         },
       ),
       ListTile(
         leading: const Icon(Icons.people),
         title: const Text('Freundschaften'),
         onTap: () async {
-          await Navigator.pushAndRemoveUntil(
+          Navigator.pop(context);
+          Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
+          await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const FriendsScreen()),
-            (Route<dynamic> route) => route.isFirst,
           );
           if (updateHomeScreen != null) updateHomeScreen!();
-          Navigator.pop(context);
         },
       ),
       /*ListTile(
@@ -195,12 +195,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 title: const Text('Nutzer'),
                 onTap: () async {
                   Navigator.pop(context);
-                  await Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => UserAdministrationScreen(),
                     ),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },
@@ -213,12 +216,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 title: const Text('Getränke'),
                 onTap: () async {
                   Navigator.pop(context);
-                  await Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => DrinkAdministrationScreen(),
                     ),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },
@@ -237,14 +243,17 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ListTile(
                 leading: Icon(Icons.bar_chart),
                 title: const Text('Allgemein'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => GeneralStatisticsScreen(),
                     ),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },
@@ -257,12 +266,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
                 title: const Text('Bestand'),
                 onTap: () async {
                   Navigator.pop(context);
-                  await Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => DrinkStatisticsScreen(),
                     ),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },
@@ -273,12 +285,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ListTile(
                 leading: Icon(Icons.history),
                 title: const Text('Buchungen'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => PurchasesScreen()),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },
@@ -289,12 +304,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ListTile(
                 leading: Icon(Icons.add_home_outlined),
                 title: const Text('Einkäufe'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => NewDrinksScreen()),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },
@@ -305,12 +323,15 @@ class _CustomDrawerState extends State<CustomDrawer> {
               ListTile(
                 leading: Icon(Icons.payments),
                 title: const Text('Zahlungen'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.popUntil(
+                    context,
+                    (Route<dynamic> route) => route.isFirst,
+                  );
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => PaymentsScreen()),
-                    (Route<dynamic> route) => route.isFirst,
                   );
                   if (updateHomeScreen != null) updateHomeScreen!();
                 },

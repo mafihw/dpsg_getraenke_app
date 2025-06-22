@@ -7,6 +7,8 @@ import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
+import 'package:dpsg_app/shared/colors.dart';
+import 'package:flutter/material.dart' show ColorScheme;
 import 'package:get_it/get_it.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -17,6 +19,9 @@ class LocalDB {
   String? get _loggedInUserId {
     return GetIt.I<Backend>().loggedInUserId;
   }
+
+  final StreamController<Map<String, String>> settingsStream =
+      StreamController<Map<String, String>>();
 
   Future<bool> init() async {
     try {
@@ -322,6 +327,7 @@ class LocalDB {
         entry,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+      settingsStream.add({key: value});
       return true;
     } else {
       return false;
@@ -378,5 +384,23 @@ class LocalDB {
     } else {
       return [];
     }
+  }
+
+  Future<ColorScheme> getColorScheme() async {
+    String? colorSchemeName = await getSettingByKey('colorScheme');
+    if (colorSchemeName != null) {
+      return kColorSchemes
+          .firstWhere(
+            (item) => item.name == colorSchemeName,
+            orElse: () => kColorSchemes.first,
+          )
+          .colorScheme;
+    } else {
+      return kColorSchemes.first.colorScheme;
+    }
+  }
+
+  Future<void> setColorScheme(String name) async {
+    await GetIt.I<LocalDB>().setSettingByKey('colorScheme', name);
   }
 }

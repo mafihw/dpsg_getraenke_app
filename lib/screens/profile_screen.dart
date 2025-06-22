@@ -1,11 +1,12 @@
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/connection/database.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
-import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_app_bar.dart';
 import 'package:dpsg_app/shared/custom_bottom_bar.dart';
+import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -61,13 +62,21 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   final _passwordCheckController = TextEditingController();
   String oldPassword = '';
 
-  var validBorder = const UnderlineInputBorder(
-    borderSide: BorderSide(color: Colors.white, width: 1.0),
-  );
+  UnderlineInputBorder getValidBorder(BuildContext context) =>
+      UnderlineInputBorder(
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.onSurface,
+          width: 1.0,
+        ),
+      );
 
-  var invalidBorder = const UnderlineInputBorder(
-    borderSide: BorderSide(color: Colors.red, width: 1.0),
-  );
+  UnderlineInputBorder getInvalidBorder(BuildContext context) =>
+      UnderlineInputBorder(
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.error,
+          width: 1.0,
+        ),
+      );
 
   bool _nameValid = true;
   bool _mailValid = true;
@@ -118,17 +127,20 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isOnlineMode =
+        GetIt.instance<Backend>().isOnlineMode &&
+        GetIt.instance<Backend>().isTokenValid;
     _allValid = validation();
     return Scaffold(
-      appBar: CustomAppBar(appBarTitle: "Nutzerverwaltung"),
+      appBar: CustomAppBar(appBarTitle: "Nutzereinstellungen"),
       drawer: const CustomDrawer(),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: MediaQuery.of(context).viewInsets.bottom == 0
           ? FloatingActionButton.extended(
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
               backgroundColor: _allValid || !editMode
-                  ? kSecondaryColor
+                  ? Theme.of(context).colorScheme.secondary
                   : Colors.grey,
               disabledElevation: 0,
               onPressed: _allValid && editMode
@@ -185,186 +197,292 @@ class UserProfileScreenState extends State<UserProfileScreen> {
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: OfflineCheck(
-          builder: ((context) => SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Profil', style: TextStyle(fontSize: 24)),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          if (editMode) {
-                            restoreDefaults();
-                          } else {
-                            editMode = true;
-                          }
-                        });
-                      },
-                      icon: Icon(editMode ? Icons.cancel_outlined : Icons.edit),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    TextField(
-                      autofocus: true,
-                      controller: _nameController,
-                      decoration: InputDecoration(
-                        helperText: 'Name',
-                        focusedBorder: _nameValid ? validBorder : invalidBorder,
-                        enabledBorder: _nameValid ? validBorder : invalidBorder,
+        padding: const EdgeInsets.all(0.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              buildCard(
+                context: context,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Profil', style: TextStyle(fontSize: 24)),
+                          isOnlineMode
+                              ? IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      if (editMode) {
+                                        restoreDefaults();
+                                      } else {
+                                        editMode = true;
+                                      }
+                                    });
+                                  },
+                                  icon: Icon(
+                                    editMode
+                                        ? Icons.cancel_outlined
+                                        : Icons.edit,
+                                  ),
+                                )
+                              : Container(),
+                        ],
                       ),
-                      textInputAction: TextInputAction.next,
-                      readOnly: !editMode,
-                      onChanged: (value) {
-                        setState(() {
-                          validation();
-                        });
-                      },
-                    ),
-                    TextField(
-                      controller: _mailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        helperText: 'Email',
-                        focusedBorder: _mailValid ? validBorder : invalidBorder,
-                        enabledBorder: _mailValid ? validBorder : invalidBorder,
-                      ),
-                      textInputAction: TextInputAction.next,
-                      readOnly: !editMode,
-                      onChanged: (value) {
-                        setState(() {
-                          validation();
-                        });
-                      },
-                    ),
-                    TextField(
-                      obscureText: true,
-                      controller: _passwordController,
-                      decoration: InputDecoration(
-                        helperText: 'Passwort',
-                        hintText: 'Unverändert',
-                        hintStyle: const TextStyle(fontSize: 10),
-                        focusedBorder: _passwordValid
-                            ? validBorder
-                            : invalidBorder,
-                        enabledBorder: _passwordValid
-                            ? validBorder
-                            : invalidBorder,
-                      ),
-                      textInputAction: TextInputAction.next,
-                      readOnly: !editMode,
-                      onChanged: (value) {
-                        setState(() {
-                          validation();
-                        });
-                      },
-                      onSubmitted: (value) {
-                        if (value.isNotEmpty) {
-                          FocusScope.of(context).nextFocus();
-                        }
-                      },
-                    ),
-                    Focus(
-                      child: Visibility(
-                        visible:
-                            _passwordController.text.isNotEmpty && editMode,
-                        child: TextField(
-                          obscureText: true,
-                          controller: _passwordCheckController,
-                          decoration: InputDecoration(
-                            helperText: 'Neues Passwort bestätigen',
-                            focusedBorder: _passwordCheckValid
-                                ? validBorder
-                                : invalidBorder,
-                            enabledBorder: _passwordCheckValid
-                                ? validBorder
-                                : invalidBorder,
+                      Column(
+                        children: [
+                          TextField(
+                            autofocus: true,
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              helperText: 'Name',
+                              focusedBorder: _nameValid
+                                  ? getValidBorder(context)
+                                  : getInvalidBorder(context),
+                              enabledBorder: _nameValid
+                                  ? getValidBorder(context)
+                                  : getInvalidBorder(context),
+                            ),
+                            textInputAction: TextInputAction.next,
+                            readOnly: !editMode,
+                            onChanged: (value) {
+                              setState(() {
+                                validation();
+                              });
+                            },
                           ),
-                          textInputAction: TextInputAction.done,
-                          readOnly: !editMode,
-                          onChanged: (value) {
-                            setState(() {
-                              validation();
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Rolle'),
-                        DropdownButton(
-                          value: userRole,
-                          dropdownColor: kMainColor,
-                          alignment: AlignmentDirectional.topStart,
-                          items: <DropdownMenuItem<String>>[
-                            DropdownMenuItem(
-                              value: 'admin',
-                              child: Text('Admin'),
+                          TextField(
+                            controller: _mailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              helperText: 'Email',
+                              focusedBorder: _mailValid
+                                  ? getValidBorder(context)
+                                  : getInvalidBorder(context),
+                              enabledBorder: _mailValid
+                                  ? getValidBorder(context)
+                                  : getInvalidBorder(context),
                             ),
-                            DropdownMenuItem(
-                              value: 'user',
-                              child: Text('User'),
+                            textInputAction: TextInputAction.next,
+                            readOnly: !editMode,
+                            onChanged: (value) {
+                              setState(() {
+                                validation();
+                              });
+                            },
+                          ),
+                          TextField(
+                            obscureText: true,
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              helperText: 'Passwort',
+                              hintText: 'Unverändert',
+                              hintStyle: const TextStyle(fontSize: 10),
+                              focusedBorder: _passwordValid
+                                  ? getValidBorder(context)
+                                  : getInvalidBorder(context),
+                              enabledBorder: _passwordValid
+                                  ? getValidBorder(context)
+                                  : getInvalidBorder(context),
                             ),
-                            DropdownMenuItem(
-                              value: 'none',
-                              child: Text('Deaktiviert'),
-                            ),
-                          ],
-                          onChanged: editsOwnAccount! || !editMode
-                              ? null
-                              : (String? value) {
+                            textInputAction: TextInputAction.next,
+                            readOnly: !editMode,
+                            onChanged: (value) {
+                              setState(() {
+                                validation();
+                              });
+                            },
+                            onSubmitted: (value) {
+                              if (value.isNotEmpty) {
+                                FocusScope.of(context).nextFocus();
+                              }
+                            },
+                          ),
+                          Focus(
+                            child: Visibility(
+                              visible:
+                                  _passwordController.text.isNotEmpty &&
+                                  editMode,
+                              child: TextField(
+                                obscureText: true,
+                                controller: _passwordCheckController,
+                                decoration: InputDecoration(
+                                  helperText: 'Neues Passwort bestätigen',
+                                  focusedBorder: _passwordCheckValid
+                                      ? getValidBorder(context)
+                                      : getInvalidBorder(context),
+                                  enabledBorder: _passwordCheckValid
+                                      ? getValidBorder(context)
+                                      : getInvalidBorder(context),
+                                ),
+                                textInputAction: TextInputAction.done,
+                                readOnly: !editMode,
+                                onChanged: (value) {
                                   setState(() {
-                                    userRole = value;
+                                    validation();
                                   });
                                 },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        if (editsOwnAccount!)
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              GetIt.instance<Backend>().logout();
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LoginScreen(),
-                                ),
-                                (Route<dynamic> route) => false,
-                              );
-                            },
-                            icon: const Icon(Icons.logout),
-                            label: const Text('Abmelden'),
+                              ),
+                            ),
                           ),
-                        OutlinedButton.icon(
-                          onPressed: _deleteProfile,
-                          icon: const Icon(Icons.delete),
-                          label: const Text('Konto löschen'),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Rolle'),
+                              DropdownButton(
+                                value: userRole,
+                                dropdownColor: Theme.of(
+                                  context,
+                                ).colorScheme.surface,
+                                alignment: AlignmentDirectional.topStart,
+                                items: <DropdownMenuItem<String>>[
+                                  DropdownMenuItem(
+                                    value: 'admin',
+                                    child: Text('Admin'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'user',
+                                    child: Text('User'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'none',
+                                    child: Text('Deaktiviert'),
+                                  ),
+                                ],
+                                onChanged: editsOwnAccount! || !editMode
+                                    ? null
+                                    : (String? value) {
+                                        setState(() {
+                                          userRole = value;
+                                        });
+                                      },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (editsOwnAccount!)
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    GetIt.instance<Backend>().logout();
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => LoginScreen(),
+                                      ),
+                                      (Route<dynamic> route) => false,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.logout),
+                                  label: const Text('Abmelden'),
+                                ),
+                              if (isOnlineMode)
+                                OutlinedButton.icon(
+                                  onPressed: _deleteProfile,
+                                  icon: const Icon(Icons.delete),
+                                  label: const Text('Konto löschen'),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (editsOwnAccount ?? false)
+                buildCard(
+                  context: context,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'App-Einstellungen',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Farbschema",
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            DropdownButton<ColorSchemeMenuEntry>(
+                              value: kColorSchemes
+                                  .where(
+                                    (item) =>
+                                        item.colorScheme ==
+                                        Theme.of(context).colorScheme,
+                                  )
+                                  .firstOrNull,
+                              items: kColorSchemes
+                                  .map(
+                                    (entry) =>
+                                        DropdownMenuItem<ColorSchemeMenuEntry>(
+                                          value: entry,
+                                          child: Row(
+                                            children: [
+                                              buildColorPreview(
+                                                entry.colorScheme,
+                                                context,
+                                              ),
+                                              SizedBox(width: 10),
+                                              Text(entry.name),
+                                            ],
+                                          ),
+                                        ),
+                                  )
+                                  .toList(),
+                              onChanged: (newColorScheme) async {
+                                if (newColorScheme == null) return;
+                                await GetIt.I<LocalDB>().setColorScheme(
+                                  newColorScheme.name,
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ],
-            ),
-          )),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget buildColorPreview(ColorScheme colorScheme, BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface,
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(width: 20, height: 20, color: colorScheme.primaryContainer),
+          Container(width: 20, height: 20, color: colorScheme.surface),
+          Container(width: 20, height: 20, color: colorScheme.secondary),
+          Container(width: 20, height: 20, color: colorScheme.primary),
+        ],
       ),
     );
   }
@@ -484,7 +602,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                           'Konto konnte nicht gelöscht werden, weil es noch nicht synchronisierte Käufe gibt.',
                         ),
                         actions: [
-                          ElevatedButton(
+                          OutlinedButton(
                             onPressed: () => Navigator.pop(context),
                             child: const Text('Okay'),
                           ),
@@ -514,6 +632,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: const Text('Profil ändern'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -552,7 +671,10 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   void _displayError(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(text),
+        content: Text(
+          text,
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 5),
       ),
@@ -561,5 +683,17 @@ class UserProfileScreenState extends State<UserProfileScreen> {
     setState(() {
       restoreDefaults();
     });
+  }
+}
+
+class ColorSchemeMenuEntry {
+  final ColorScheme colorScheme;
+  final String name;
+
+  ColorSchemeMenuEntry(this.colorScheme, this.name);
+
+  @override
+  String toString() {
+    return name;
   }
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -50,11 +49,11 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
           future: getNewDrinks(),
         ),
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -79,6 +78,7 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
       for (var newDrink in newDrinks) {
         newDrinksCards.add(
           buildCard(
+            context: context,
             child: Row(
               children: [
                 Icon(Icons.euro),
@@ -144,7 +144,7 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
+          child: OutlinedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
                 context: context,
@@ -174,7 +174,7 @@ class _NewDrinksScreenState extends State<NewDrinksScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
+          child: OutlinedButton(
             onPressed: () async {
               final selectedDate = await selectDate(
                 context: context,

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import '../shared/custom_app_bar.dart';
@@ -67,11 +66,11 @@ class _GeneralStatisticsScreenState extends State<GeneralStatisticsScreen> {
                 setState(() {});
               },
             ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: const CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -103,6 +102,7 @@ class _GeneralStatisticsScreenState extends State<GeneralStatisticsScreen> {
 
   Widget _buildStatisticsCards(int totalUserAmount, int outstandingPayments) {
     return buildCard(
+      context: context,
       child: Row(
         children: [
           Icon(Icons.bar_chart),

@@ -10,7 +10,9 @@ class Friend {
 
   factory Friend.fromMap(Map<String, dynamic> friendMap) {
     return Friend(
-        friendMap['uuid']! as String, friendMap['userName']! as String);
+      friendMap['uuid']! as String,
+      friendMap['userName']! as String,
+    );
   }
 
   factory Friend.fromJson(Map<String, dynamic> data) {
@@ -18,10 +20,7 @@ class Friend {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'uuid': uuid,
-      'userName': userName,
-    };
+    return {'uuid': uuid, 'userName': userName};
   }
 }
 

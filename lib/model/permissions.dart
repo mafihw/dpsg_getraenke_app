@@ -52,13 +52,16 @@ class PermissionSystem {
   }
 
   Future<bool> _storePermissionsJson(dynamic permissions) async {
-    return await GetIt.I<LocalDB>()
-        .setSettingByKey('permissions', jsonEncode(permissions));
+    return await GetIt.I<LocalDB>().setSettingByKey(
+      'permissions',
+      jsonEncode(permissions),
+    );
   }
 
   Future<List<Permission>> _getLocalPermissions() async {
-    dynamic permissionsJson =
-        await GetIt.I<LocalDB>().getSettingByKey('permissions');
+    dynamic permissionsJson = await GetIt.I<LocalDB>().getSettingByKey(
+      'permissions',
+    );
     if (permissionsJson != null) {
       return permissionsFromJson(jsonDecode(permissionsJson));
     } else {

@@ -1,6 +1,5 @@
 import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
@@ -21,13 +20,13 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
   Widget build(BuildContext context) {
     final bool fromRegistration = widget.fromRegistration ?? false;
     if (currentlyRefreshing) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator()),
-        backgroundColor: kBackgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       );
     } else {
       return Scaffold(
-        backgroundColor: kBackgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
         body: Padding(
           padding: const EdgeInsets.all(25.0),
           child: Column(
@@ -40,24 +39,39 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         FontAwesomeIcons.userLock,
-                        color: kPrimaryColor,
+                        color: Theme.of(context).colorScheme.primary,
                         size: 96,
                       ),
                       const SizedBox(height: 20),
-                      const Text(
+                      Text(
                         'Konto nicht bestätigt',
-                        style: TextStyle(fontSize: 36),
+                        style: TextStyle(
+                          fontSize: 36,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
                       ),
                       if (fromRegistration)
-                        const Text(
+                        Text(
                           'Deine Registrierung war erfolgreich.',
                           textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
                         ),
-                      const Text(
+                      Text(
                         'Bitte warte bis dein Konto von einem Administrator bestätigt wurde',
                         textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
                       ),
                     ],
                   ),

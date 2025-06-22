@@ -9,7 +9,6 @@ import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
@@ -106,7 +105,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kMainColor,
+        color: Theme.of(context).colorScheme.surface,
         child: InkWell(
           onTap: () => onTap(),
           onLongPress: onLongPress,
@@ -130,7 +129,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: kPrimaryColor,
+        color: Theme.of(context).colorScheme.primary,
         child: Padding(
           padding: const EdgeInsets.all(10.0),
           child: Row(
@@ -138,14 +137,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Offline-Modus',
-                      style: TextStyle(color: Colors.black, fontSize: 18),
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                     Text(
                       'Du bist nicht verbunden',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -157,13 +161,23 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                   });
                   if (!connecting) {
                     connecting = true;
-                    await GetIt.I<Backend>().checkConnection();
+                    bool connected = await GetIt.I<Backend>().checkConnection();
                     if (!GetIt.I<Backend>().isTokenValid) {
                       await GetIt.I<Backend>().refreshToken();
                     }
-                    Future.delayed(
-                      const Duration(seconds: 1),
-                    ).then((_) => setState(() => connecting = false));
+                    Future.delayed(const Duration(seconds: 1)).then((_) {
+                      setState(() => connecting = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Verbindung ${connected ? 'erfolgreich' : 'fehlgeschlagen'}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      );
+                    });
                   } else {
                     setState(() {});
                   }
@@ -175,8 +189,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ),
                 label: const Text('Verbinden'),
                 style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all(kMainColor),
-                  foregroundColor: WidgetStateProperty.all(Colors.white),
+                  backgroundColor: WidgetStateProperty.all(
+                    Theme.of(context).colorScheme.surface,
+                  ),
+                  foregroundColor: WidgetStateProperty.all(
+                    Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
               ),
             ],
@@ -213,7 +231,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               )
               .inDays;
     return Container(
-      color: kBackgroundColor,
+      color: Theme.of(context).colorScheme.primaryContainer,
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -316,9 +334,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                     return IconButton(
-                      icon: const Icon(
-                        Icons.sync_problem_rounded,
-                        color: kWarningColor,
+                      icon: Icon(
+                        Icons.cloud_off_outlined,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       onPressed: () async {
                         await GetIt.instance<Backend>()
@@ -503,7 +521,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         duration: Duration(minutes: 5),
         action: SnackBarAction(
           label: 'Rückgängig machen',
-          textColor: kColorScheme.onPrimary,
+          textColor: Theme.of(context).colorScheme.onPrimary,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },
@@ -553,6 +571,7 @@ class _ShortcutSelectorState extends State<ShortcutSelector> {
   @override
   Widget build(BuildContext context) {
     return customAlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       title: Text('Schnellwahltaste'),
       content: SizedBox(
         width: double.maxFinite,
@@ -634,8 +653,10 @@ class SnackContent extends StatelessWidget {
     /// set to _ & __ just for readability.
     return ValueListenableBuilder<String>(
       valueListenable: snackMsg,
-      builder: (_, msg, _) =>
-          Text(msg, style: TextStyle(color: kColorScheme.onPrimary)),
+      builder: (_, msg, _) => Text(
+        msg,
+        style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+      ),
     );
   }
 }

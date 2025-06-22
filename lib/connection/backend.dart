@@ -267,15 +267,16 @@ class Backend {
     }
   }
 
-  void logout() {
-    /*directory!.list().forEach((element) async {
-      await element.delete(recursive: true);
-    });*/
-    localStorage!.removeLoggedInUserId();
-    // localStorage!.removeAllUnsentPurchases(); // Commented because unsent purchases are now removed if a new user logs in
+  Future<void> logout() async {
     loginInformation = null;
     loggedInUser = null;
     isLoggedIn = false;
+    /*directory!.list().forEach((element) async {
+      await element.delete(recursive: true);
+    });*/
+    await localStorage!.removeLoggedInUserId();
+    await localStorage!.setColorScheme('');
+    // localStorage!.removeAllUnsentPurchases(); // Commented because unsent purchases are now removed if a new user logs in
   }
 
   Future<void> handleOfflinePurchasesAfterLogin(String userId) async {
@@ -472,6 +473,7 @@ class Backend {
           builder: (context, setState) {
             return customAlertDialog(
               title: const Text('Passwort eingeben'),
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

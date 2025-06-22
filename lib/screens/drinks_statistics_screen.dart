@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/model/drink_statistics.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
-import 'package:dpsg_app/shared/colors.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -126,11 +125,11 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
           );
         },
       ),
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       bottomNavigationBar: CustomBottomBar(),
       floatingActionButton: FloatingActionButton.extended(
-        foregroundColor: Colors.white,
-        backgroundColor: kSecondaryColor,
+        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         onPressed: () {
           Navigator.pop(context);
         },
@@ -180,7 +179,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
         ),
       ],
     );
-    return buildCard(child: child, onTap: onTap);
+    return buildCard(child: child, context: context, onTap: onTap);
   }
 
   Widget buildSettingCard({
@@ -202,13 +201,13 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
         ),
       ],
     );
-    return buildCard(child: child, onTap: onTap);
+    return buildCard(child: child, context: context, onTap: onTap);
   }
 
   void showCustomModalSheet(DrinkStatistics drinkStatistics) {
     showModalBottomSheet(
       isScrollControlled: true,
-      backgroundColor: kBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
       builder: (context) => Wrap(
         children: [
@@ -217,13 +216,19 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
               padding: const EdgeInsets.only(top: 10.0),
               child: Text(
                 drinkStatistics.drink.name,
-                style: TextStyle(fontSize: 30),
+                style: TextStyle(
+                  fontSize: 30,
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(thickness: 2),
+            child: Divider(
+              thickness: 2,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
           buildSettingCard(
             icon: Icons.shopping_cart,
@@ -268,6 +273,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
       context: context,
       builder: (context) {
         return customAlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Text(
             'Einkauf hinzufügen',
             style: TextStyle(fontSize: 25),
@@ -334,6 +340,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
       context: context,
       builder: (context) {
         return customAlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
           title: Text(
             'Bestand eintragen',
             style: TextStyle(fontSize: 25),
