@@ -1,4 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/main.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/drinks_administration_screen.dart';
 import 'package:dpsg_app/screens/drinks_statistics_screen.dart';
@@ -41,6 +42,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.max,
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
@@ -55,17 +57,93 @@ class _CustomDrawerState extends State<CustomDrawer> {
             },
             child: Expanded(
               child: ListView(
-                // Important: Remove any padding from the ListView.
                 padding: EdgeInsets.zero,
-                addRepaintBoundaries: false,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [...addListTilesToDrawer()],
-                  ),
-                ],
+                children: [...addListTilesToDrawer()],
               ),
+            ),
+          ),
+          Divider(),
+          Column(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [versionInfo(), serverInfo()],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget versionInfo() {
+    String text = 'Version ist aktuell: $appVersion';
+    Color color = Colors.lightGreenAccent;
+    if (GetIt.I<Backend>().checkNewVersion()) {
+      text =
+          'Update verfügbar: $appVersion -> ${GetIt.I<Backend>().newestAppVersion}';
+      color = Colors.deepOrangeAccent;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.6),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: CircleAvatar(backgroundColor: color, radius: 6),
+          ),
+          const SizedBox(width: 15),
+          Text(
+            text,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget serverInfo() {
+    String text = 'Verbunden mit dem Server';
+    Color color = Colors.lightGreenAccent;
+    if (!GetIt.I<Backend>().isOnlineMode) {
+      text = 'Offline-Modus aktiv';
+      color = Colors.deepOrangeAccent;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0, bottom: 32.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.6),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: CircleAvatar(backgroundColor: color, radius: 6),
+          ),
+          const SizedBox(width: 15),
+          Text(
+            text,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
           ),
         ],
