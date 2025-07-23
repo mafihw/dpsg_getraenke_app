@@ -6,6 +6,7 @@ import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/home_screen.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
+import 'package:dpsg_app/screens/outdated_version_screen.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -73,14 +74,18 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     Widget screen;
     var backend = GetIt.instance<Backend>();
-    if (backend.isLoggedIn && backend.loggedInUser != null) {
+    if (backend.isLoggedIn &&
+        backend.loggedInUser != null &&
+        !backend.versionIncompatible) {
       if (GetIt.I<Backend>().loggedInUser!.role != 'none') {
         screen = const HomeScreen();
       } else {
         screen = NotVerifiedScreen();
       }
-    } else {
+    } else if (!backend.versionIncompatible) {
       screen = LoginScreen();
+    } else {
+      screen = OutdatedVersionScreen();
     }
     return MaterialApp(
       home: screen,

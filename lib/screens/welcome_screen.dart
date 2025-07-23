@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'dart:developer' as developer;
 
 import '../shared/custom_dialogs.dart';
@@ -204,6 +205,61 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
+  Widget newVersionInfo() {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: Theme.of(context).colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Neue Version verfügbar',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Jetzt herunterladen um auf dem neusten Stand zu sein!',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  launchUrlString(
+                    'https://app.dpsg-gladbach.de',
+                    mode: LaunchMode.externalApplication,
+                  );
+                },
+                icon: const Icon(Icons.download_rounded),
+                label: const Text('Herunterladen'),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(
+                    Theme.of(context).colorScheme.secondary,
+                  ),
+                  foregroundColor: WidgetStateProperty.all(
+                    Theme.of(context).colorScheme.onSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<WelcomeScreenData> fetchWelcomeScreenData(BuildContext context) async {
     return WelcomeScreenData(
       lastPurchase: await fetchLastPurchase(),
@@ -238,6 +294,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             if (!GetIt.I<Backend>().isOnlineMode) offlineInfo(),
+            if (GetIt.I<Backend>().isOnlineMode &&
+                GetIt.I<Backend>().updateAvailable)
+              newVersionInfo(),
             buildCard(
               child: Column(
                 children: [

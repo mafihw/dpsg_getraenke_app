@@ -39,15 +39,21 @@ class Backend {
   String apiurl = newApiUrl;
   static bool refreshingToken = false;
   bool isTokenValid = true;
+  String? newestAppVersion;
+  String? minAppVersion;
+  bool versionIncompatible = false;
+  bool updateAvailable = false;
   bool get isOnlineMode =>
       isInitialized && isOnline && isLoggedIn && isTokenValid;
 
   Future<void> init() async {
+    localStorage = GetIt.I<LocalDB>();
     await setApiUrl();
     await checkConnection();
+    versionIncompatible = !checkMinVersion();
+    updateAvailable = checkNewVersion();
 
     try {
-      localStorage = GetIt.I<LocalDB>();
       loggedInUserId = await localStorage!.getLoggedInUserId();
       isLoggedIn = loggedInUserId != null;
       if (isLoggedIn) {
@@ -308,14 +314,25 @@ class Backend {
   Future<bool> checkConnection() async {
     try {
       final response = await http
-          .get(Uri.parse('$apiurl/api/test'))
-          .timeout(const Duration(seconds: 5));
+          .get(
+            Uri.parse('$apiurl/api/version'),
+            headers: {
+              'App-Version': appVersion,
+              'User-Id': await localStorage!.getLoggedInUserId() ?? '',
+            },
+          )
+          .timeout(const Duration(seconds: 1));
       developer.log(
-        'Checking Connection to API at $apiurl. Status: ${response.statusCode}',
+        'Checked Connection to API at $apiurl. Status: ${response.statusCode}',
       );
       if (response.statusCode == 200) {
         isOnline = true;
         if (isLoggedIn) isTokenValid = await checkTokenValidity();
+        minAppVersion = json.decode(response.body)['minAppVersion'];
+        newestAppVersion = json.decode(response.body)['newestAppVersion'];
+        developer.log(
+          'Current App Version: $appVersion, Min App Version: $minAppVersion, Newest App Version: $newestAppVersion',
+        );
         return isOnlineMode;
       } else {
         developer.log(
@@ -329,6 +346,66 @@ class Backend {
       isOnline = false;
       return false;
     }
+  }
+
+  /// Checks if a newer version of the app is available.
+  /// Returns true if the current app version is older than the newest available version.
+  bool checkNewVersion() {
+    if (newestAppVersion == null) {
+      checkConnection();
+      if (newestAppVersion == null) {
+        return false; // No version information available
+      }
+    }
+    final currentVersion = appVersion.split('.').map(int.parse).toList();
+    final newestVersion = newestAppVersion!.split('.').map(int.parse).toList();
+
+    if (currentVersion.length != 3 || newestVersion.length != 3) {
+      developer.log('Invalid version format: $appVersion or $newestAppVersion');
+      return false; // Invalid version format
+    }
+
+    for (int i = 0; i < 3; i++) {
+      if (currentVersion[i] < newestVersion[i]) {
+        developer.log(
+          'Newer version available: $newestAppVersion (current: $appVersion)',
+        );
+        return true; // Newer version available
+      } else if (currentVersion[i] > newestVersion[i]) {
+        return false; // Current version is newer or equal
+      }
+    }
+    return false; // Versions are equal
+  }
+
+  /// Checks if the current app version is at least the minimum required version.
+  /// Returns true if the current version is equal to or greater than the minimum version.
+  bool checkMinVersion() {
+    if (minAppVersion == null) {
+      checkConnection();
+      if (minAppVersion == null) {
+        return true; // No minimum version information available
+      }
+    }
+    final currentVersion = appVersion.split('.').map(int.parse).toList();
+    final minVersion = minAppVersion!.split('.').map(int.parse).toList();
+
+    if (currentVersion.length != 3 || minVersion.length != 3) {
+      developer.log('Invalid version format: $appVersion or $minAppVersion');
+      return false; // Invalid version format
+    }
+
+    for (int i = 0; i < 3; i++) {
+      if (currentVersion[i] < minVersion[i]) {
+        developer.log(
+          'Current version $appVersion is below minimum required version $minAppVersion',
+        );
+        return false; // Current version is below minimum
+      } else if (currentVersion[i] > minVersion[i]) {
+        return true; // Current version is above minimum
+      }
+    }
+    return true; // Versions are equal
   }
 
   Future<bool> sendLocalPurchasesToServer() async {
