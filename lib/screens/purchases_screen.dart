@@ -9,6 +9,7 @@ import 'package:dpsg_app/screens/offline_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/shared/custom_card.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
+import 'package:dpsg_app/shared/status_led.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:intl/intl.dart';
@@ -426,10 +427,9 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.cloud_off_outlined,
-                    color: Theme.of(context).colorScheme.error,
-                    size: 32,
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: StatusLed(color: Colors.red),
                   ),
                   Padding(
                     padding: EdgeInsets.only(left: 12),

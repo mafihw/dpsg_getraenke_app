@@ -9,6 +9,7 @@ import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
+import 'package:dpsg_app/shared/status_led.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
@@ -139,12 +140,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Offline-Modus',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: StatusLed(color: Colors.red),
+                        ),
+                        Text(
+                          'Offline-Modus',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       'Du bist nicht verbunden',
@@ -392,16 +401,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 future: GetIt.I<LocalDB>().getUnsentPurchases(),
                 builder: (context, snapshot) {
                   if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                    return IconButton(
-                      icon: Icon(
-                        Icons.cloud_off_outlined,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      onPressed: () async {
-                        await GetIt.instance<Backend>()
-                            .sendLocalPurchasesToServer();
-                        setState(() {});
-                      },
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: StatusLed(color: Colors.red),
                     );
                   } else {
                     return Container();

@@ -11,6 +11,7 @@ import 'package:dpsg_app/screens/payments_screen.dart';
 import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/about_dialog.dart';
+import 'package:dpsg_app/shared/status_led.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
@@ -89,19 +90,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.6),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: CircleAvatar(backgroundColor: color, radius: 6),
-          ),
+          StatusLed(color: color),
           const SizedBox(width: 15),
           Text(
             text,
@@ -126,19 +115,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.6),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: CircleAvatar(backgroundColor: color, radius: 6),
-          ),
+          StatusLed(color: color),
           const SizedBox(width: 15),
           Text(
             text,
