@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-const String appVersion = '1.5.0';
+const String appVersion = '1.5.1';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
