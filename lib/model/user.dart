@@ -1,6 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:get_it/get_it.dart';
 
@@ -41,6 +41,18 @@ class User {
       gender: gender,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'roleId': role,
+      'email': email,
+      'name': name,
+      'balance': balance,
+      'weight': weight,
+      'gender': gender,
+    };
+  }
 }
 
 Future<User> fetchUser() async {
@@ -54,14 +66,25 @@ Future<User> fetchUser() async {
       final response = await GetIt.instance<Backend>().get('/user/$id');
       if (response != null) {
         user = User.fromJson(response);
-        GetIt.I<LocalDB>().saveLoginInformation(user, null);
+        // Only update user data, preserve existing token
+        final currentLoginInfo = await GetIt.I<StorageInterface>()
+            .getLoginInformation();
+        if (currentLoginInfo != null) {
+          GetIt.I<StorageInterface>().setLoginInformation({
+            'user': user.toJson(),
+            'token': currentLoginInfo['token'], // Preserve existing token
+          });
+        }
       }
     } catch (e) {
       developer.log(e.toString());
     }
   }
   //load user from local storage
-  user ??= (await GetIt.I<LocalDB>().getLoginInformation())!['user'];
+  final loginInfo = await GetIt.I<StorageInterface>().getLoginInformation();
+  if (loginInfo != null && loginInfo['user'] != null) {
+    user = User.fromJson(loginInfo['user']);
+  }
 
   return user!;
 }

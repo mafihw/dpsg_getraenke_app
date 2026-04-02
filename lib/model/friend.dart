@@ -1,5 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'dart:developer' as developer;
 import 'package:get_it/get_it.dart';
 
@@ -25,7 +25,7 @@ class Friend {
 }
 
 Future<List<Friend>> fetchFriends() async {
-  var database = GetIt.I<LocalDB>();
+  var database = GetIt.I<StorageInterface>();
   List<Friend> friends = [];
   if (GetIt.I<Backend>().isOnlineMode) {
     try {
@@ -34,7 +34,7 @@ Future<List<Friend>> fetchFriends() async {
         for (var friendsJson in response) {
           friends.add(Friend.fromJson(friendsJson));
         }
-        await database.insertFriends(friends);
+        await database.saveFriends(friends);
       }
     } catch (e) {
       developer.log(e.toString());
@@ -42,7 +42,7 @@ Future<List<Friend>> fetchFriends() async {
   }
 
   if (friends.isEmpty) {
-    friends = await database.fetchFriendsFromDB();
+    friends = await database.getFriends();
   }
 
   return friends;

@@ -1,5 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'dart:developer' as developer;
 import 'package:get_it/get_it.dart';
 
@@ -45,7 +45,7 @@ class Drink {
 }
 
 Future<List<Drink>> fetchDrinks() async {
-  var database = GetIt.I<LocalDB>();
+  var database = GetIt.I<StorageInterface>();
   List<Drink> drinks = [];
   if (GetIt.I<Backend>().isOnlineMode) {
     try {
@@ -54,7 +54,7 @@ Future<List<Drink>> fetchDrinks() async {
         for (var drinkJson in response) {
           drinks.add(Drink.fromJson(drinkJson));
         }
-        await database.insertDrinks(drinks);
+        await database.saveLocalDrinks(drinks);
         _checkShortcutDrink(drinks);
       }
     } catch (e) {
@@ -63,14 +63,14 @@ Future<List<Drink>> fetchDrinks() async {
   }
 
   if (drinks.isEmpty) {
-    drinks = await database.fetchDrinksFromDB();
+    drinks = await database.getLocalDrinks();
   }
 
   return drinks;
 }
 
 Future<void> _checkShortcutDrink(List<Drink> drinks) async {
-  String? shortcutDrinkId = await GetIt.I<LocalDB>().getSettingByKey(
+  String? shortcutDrinkId = await GetIt.I<StorageInterface>().getSettingByKey(
     'shortcutDrink',
   );
   if (shortcutDrinkId != null) {
@@ -83,7 +83,7 @@ Future<void> _checkShortcutDrink(List<Drink> drinks) async {
     if (shortcutDrink == null ||
         !shortcutDrink.active ||
         shortcutDrink.deleted) {
-      await GetIt.I<LocalDB>().removeSettingByKey('shortcutDrink');
+      await GetIt.I<StorageInterface>().removeSettingByKey('shortcutDrink');
     }
   }
 }

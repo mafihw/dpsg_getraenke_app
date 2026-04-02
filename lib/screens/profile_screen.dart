@@ -1,5 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/login_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
@@ -450,9 +450,11 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                                   .toList(),
                               onChanged: (newColorScheme) async {
                                 if (newColorScheme == null) return;
-                                await GetIt.I<LocalDB>().setColorScheme(
-                                  newColorScheme.name,
-                                );
+                                await GetIt.I<StorageInterface>()
+                                    .setSettingByKey(
+                                      'colorScheme',
+                                      newColorScheme.name,
+                                    );
                               },
                             ),
                           ],

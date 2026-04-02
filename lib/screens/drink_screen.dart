@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/purchase.dart';
@@ -31,7 +31,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
       body: FutureBuilder(
         future: Future.wait([
           fetchDrinks(),
-          GetIt.I<LocalDB>().getSettingByKey('shortcutDrink'),
+          GetIt.I<StorageInterface>().getSettingByKey('shortcutDrink'),
           fetchFriends(),
         ]),
         builder: (context, AsyncSnapshot snapshot) {
@@ -53,7 +53,7 @@ class _DrinkScreenState extends State<DrinkScreen> {
                       );
                     }),
                     onLongPress: () async {
-                      await GetIt.I<LocalDB>().setSettingByKey(
+                      await GetIt.I<StorageInterface>().setSettingByKey(
                         'shortcutDrink',
                         element.id.toString(),
                       );
@@ -324,6 +324,7 @@ class BuyDialog extends StatelessWidget {
                       amountSelected,
                       userName,
                     );
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -386,13 +387,13 @@ Future<void> purchaseDrink(
   if (await GetIt.instance<Backend>().checkConnection()) {
     try {
       await GetIt.instance<Backend>().post('/purchase', jsonEncode(body));
-      await GetIt.instance<LocalDB>().setLastPurchase(purchase);
+      await GetIt.instance<StorageInterface>().setLastPurchase(purchase);
     } catch (error) {
-      await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
+      await GetIt.instance<StorageInterface>().addUnsentPurchase(purchase);
       developer.log(error.toString());
     }
   } else {
-    await GetIt.instance<LocalDB>().insertUnsentPurchase(purchase);
-    await GetIt.instance<LocalDB>().setLastPurchase(purchase);
+    await GetIt.instance<StorageInterface>().addUnsentPurchase(purchase);
+    await GetIt.instance<StorageInterface>().setLastPurchase(purchase);
   }
 }

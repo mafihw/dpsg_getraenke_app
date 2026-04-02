@@ -1,4 +1,5 @@
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/main.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/screens/drinks_administration_screen.dart';
@@ -16,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 
-import '../connection/database.dart';
 import '../screens/users_screen.dart';
 
 class CustomDrawer extends StatefulWidget {
@@ -145,7 +145,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         onTap: () async {
           Navigator.pop(context);
           Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
-          final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
+          final userId = await GetIt.I<StorageInterface>().getLoggedInUserId();
           await Navigator.push(
             context,
             MaterialPageRoute(
@@ -161,7 +161,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
         onTap: () async {
           Navigator.pop(context);
           Navigator.popUntil(context, (Route<dynamic> route) => route.isFirst);
-          final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
+          final userId = await GetIt.I<StorageInterface>().getLoggedInUserId();
           await Navigator.push(
             context,
             MaterialPageRoute(

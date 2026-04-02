@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weiterleitung</title>
+    <script>
+        function redirectUser() {
+            var userAgent = window.navigator.userAgent || window.navigator.vendor || window.opera;
+            var isIOS = /iPad|iPhone|iPod/.test(userAgent) || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+
+            if (isIOS) {
+                window.location.href = "https://apps.apple.com/app/DPSG-Gladbach/id6444686408"; // URL für iOS-Geräte
+            } else {
+                //window.location.href = "https://github.com/mafihw/dpsg_getraenke_app/releases"; // URL für andere Geräte
+                window.location.href = "https://play.google.com/store/apps/details?id=de.dpsggladbach.app";
+            }
+        }
+
+        // Führe die Weiterleitung aus, sobald die Seite geladen ist
+        window.onload = redirectUser;
+    </script>
+</head>
+<body>
+    <p>Sie werden weitergeleitet...</p>
+</body>
+</html>

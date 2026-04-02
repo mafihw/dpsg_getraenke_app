@@ -2,8 +2,10 @@ import 'package:dpsg_app/connection/backend.dart';
 import 'package:dpsg_app/screens/not_verified_screen.dart';
 import 'package:dpsg_app/screens/registration_screen.dart';
 import 'package:dpsg_app/shared/about_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -23,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('DPSG Gladbach Getränke'),
         actions: [
           IconButton(
             onPressed: () => displayAboutDialog(context),
@@ -37,6 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              Expanded(flex: 1, child: Container()),
               const Hero(
                 tag: 'icon_hero',
                 child: Image(
@@ -44,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 150.0,
                 ),
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 40),
               TextField(
                 controller: emailTextController,
                 keyboardType: TextInputType.emailAddress,
@@ -95,6 +98,56 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
+              Expanded(flex: 2, child: Container()),
+              if (kIsWeb)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Jetzt die App herunterladen!',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Offline Getränke buchen, Freunde hinzufügen und mehr.',
+                          style: TextStyle(fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton.icon(
+                          onPressed: () async {
+                            const url =
+                                'https://app.dpsg-gladbach.de/download/';
+                            final uri = Uri.parse(url);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                          icon: const Icon(Icons.download),
+                          label: const Text(
+                            'App herunterladen',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 60),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Verfügbar für iOS und Android.',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -114,21 +167,26 @@ class _LoginScreenState extends State<LoginScreen> {
       )) {
         await GetIt.instance<Backend>().refreshData();
         if (GetIt.instance<Backend>().loggedInUser!.role != 'none') {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-            (route) => false,
-          );
+          if (mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              (route) => false,
+            );
+          }
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: ((context) => NotVerifiedScreen())),
-          );
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: ((context) => NotVerifiedScreen())),
+            );
+          }
         }
         setState(() {
           currentlyLoggingIn = false;
         });
       } else {
+        if (!mounted) return;
         SnackBar snackBar = SnackBar(
           content: Text(
             'Login fehlgeschlagen!',

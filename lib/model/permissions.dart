@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:get_it/get_it.dart';
 
 enum Permission {
@@ -35,7 +35,7 @@ class PermissionSystem {
         final response = await backend.get('/permissions');
         if (response != null) {
           fetchedPermissions = permissionsFromJson(response);
-          _storePermissionsJson(response);
+          await _storePermissionsJson(response);
         }
       } catch (e) {
         developer.log(e.toString());
@@ -51,15 +51,15 @@ class PermissionSystem {
     return fetchedPermissions;
   }
 
-  Future<bool> _storePermissionsJson(dynamic permissions) async {
-    return await GetIt.I<LocalDB>().setSettingByKey(
+  Future<void> _storePermissionsJson(dynamic permissions) async {
+    await GetIt.I<StorageInterface>().setSettingByKey(
       'permissions',
       jsonEncode(permissions),
     );
   }
 
   Future<List<Permission>> _getLocalPermissions() async {
-    dynamic permissionsJson = await GetIt.I<LocalDB>().getSettingByKey(
+    dynamic permissionsJson = await GetIt.I<StorageInterface>().getSettingByKey(
       'permissions',
     );
     if (permissionsJson != null) {

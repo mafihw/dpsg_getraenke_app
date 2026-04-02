@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'dart:developer' as developer;
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/custom_dialogs.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -35,7 +36,7 @@ class Backend {
   String? token;
   File? loginFile;
   late Map<String, String> headers;
-  LocalDB? localStorage;
+  StorageInterface? localStorage;
   String apiurl = newApiUrl;
   static bool refreshingToken = false;
   bool isTokenValid = true;
@@ -46,10 +47,33 @@ class Backend {
   bool get isOnlineMode =>
       isInitialized && isOnline && isLoggedIn && isTokenValid;
 
+  // Debug method to check online mode status
+  String getOnlineModeDebugInfo() {
+    return 'isOnlineMode: $isOnlineMode, '
+        'isInitialized: $isInitialized, '
+        'isOnline: $isOnline, '
+        'isLoggedIn: $isLoggedIn, '
+        'isTokenValid: $isTokenValid, '
+        'token: ${token != null ? "present" : "null"}';
+  }
+
   Future<void> init() async {
-    localStorage = GetIt.I<LocalDB>();
+    localStorage = GetIt.I<StorageInterface>();
     await setApiUrl();
-    await checkConnection();
+
+    // For web, don't check connection immediately - let session determine status
+    if (!kIsWeb) {
+      await checkConnection();
+    } else {
+      // On web, assume online if we have a session
+      final userId = await localStorage!.getLoggedInUserId();
+      if (userId != null && userId.isNotEmpty) {
+        isOnline = true;
+      } else {
+        isOnline = false;
+      }
+    }
+
     versionIncompatible = !checkMinVersion();
     updateAvailable = checkNewVersion();
 
@@ -60,11 +84,31 @@ class Backend {
         Map<String, dynamic>? loginInformation = await localStorage!
             .getLoginInformation();
         if (loginInformation != null) {
-          loggedInUser = loginInformation['user'];
+          // Properly deserialize the user from JSON
+          if (loginInformation['user'] is Map<String, dynamic>) {
+            loggedInUser = User.fromJson(loginInformation['user']);
+          }
           token = loginInformation['token'];
           isInitialized = true;
-          isTokenValid = await checkTokenValidity();
-          if (!isTokenValid) isTokenValid = await autoRefreshToken();
+          if (kIsWeb) {
+            // On web, assume token is valid initially and validate in background
+            isTokenValid = token != null && token!.isNotEmpty;
+            if (isTokenValid) {
+              // Validate token asynchronously without blocking
+              checkTokenValidity().then((isValid) {
+                if (!isValid) {
+                  autoRefreshToken().then((refreshed) {
+                    isTokenValid = refreshed;
+                  });
+                }
+              });
+            }
+          } else {
+            // Mobile: strict token validation
+            isTokenValid = await checkTokenValidity();
+            if (!isTokenValid) isTokenValid = await autoRefreshToken();
+          }
+
           headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $token',
@@ -73,7 +117,7 @@ class Backend {
         }
       }
     } catch (e) {
-      developer.log('User not logged in.');
+      developer.log('User not logged in. Error: $e');
     }
 
     isInitialized = true;
@@ -105,6 +149,20 @@ class Backend {
       developer.log('${response.statusCode}  GET  $uri');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
+      } else if (response.statusCode == 401) {
+        developer.log('401 Unauthorized - attempting token refresh');
+        bool refreshed = await autoRefreshToken();
+        if (refreshed) {
+          // Retry with new token
+          final retryResponse = await http
+              .get(Uri.parse('$apiurl/api$uri'), headers: await getHeader())
+              .timeout(const Duration(seconds: timeoutDuration));
+          developer.log('${retryResponse.statusCode}  GET  $uri (retry)');
+          if (retryResponse.statusCode == 200) {
+            return jsonDecode(retryResponse.body);
+          }
+        }
+        throw Exception('HTTP ${response.statusCode} - Token refresh failed');
       } else {
         throw Exception('HTTP ${response.statusCode}');
       }
@@ -202,15 +260,21 @@ class Backend {
         final response = await http
             .post(
               Uri.parse('$apiurl/auth/login'),
-              headers: <String, String>{'Content-Type': 'application/json'},
+              headers: kIsWeb
+                  ? <String, String>{
+                      'Content-Type': 'application/json',
+                      'Accept': 'application/json',
+                      'Access-Control-Allow-Origin': '*',
+                    }
+                  : <String, String>{'Content-Type': 'application/json'},
               body: jsonEncode(<String, String>{
                 'email': email,
                 'password': password,
               }),
             )
             .timeout(const Duration(seconds: 10));
-        developer.log(response.statusCode.toString());
-        developer.log(response.body);
+        developer.log('Login response status: ${response.statusCode}');
+        developer.log('Login response body: ${response.body}');
         if (response.statusCode == 200) {
           //await loginFile?.writeAsString(response.body);
           loggedInUser = User.fromJson(json.decode(response.body)['user']);
@@ -218,7 +282,10 @@ class Backend {
           if (loggedInUser != null && token != null) {
             loggedInUserId = loggedInUser!.id;
             await localStorage!.setLoggedInUserId(loggedInUser!.id);
-            await localStorage!.saveLoginInformation(loggedInUser!, token);
+            await localStorage!.setLoginInformation({
+              'user': loggedInUser!.toJson(),
+              'token': token,
+            });
             await handleOfflinePurchasesAfterLogin(loggedInUser!.id);
             if (response.headers.containsKey("set-cookie")) {
               final cookie = response.headers["set-cookie"]!
@@ -244,7 +311,7 @@ class Backend {
           return false;
         }
       } catch (e) {
-        developer.log(e.toString());
+        developer.log('Login error: ${e.toString()}');
         return false;
       }
     }
@@ -256,7 +323,13 @@ class Backend {
     } else {
       final response = await http.post(
         Uri.parse('$apiurl/auth/register'),
-        headers: <String, String>{'Content-Type': 'application/json'},
+        headers: kIsWeb
+            ? <String, String>{
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+              }
+            : <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode(<String, String>{
           'email': email,
           'password': password,
@@ -277,19 +350,14 @@ class Backend {
     loginInformation = null;
     loggedInUser = null;
     isLoggedIn = false;
-    /*directory!.list().forEach((element) async {
-      await element.delete(recursive: true);
-    });*/
-    await localStorage!.removeLoggedInUserId();
-    await localStorage!.setColorScheme('');
-    // localStorage!.removeAllUnsentPurchases(); // Commented because unsent purchases are now removed if a new user logs in
+    await localStorage!.clearLoginData();
   }
 
   Future<void> handleOfflinePurchasesAfterLogin(String userId) async {
     List<Purchase> unsent = await localStorage!.getUnsentPurchases();
     if (unsent.isNotEmpty && unsent.first.userBookedId != userId) {
       developer.log('New user logged in. Removing unsent purchases');
-      localStorage!.removeAllUnsentPurchases();
+      localStorage!.clearUnsentPurchases();
     } else if (unsent.isNotEmpty) {
       await sendLocalPurchasesToServer();
     }
@@ -305,7 +373,7 @@ class Backend {
         loggedInUser = await fetchUser();
         return true;
       } catch (e) {
-        developer.log(e.toString());
+        developer.log('refreshData error: $e');
         return false;
       }
     }
@@ -313,15 +381,15 @@ class Backend {
 
   Future<bool> checkConnection() async {
     try {
+      Map<String, String> headers = {'App-Version': appVersion};
+      final userId = await localStorage!.getLoggedInUserId();
+      if (userId != null) {
+        headers['User-Id'] = userId;
+      }
+
       final response = await http
-          .get(
-            Uri.parse('$apiurl/api/version'),
-            headers: {
-              'App-Version': appVersion,
-              'User-Id': await localStorage!.getLoggedInUserId() ?? '',
-            },
-          )
-          .timeout(const Duration(seconds: 1));
+          .get(Uri.parse('$apiurl/api/version'), headers: headers)
+          .timeout(const Duration(seconds: kIsWeb ? 3 : 1));
       developer.log(
         'Checked Connection to API at $apiurl. Status: ${response.statusCode}',
       );
@@ -343,7 +411,18 @@ class Backend {
       }
     } catch (error) {
       developer.log('No Connection to API at $apiurl. Status: $error');
-      isOnline = false;
+      // On web, don't immediately set offline - might be temporary network issue
+      if (kIsWeb) {
+        // For web, try to maintain online status if we have a valid session
+        final userId = await localStorage!.getLoggedInUserId();
+        final hasSession = userId != null && userId.isNotEmpty;
+        isOnline = hasSession; // Keep online if we have session
+        developer.log(
+          'Web connection check failed, but session exists: $hasSession',
+        );
+      } else {
+        isOnline = false;
+      }
       return false;
     }
   }
@@ -411,7 +490,7 @@ class Backend {
   Future<bool> sendLocalPurchasesToServer() async {
     bool purchasesSent = false;
     if (isOnline) {
-      List<Purchase> unsentPurchases = await GetIt.instance<LocalDB>()
+      List<Purchase> unsentPurchases = await GetIt.instance<StorageInterface>()
           .getUnsentPurchases();
       for (var element in unsentPurchases.where(
         (element) => element.amount > 0,
@@ -427,7 +506,9 @@ class Backend {
         try {
           await post('/purchase', jsonEncode(body));
           purchasesSent = true;
-          await GetIt.instance<LocalDB>().removeUnsentPurchase(element);
+          await GetIt.instance<StorageInterface>().removeUnsentPurchase(
+            element.id,
+          );
           await Future.delayed(const Duration(milliseconds: 500));
           developer.log('Successfully sent offline purchase to server');
         } catch (error) {
@@ -439,7 +520,9 @@ class Backend {
               'HTTP 403 Forbidden error while sending offline purchase. Deleting the purchase now.',
             );
             developer.log('Purchase to be deleted: ${element.toJson()}');
-            await GetIt.instance<LocalDB>().removeUnsentPurchase(element);
+            await GetIt.instance<StorageInterface>().removeUnsentPurchase(
+              element.id,
+            );
           }
         }
       }
@@ -449,31 +532,44 @@ class Backend {
   }
 
   Future<Map<String, String>> getHeader() async {
-    isTokenValid = await checkTokenValidity();
+    // Don't check token validity on every header request for web
+    if (!kIsWeb) {
+      isTokenValid = await checkTokenValidity();
+    }
     headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
+      if (token != null && token!.isNotEmpty) 'Authorization': 'Bearer $token',
     };
     return headers;
   }
 
   Future<bool> checkTokenValidity() async {
-    Map<String, dynamic> payload = Jwt.parseJwt(token!);
-    if (payload.containsKey('exp') &&
-        (payload['exp'] * 1000 >
-            DateTime.now()
-                .add(const Duration(seconds: tokenLifetimeBeforeRefreshInS))
-                .millisecondsSinceEpoch)) {
-      return Future(() => true);
-    } else {
-      developer.log('Token has to be refreshed. Attemting now ...');
-      bool isRefreshed = await autoRefreshToken();
-      if (isRefreshed) {
-        developer.log('Token has successfuly been refreshed!');
+    if (token == null || token!.isEmpty) {
+      developer.log('Token is null or empty');
+      return false;
+    }
+
+    try {
+      Map<String, dynamic> payload = Jwt.parseJwt(token!);
+      if (payload.containsKey('exp') &&
+          (payload['exp'] * 1000 >
+              DateTime.now()
+                  .add(const Duration(seconds: tokenLifetimeBeforeRefreshInS))
+                  .millisecondsSinceEpoch)) {
+        return Future(() => true);
       } else {
-        developer.log('Token could not be refreshed.');
+        developer.log('Token has to be refreshed. Attemting now ...');
+        bool isRefreshed = await autoRefreshToken();
+        if (isRefreshed) {
+          developer.log('Token has successfuly been refreshed!');
+        } else {
+          developer.log('Token could not be refreshed.');
+        }
+        return isRefreshed;
       }
-      return isRefreshed;
+    } catch (e) {
+      developer.log('Error checking token validity: $e');
+      return false;
     }
   }
 
@@ -604,7 +700,7 @@ class Backend {
                         setState(() {
                           isRefreshingToken = false;
                         });
-                        Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                         return;
                       } else {
                         setState(() {

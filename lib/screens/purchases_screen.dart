@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/permissions.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/offline_screen.dart';
@@ -97,7 +97,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             return _noPurchasesScreen;
           } else {
             return FutureBuilder<List<Purchase>>(
-              future: GetIt.I<LocalDB>().getUnsentPurchases(),
+              future: GetIt.I<StorageInterface>().getUnsentPurchases(),
               builder: (context, snapshot2) {
                 if (snapshot2.hasData && snapshot2.data!.isNotEmpty) {
                   return _buildOfflinePurchases(snapshot2.data!);

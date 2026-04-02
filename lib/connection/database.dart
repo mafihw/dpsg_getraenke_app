@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:dpsg_app/connection/backend.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/purchase.dart';
@@ -10,19 +11,25 @@ import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/shared/colors.dart';
 import 'package:flutter/material.dart' show ColorScheme;
 import 'package:get_it/get_it.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' show join;
 import 'package:sqflite/sqflite.dart';
 
-class LocalDB {
+class LocalDB implements StorageInterface {
+  @override
   bool isInitialized = false;
   Database? database;
   String? get _loggedInUserId {
     return GetIt.I<Backend>().loggedInUserId;
   }
 
-  final StreamController<Map<String, String>> settingsStream =
-      StreamController<Map<String, String>>();
+  final StreamController<Map<String, String>> _settingsStreamController =
+      StreamController<Map<String, String>>.broadcast();
 
+  @override
+  Stream<Map<String, String>> get settingsStream =>
+      _settingsStreamController.stream;
+
+  @override
   Future<bool> init() async {
     try {
       // open or create the database file
@@ -121,20 +128,32 @@ class LocalDB {
     }
   }
 
-  Future<void> removeUnsentPurchase(Purchase purchase) async {
+  @override
+  Future<void> addUnsentPurchase(Purchase purchase) async {
+    await insertUnsentPurchase(purchase);
+  }
+
+  @override
+  Future<void> removeUnsentPurchase(int purchaseId) async {
     if (isInitialized) {
       await database!.delete(
         'unsentPurchases',
         where: "id = ?",
-        whereArgs: [purchase.id],
+        whereArgs: [purchaseId],
       );
     }
+  }
+
+  @override
+  Future<void> clearUnsentPurchases() async {
+    await removeAllUnsentPurchases();
   }
 
   Future<void> removeAllUnsentPurchases() async {
     if (isInitialized) await database!.delete('unsentPurchases');
   }
 
+  @override
   Future<List<Purchase>> getUnsentPurchases() async {
     if (isInitialized) {
       final List<Map<String, dynamic>> maps = await database!.query(
@@ -198,6 +217,7 @@ class LocalDB {
     }
   }
 
+  @override
   Future<Map<String, dynamic>?> getLoginInformation() async {
     if (isInitialized) {
       String? loggedInUserId = await getLoggedInUserId();
@@ -233,7 +253,8 @@ class LocalDB {
           gender: values['gender'],
         );
         String token = values['token'];
-        return {'user': loggedInUser, 'token': token};
+        // Return JSON-serialized data for compatibility with new interface
+        return {'user': loggedInUser.toJson(), 'token': token};
       } else {
         return null;
       }
@@ -242,6 +263,7 @@ class LocalDB {
     }
   }
 
+  @override
   Future<bool> setLoggedInUserId(String userId) async {
     if (isInitialized) {
       Map<String, dynamic> entry = {
@@ -269,6 +291,7 @@ class LocalDB {
     }
   }
 
+  @override
   Future<String?> getLoggedInUserId() async {
     var userId = await database!.query(
       'settings',
@@ -280,6 +303,7 @@ class LocalDB {
     return loggedInUserId;
   }
 
+  @override
   Future<bool> setLastPurchase(Purchase purchase) async {
     if (isInitialized && _loggedInUserId != null) {
       Map<String, dynamic> entry = {
@@ -298,6 +322,7 @@ class LocalDB {
     }
   }
 
+  @override
   Future<Purchase?> getLastPurchase() async {
     if (isInitialized && _loggedInUserId != null) {
       var value = await database!.query(
@@ -315,6 +340,7 @@ class LocalDB {
     return null;
   }
 
+  @override
   Future<bool> setSettingByKey(String key, String value) async {
     if (isInitialized && _loggedInUserId != null) {
       Map<String, dynamic> entry = {
@@ -327,13 +353,14 @@ class LocalDB {
         entry,
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      settingsStream.add({key: value});
+      _settingsStreamController.add({key: value});
       return true;
     } else {
       return false;
     }
   }
 
+  @override
   Future<String?> getSettingByKey(String key) async {
     if (isInitialized && _loggedInUserId != null) {
       var value = await database!.query(
@@ -349,6 +376,7 @@ class LocalDB {
     return null;
   }
 
+  @override
   Future<bool> removeSettingByKey(String key) async {
     if (isInitialized && _loggedInUserId != null) {
       return await database!.delete(
@@ -386,6 +414,7 @@ class LocalDB {
     }
   }
 
+  @override
   Future<ColorScheme> getColorScheme() async {
     String? colorSchemeName = await getSettingByKey('colorScheme');
     if (colorSchemeName != null) {
@@ -401,6 +430,62 @@ class LocalDB {
   }
 
   Future<void> setColorScheme(String name) async {
-    await GetIt.I<LocalDB>().setSettingByKey('colorScheme', name);
+    await setSettingByKey('colorScheme', name);
+  }
+
+  // Additional interface implementations
+  @override
+  Future<void> clearLoginData() async {
+    await removeLoggedInUserId();
+    await setColorScheme('');
+  }
+
+  @override
+  Future<void> setLoginInformation(Map<String, dynamic> loginInfo) async {
+    // Handle both JSON Map (new format) and User object (old format) for backward compatibility
+    dynamic userData = loginInfo['user'];
+    User user;
+
+    if (userData is Map<String, dynamic>) {
+      // New format: JSON Map - deserialize to User object
+      developer.log('Using new JSON format for login information storage');
+      user = User.fromJson(userData);
+    } else if (userData is User) {
+      // Old format: Direct User object
+      developer.log(
+        'Using legacy User object format for login information storage',
+      );
+      user = userData;
+    } else {
+      throw ArgumentError('Invalid user data format');
+    }
+
+    String? token = loginInfo['token'];
+    await saveLoginInformation(user, token);
+  }
+
+  @override
+  Future<List<Drink>> getLocalDrinks() async {
+    return await fetchDrinksFromDB();
+  }
+
+  @override
+  Future<void> saveLocalDrinks(List<Drink> drinks) async {
+    await insertDrinks(drinks);
+  }
+
+  @override
+  Future<List<Friend>> getFriends() async {
+    return await fetchFriendsFromDB();
+  }
+
+  @override
+  Future<void> saveFriends(List<Friend> friends) async {
+    await insertFriends(friends);
+  }
+
+  @override
+  void dispose() {
+    _settingsStreamController.close();
   }
 }

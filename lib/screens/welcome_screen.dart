@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dpsg_app/connection/backend.dart';
-import 'package:dpsg_app/connection/database.dart';
+import 'package:dpsg_app/connection/storage_interface.dart';
 import 'package:dpsg_app/model/drink.dart';
 import 'package:dpsg_app/model/purchase.dart';
 import 'package:dpsg_app/model/user.dart';
@@ -11,6 +11,7 @@ import 'package:dpsg_app/screens/profile_screen.dart';
 import 'package:dpsg_app/screens/purchases_screen.dart';
 import 'package:dpsg_app/shared/status_led.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -71,7 +72,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           drinks,
         );
       }
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (mounted) ScaffoldMessenger.of(context).hideCurrentSnackBar();
       setState(() {});
     } else if (state == AppLifecycleState.resumed) {
       await GetIt.I<Backend>().checkConnection();
@@ -102,15 +103,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     required Function onTap,
     Function()? onLongPress,
     Widget? infoIcon,
+    bool enabled = true,
   }) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: Theme.of(context).colorScheme.surface,
+        color: enabled
+            ? Theme.of(context).colorScheme.surface
+            : HSVColor.fromColor(
+                Theme.of(context).colorScheme.surface,
+              ).withSaturation(0.0).withValue(0.1).toColor(),
         child: InkWell(
-          onTap: () => onTap(),
-          onLongPress: onLongPress,
+          onTap: enabled ? () => onTap() : null,
+          onLongPress: enabled ? onLongPress : null,
           customBorder: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -177,16 +183,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     }
                     Future.delayed(const Duration(seconds: 1)).then((_) {
                       setState(() => connecting = false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Verbindung ${connected ? 'erfolgreich' : 'fehlgeschlagen'}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onPrimary,
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Verbindung ${connected ? 'erfolgreich' : 'fehlgeschlagen'}',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
                             ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     });
                   } else {
                     setState(() {});
@@ -247,7 +255,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
               ElevatedButton.icon(
                 onPressed: () async {
                   launchUrlString(
-                    'https://app.dpsg-gladbach.de',
+                    'https://app.dpsg-gladbach.de/download/',
                     mode: LaunchMode.externalApplication,
                   );
                 },
@@ -302,7 +310,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            if (!GetIt.I<Backend>().isOnlineMode) offlineInfo(),
+            if (!kIsWeb && !GetIt.I<Backend>().isOnlineMode) offlineInfo(),
             if (GetIt.I<Backend>().isOnlineMode &&
                 GetIt.I<Backend>().updateAvailable)
               newVersionInfo(),
@@ -343,7 +351,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ],
               ),
               onTap: () async {
-                final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
+                final userId = await GetIt.I<StorageInterface>()
+                    .getLoggedInUserId();
+                if (!mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -388,7 +398,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 ],
               ),
               onTap: () async {
-                final userId = await GetIt.I<LocalDB>().getLoggedInUserId();
+                final userId = await GetIt.I<StorageInterface>()
+                    .getLoggedInUserId();
+                if (!mounted) return;
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -397,19 +409,21 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 );
                 setState(() {});
               },
-              infoIcon: FutureBuilder<List>(
-                future: GetIt.I<LocalDB>().getUnsentPurchases(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: StatusLed(color: Colors.red),
-                    );
-                  } else {
-                    return Container();
-                  }
-                },
-              ),
+              infoIcon: !kIsWeb
+                  ? FutureBuilder<List>(
+                      future: GetIt.I<StorageInterface>().getUnsentPurchases(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: StatusLed(color: Colors.red),
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    )
+                  : null,
             ),
             IntrinsicHeight(
               child: Row(
@@ -419,22 +433,42 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 children: [
                   Expanded(
                     child: buildCard(
+                      enabled: !kIsWeb,
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text(
-                            'Schnellwahltaste',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          const Icon(Icons.add, size: 48),
-                          shortcutDrink != null
-                              ? Text(
-                                  '1x ${shortcutDrink!.name} buchen',
-                                  textAlign: TextAlign.center,
+                          !kIsWeb
+                              ? Column(
+                                  children: [
+                                    const Text(
+                                      'Schnellwahltaste',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    const Icon(Icons.add, size: 48),
+                                    shortcutDrink != null
+                                        ? Text(
+                                            '1x ${shortcutDrink!.name} buchen',
+                                            textAlign: TextAlign.center,
+                                          )
+                                        : const Text(
+                                            'Lange gedrückt halten zum Auswählen',
+                                            textAlign: TextAlign.center,
+                                          ),
+                                  ],
                                 )
-                              : const Text(
-                                  'Lange gedrückt halten zum Auswählen',
-                                  textAlign: TextAlign.center,
+                              : Column(
+                                  children: [
+                                    const Text(
+                                      'Schnellwahltaste',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    const Icon(Icons.add, size: 48),
+                                    const Text(
+                                      'Nur in der App verfügbar',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 12),
+                                    ),
+                                  ],
                                 ),
                         ],
                       ),
@@ -473,9 +507,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     List<Drink> drinks = (await fetchDrinks())
         .where((element) => element.active && !element.deleted)
         .toList();
-    String? selected = await GetIt.I<LocalDB>().getSettingByKey(
+    String? selected = await GetIt.I<StorageInterface>().getSettingByKey(
       'shortcutDrink',
     );
+    if (!mounted) return;
     await showDialog(
       context: context,
       builder: (context) =>
@@ -486,7 +521,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   Future<Drink?> _getCurrentlySelectedShortcutDrink() async {
     var drinks = await fetchDrinks();
-    String? id = await GetIt.I<LocalDB>().getSettingByKey('shortcutDrink');
+    String? id = await GetIt.I<StorageInterface>().getSettingByKey(
+      'shortcutDrink',
+    );
     if (id != null) {
       for (Drink drink in drinks) {
         if (drink.id.toString() == id && !drink.deleted && drink.active) {
@@ -520,7 +557,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   Future<Purchase?> fetchLastPurchase() async {
     var backend = GetIt.I<Backend>();
-    var localStorage = GetIt.I<LocalDB>();
+    var localStorage = GetIt.I<StorageInterface>();
     String userId = backend.loggedInUserId!;
     Purchase? purchase;
     if (backend.isOnlineMode) {
@@ -549,7 +586,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   Future<int> calculateUnsentPurchasesCost() async {
     int cost = 0;
-    List<Purchase> unsentPurchases = await GetIt.I<LocalDB>()
+    List<Purchase> unsentPurchases = await GetIt.I<StorageInterface>()
         .getUnsentPurchases();
     for (Purchase unsentPurchase in unsentPurchases.where(
       (element) => element.userId == GetIt.I<Backend>().loggedInUserId,
@@ -671,12 +708,12 @@ class _ShortcutSelectorState extends State<ShortcutSelector> {
           onPressed: () {
             Navigator.pop(context);
             if (widget.currentlySelectedId != null) {
-              GetIt.I<LocalDB>().setSettingByKey(
+              GetIt.I<StorageInterface>().setSettingByKey(
                 'shortcutDrink',
                 widget.currentlySelectedId.toString(),
               );
             } else {
-              GetIt.I<LocalDB>().removeSettingByKey('shortcutDrink');
+              GetIt.I<StorageInterface>().removeSettingByKey('shortcutDrink');
             }
           },
           icon: Icon(Icons.save),

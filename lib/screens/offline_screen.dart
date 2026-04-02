@@ -1,5 +1,6 @@
 import 'package:dpsg_app/connection/backend.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get_it/get_it.dart';
 
 class OfflineCheck extends StatefulWidget {
@@ -25,6 +26,11 @@ class _OfflineCheckState extends State<OfflineCheck> {
   );
   @override
   Widget build(BuildContext context) {
+    // On web, bypass offline checking and always show the builder
+    if (kIsWeb) {
+      return widget.builder.call(context);
+    }
+
     final offlineWidget = OfflineWarning(
       refresh: () {
         setState(() {});

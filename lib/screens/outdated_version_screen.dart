@@ -50,7 +50,7 @@ class _OutdatedVersionScreenState extends State<OutdatedVersionScreen> {
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       onPressed: () async => await launchUrlString(
-                        'https://app.dpsg-gladbach.de',
+                        'https://app.dpsg-gladbach.de/download/',
                         mode: LaunchMode.externalApplication,
                       ),
                       label: Text('Update jetzt herunterladen'),

@@ -5,6 +5,7 @@ import 'package:dpsg_app/model/friend.dart';
 import 'package:dpsg_app/model/user.dart';
 import 'package:dpsg_app/screens/drink_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -294,7 +295,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         onPressed: () async {
                           await _removeFriend(friend.uuid, friend.userName);
                           performRebuild();
-                          Navigator.pop(context);
+                          if (context.mounted) Navigator.pop(context);
                         },
                         icon: const Icon(Icons.check),
                         label: const Text('Ja'),
@@ -314,7 +315,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                   ),
                 );
               }
-              Navigator.pop(context);
+              if (context.mounted) Navigator.pop(context);
             },
           ),
           const SizedBox(height: 15),
@@ -379,29 +380,60 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           size: 200,
                         ),
                       ),
-                      MobileScanner(
-                        onDetect: (result) async {
-                          try {
-                            var content = jsonDecode(
-                              utf8.decode(
-                                base64Decode(result.barcodes.first.rawValue!),
+                      kIsWeb
+                          ? SizedBox(
+                              width: 200,
+                              height: 200,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.qr_code_scanner,
+                                    size: 64,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'QR-Code Scannen\nnur in der App verfügbar',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
-                            String name = content['name'];
-                            String uuid = content['uuid'];
-                            int timestamp = content['timestamp'];
-                            if (timestamp <
-                                DateTime.now().millisecondsSinceEpoch -
-                                    const Duration(minutes: 5).inMilliseconds) {
-                              throw Exception('Code too old!');
-                            }
-                            await friendConfirmationPopup(name, uuid);
-                            Navigator.pop(context);
-                          } catch (e) {
-                            developer.log('Error Scanning QR-Code: $e');
-                          }
-                        },
-                      ),
+                            )
+                          : MobileScanner(
+                              onDetect: (result) async {
+                                try {
+                                  var content = jsonDecode(
+                                    utf8.decode(
+                                      base64Decode(
+                                        result.barcodes.first.rawValue!,
+                                      ),
+                                    ),
+                                  );
+                                  String name = content['name'];
+                                  String uuid = content['uuid'];
+                                  int timestamp = content['timestamp'];
+                                  if (timestamp <
+                                      DateTime.now().millisecondsSinceEpoch -
+                                          const Duration(
+                                            minutes: 5,
+                                          ).inMilliseconds) {
+                                    throw Exception('Code too old!');
+                                  }
+                                  await friendConfirmationPopup(name, uuid);
+                                  if (context.mounted) Navigator.pop(context);
+                                } catch (e) {
+                                  developer.log('Error Scanning QR-Code: $e');
+                                }
+                              },
+                            ),
                     ],
                   ),
                 ),
@@ -428,7 +460,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           IconButton(
             onPressed: () async {
               await _addFriend(uuid, name);
-              Navigator.pop(context);
+              if (context.mounted) Navigator.pop(context);
             },
             icon: const Icon(Icons.check),
           ),
@@ -466,23 +498,31 @@ class _FriendsScreenState extends State<FriendsScreen> {
       var friends = await fetchFriends();
       if (friends.where((element) => element.uuid == uuid).isNotEmpty) {
         developer.log('Friend is already added!');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Du bist bereits mit $name befreundet...',
-              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Du bist bereits mit $name befreundet...',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
             ),
-          ),
-        );
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Fehler beim Hinzufügen von $name',
-              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Fehler beim Hinzufügen von $name',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     }
   }
@@ -492,15 +532,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
     try {
       await GetIt.I<Backend>().delete('/friend', jsonEncode(body));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Fehler beim Entfernen von $name',
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Fehler beim Entfernen von $name',
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
           ),
-        ),
-      );
-      developer.log('Error while removing friend: $e');
+        );
+        developer.log('Error while removing friend: $e');
+      }
     }
   }
 }
