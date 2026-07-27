@@ -198,7 +198,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   Widget buildSettingCard({
-    required IconData icon,
+    required FaIconData icon,
     required String name,
     required Function onTap,
   }) {
@@ -217,7 +217,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.max,
               children: [
-                Icon(icon, size: 40),
+                FaIcon(icon, size: 40),
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
                   child: Text(
@@ -274,7 +274,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             },
           ),
           buildSettingCard(
-            icon: Icons.person_off,
+            icon: FontAwesomeIcons.userSlash,
             name: 'Freundschaft kündigen',
             onTap: () async {
               if (GetIt.I<Backend>().isOnlineMode) {

@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  font_awesome_flutter: ^10.12.0
+  font_awesome_flutter: ^11.0.0
   http: ^1.6.0
   path_provider: ^2.1.5
   get_it: ^9.2.1
@@ -42,7 +42,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flutter_localizations:
     sdk: flutter
-  mobile_scanner: ^7.2.0
+  mobile_scanner: ^7.4.0
   web: ^1.1.1
   path: ^1.9.1
 
