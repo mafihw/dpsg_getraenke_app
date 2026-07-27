@@ -1,28 +1,32 @@
 name: Build iOS
+
 on:
   push:
     branches:
       - pipeline
 
 jobs:
-  build:
-    name: build
+  build_iOSApp:
+    name: Build Flutter App (iOS)
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: cedvdb/action-flutter-build-ios@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
         with:
-          # always use --export-options-plist=ios/GithubActionsExportOptions.plist
-          build-cmd: flutter build ipa --release --flavor dev --export-options-plist=ios/GithubActionsExportOptions.plist
-          certificate-base64: ${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}
-          certificate-password: ${{ secrets.IOS_BUILD_CERTIFICATE_PASSWORD }}
-          provisioning-profile-base64: ${{ secrets.IOS_MOBILE_PROVISIONING_PROFILE_BASE64 }}
-          keychain-password: ${{ secrets.IOS_GITHUB_KEYCHAIN_PASSWORD }}
-
-      - name: Archive IPA
-        uses: actions/upload-artifact@v2
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
         with:
-          name: release-ipa
-          # Try running the build locally with the build command to be sure of this path
-          path: build/ios/ipa/App-dev.ipa
+          flutter-version: '3.32.4'
+          dart-verion: '3.8.1'
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter clean
+      - run: |
+          flutter build ios --no-codesign
+          cd build/ios/iphoneos
+          mkdir Payload
+          cd Payload
+          ln -s ../Runner.app
+          cd ..
+          zip -r app.ipa Payload
