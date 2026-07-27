@@ -18,7 +18,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.4'
-          dart-verion: '3.8.1'
+          dart-verion: '3.11.4'
           channel: 'stable'
       - run: flutter pub get
       - run: flutter clean
