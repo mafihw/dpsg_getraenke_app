@@ -240,7 +240,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       adminListTiles.add(
         ExpansionTile(
           title: Text("Verwaltung"),
-          leading: Icon(FontAwesomeIcons.lockOpen),
+          leading: FaIcon(FontAwesomeIcons.lockOpen),
           children: [
             if (GetIt.I<PermissionSystem>().userHasPermission(
               Permission.canGetAllUsers,
@@ -267,7 +267,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               Permission.canEditDrinks,
             ))
               ListTile(
-                leading: Icon(FontAwesomeIcons.wineBottle),
+                leading: FaIcon(FontAwesomeIcons.wineBottle),
                 title: const Text('Getränke'),
                 onTap: () async {
                   Navigator.pop(context);
@@ -290,7 +290,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
       adminListTiles.add(
         ExpansionTile(
           title: Text("Statistiken"),
-          leading: Icon(FontAwesomeIcons.chartLine),
+          leading: FaIcon(FontAwesomeIcons.chartLine),
           children: [
             if (GetIt.I<PermissionSystem>().userHasPermission(
               Permission.canSeeAllPurchases,

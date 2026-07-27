@@ -26,7 +26,7 @@ class _OutdatedVersionScreenState extends State<OutdatedVersionScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    FaIcon(
                       FontAwesomeIcons.triangleExclamation,
                       color: Theme.of(context).colorScheme.primary,
                       size: 96,
