@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
           setState(() {});
         },
-        icon: const Icon(FontAwesomeIcons.wineBottle),
+        icon: const FaIcon(FontAwesomeIcons.wineBottle),
         label: const Text("Getränk buchen"),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

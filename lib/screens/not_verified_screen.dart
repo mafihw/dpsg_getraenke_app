@@ -39,7 +39,7 @@ class _NotVerifiedScreenState extends State<NotVerifiedScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      FaIcon(
                         FontAwesomeIcons.userLock,
                         color: Theme.of(context).colorScheme.primary,
                         size: 96,

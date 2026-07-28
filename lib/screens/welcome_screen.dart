@@ -486,7 +486,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         children: const [
                           Text('Bezahlen', style: TextStyle(fontSize: 24)),
                           SizedBox(height: 8),
-                          Icon(FontAwesomeIcons.paypal, size: 48),
+                          FaIcon(FontAwesomeIcons.paypal, size: 48),
                         ],
                       ),
                       onTap: () async {
