@@ -94,7 +94,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                             IconButton(
                               icon: const Icon(
                                 Icons.add_circle_outline_outlined,
-                                size: 40,
+                                size: 32,
                               ),
                               onPressed: () {
                                 createNewDrink();
@@ -182,7 +182,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
     final child = Row(
       mainAxisSize: MainAxisSize.max,
       children: [
-        Icon(icon, size: 40),
+        Icon(icon, size: 32),
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
@@ -201,53 +201,57 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Text(
-                drink.name,
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Text(
+                  drink.name,
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(
-              thickness: 2,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            Padding(
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Divider(
+                thickness: 2,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          buildSettingCard(
-            icon: Icons.euro,
-            name: 'Preis ändern',
-            onTap: () {
-              changePrice(drink);
-              setState(() {});
-            },
-          ),
-          buildSettingCard(
-            icon: Icons.text_snippet,
-            name: 'Name ändern',
-            onTap: () {
-              changeName(drink);
-              setState(() {});
-            },
-          ),
-          buildSettingCard(
-            icon: drink.active ? Icons.close : Icons.check,
-            name: drink.active ? 'Getränk deaktivieren' : 'Getränk aktivieren',
-            onTap: () {
-              changeStatus(drink);
-              setState(() {});
-            },
-          ),
-          SizedBox(height: 15),
-        ],
+            buildSettingCard(
+              icon: Icons.euro,
+              name: 'Preis ändern',
+              onTap: () {
+                changePrice(drink);
+                setState(() {});
+              },
+            ),
+            buildSettingCard(
+              icon: Icons.text_snippet,
+              name: 'Name ändern',
+              onTap: () {
+                changeName(drink);
+                setState(() {});
+              },
+            ),
+            buildSettingCard(
+              icon: drink.active ? Icons.close : Icons.check,
+              name: drink.active
+                  ? 'Getränk deaktivieren'
+                  : 'Getränk aktivieren',
+              onTap: () {
+                changeStatus(drink);
+                setState(() {});
+              },
+            ),
+            SizedBox(height: 15),
+          ],
+        ),
       ),
     );
   }
@@ -270,21 +274,20 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
             style: TextStyle(fontSize: 25),
             textAlign: TextAlign.center,
           ),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("Neuer Preis:", style: TextStyle(fontSize: 20)),
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.right,
-                  controller: moneyMaskedTextController,
-                  keyboardType: TextInputType.numberWithOptions(
-                    signed: false,
-                    decimal: true,
-                  ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: moneyMaskedTextController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  signed: false,
+                  decimal: true,
                 ),
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontSize: 20),
               ),
             ],
           ),
@@ -311,8 +314,10 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                   }
                 } finally {
                   setState(() {});
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }
                 }
                 return;
               },
@@ -325,6 +330,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
 
   Future<void> changeName(Drink drink) async {
     TextEditingController textEditingController = TextEditingController();
+    textEditingController.text = drink.name;
     await showDialog(
       context: context,
       builder: (context) {
@@ -335,18 +341,17 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
             style: TextStyle(fontSize: 25),
             textAlign: TextAlign.center,
           ),
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text("Neuer Name:", style: TextStyle(fontSize: 20)),
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.right,
-                  controller: textEditingController,
-                  keyboardType: TextInputType.text,
-                ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: textEditingController,
+                keyboardType: TextInputType.text,
+                style: const TextStyle(fontSize: 20),
+                textAlign: TextAlign.left,
               ),
             ],
           ),
@@ -370,8 +375,10 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                     );
                   }
                   setState(() {});
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }
                 } catch (e) {
                   return;
                 }
@@ -389,7 +396,7 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
       await GetIt.I<Backend>().put('/drink/${drink.id}', jsonEncode(body));
     } finally {
       setState(() {});
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -415,42 +422,30 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Name:", style: TextStyle(fontSize: 20)),
-                  SizedBox(
-                    width: 100,
-                    child: TextField(
-                      autofocus: true,
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.right,
-                      controller: textEditingController,
-                      keyboardType: TextInputType.name,
-                      textInputAction: TextInputAction.next,
-                    ),
-                  ),
-                ],
+              const Text("Name:", style: TextStyle(fontSize: 20)),
+              const SizedBox(height: 8),
+              TextField(
+                autofocus: true,
+                style: const TextStyle(fontSize: 20),
+                textAlign: TextAlign.left,
+                controller: textEditingController,
+                keyboardType: TextInputType.name,
+                textInputAction: TextInputAction.next,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Preis:", style: TextStyle(fontSize: 20)),
-                  SizedBox(
-                    width: 100,
-                    child: TextField(
-                      style: TextStyle(fontSize: 20),
-                      textAlign: TextAlign.right,
-                      controller: moneyMaskedTextController,
-                      keyboardType: TextInputType.numberWithOptions(
-                        signed: false,
-                        decimal: true,
-                      ),
-                      textInputAction: TextInputAction.done,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              const Text("Preis:", style: TextStyle(fontSize: 20)),
+              const SizedBox(height: 8),
+              TextField(
+                style: const TextStyle(fontSize: 20),
+                textAlign: TextAlign.right,
+                controller: moneyMaskedTextController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  signed: false,
+                  decimal: true,
+                ),
+                textInputAction: TextInputAction.done,
               ),
             ],
           ),
@@ -474,11 +469,11 @@ class _DrinkAdministrationScreenState extends State<DrinkAdministrationScreen> {
                     };
                     await GetIt.I<Backend>().post('/drink', jsonEncode(body));
                     setState(() {});
-                    Navigator.pop(context);
+                    if (context.mounted) Navigator.pop(context);
                   }
                 } catch (e) {
                   setState(() {});
-                  Navigator.pop(context);
+                  if (context.mounted) Navigator.pop(context);
                   return;
                 }
               },

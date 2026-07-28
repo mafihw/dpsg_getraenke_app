@@ -250,7 +250,7 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
     final child = Row(
       mainAxisSize: MainAxisSize.max,
       children: [
-        Icon(icon, size: 40),
+        Icon(icon, size: 32),
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
@@ -269,92 +269,94 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Text(
-                user.name,
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Text(
+                  user.name,
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(
-              thickness: 2,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            Padding(
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Divider(
+                thickness: 2,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          if (GetIt.I<PermissionSystem>().userHasPermission(
-            Permission.canPayForOthers,
-          ))
-            buildSettingCard(
-              icon: Icons.euro,
-              name: 'Zahlung buchen',
-              onTap: () async {
-                await geldBuchen(user);
-                Navigator.pop(context);
-              },
-            ),
-          if (GetIt.I<PermissionSystem>().userHasPermission(
-            Permission.canSeeAllPurchases,
-          ))
-            buildSettingCard(
-              icon: Icons.shopping_cart,
-              name: 'Käufe anzeigen',
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: ((context) => PurchasesScreen(userId: user.id)),
-                  ),
-                );
-                Navigator.pop(context);
-              },
-            ),
-          if (GetIt.I<PermissionSystem>().userHasPermission(
-            Permission.canSeeAllPurchases,
-          ))
-            buildSettingCard(
-              icon: Icons.payments,
-              name: 'Zahlungen anzeigen',
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: ((context) => PaymentsScreen(userId: user.id)),
-                  ),
-                );
-                Navigator.pop(context);
-              },
-            ),
-          if (GetIt.I<PermissionSystem>().userHasPermission(
-            Permission.canEditOtherUsers,
-          ))
-            buildSettingCard(
-              icon: Icons.person_outline,
-              name: 'Profil anzeigen',
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => UserProfileScreen(
-                      currentUser: user,
-                      rebuild: performRebuild,
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canPayForOthers,
+            ))
+              buildSettingCard(
+                icon: Icons.euro,
+                name: 'Zahlung buchen',
+                onTap: () async {
+                  await geldBuchen(user);
+                  if(context.mounted) Navigator.pop(context);
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canSeeAllPurchases,
+            ))
+              buildSettingCard(
+                icon: Icons.shopping_cart,
+                name: 'Käufe anzeigen',
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: ((context) => PurchasesScreen(userId: user.id)),
                     ),
-                  ),
-                );
-                Navigator.pop(context);
-                setState(() {});
-              },
-            ),
-          SizedBox(height: 15),
-        ],
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canSeeAllPurchases,
+            ))
+              buildSettingCard(
+                icon: Icons.payments,
+                name: 'Zahlungen anzeigen',
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: ((context) => PaymentsScreen(userId: user.id)),
+                    ),
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                },
+              ),
+            if (GetIt.I<PermissionSystem>().userHasPermission(
+              Permission.canEditOtherUsers,
+            ))
+              buildSettingCard(
+                icon: Icons.person_outline,
+                name: 'Profil anzeigen',
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileScreen(
+                        currentUser: user,
+                        rebuild: performRebuild,
+                      ),
+                    ),
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                  setState(() {});
+                },
+              ),
+            SizedBox(height: 15),
+          ],
+        ),
       ),
     );
   }
@@ -413,7 +415,8 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                   };
                   try {
                     await GetIt.I<Backend>().post('/payment', jsonEncode(body));
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
                           'Zahlung wurde gespeichert!',
@@ -423,8 +426,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                         ),
                       ),
                     );
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
                           'Fehler beim Speichern der Zahlung!',
@@ -435,9 +440,10 @@ class _UserAdministrationScreenState extends State<UserAdministrationScreen> {
                         backgroundColor: Theme.of(context).colorScheme.error,
                       ),
                     );
+                    }
                   }
                 }
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
                 return;
               },
             ),

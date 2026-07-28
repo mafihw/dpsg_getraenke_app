@@ -294,70 +294,74 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Text(
-                '${purchase.amount}x ${purchase.drinkName} für ${(purchase.cost * purchase.amount / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
+                child: Text(
+                  '${purchase.amount}x ${purchase.drinkName} für ${(purchase.cost * purchase.amount / 100).toStringAsFixed(2).replaceAll('.', ',')}€',
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(
-              thickness: 2,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            Padding(
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Divider(
+                thickness: 2,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          !purchase.deleted
-              ? buildSettingCard(
-                  icon: Icons.cancel,
-                  name: 'Buchung stornieren',
-                  onTap: () async {
-                    await deletePurchase(purchase.id);
-                    Navigator.pop(context);
-                    setState(() {});
-                  },
-                )
-              : Container(),
-          GetIt.I<PermissionSystem>().userHasPermission(
-                    Permission.canEditOtherUsers,
-                  ) &&
-                  purchase.userBookedName.trim() != '' &&
-                  purchase.userBookedId != GetIt.I<Backend>().loggedInUserId
-              ? buildSettingCard(
-                  icon: Icons.person,
-                  name: purchase.userBookedName,
-                  onTap: () async {
-                    User user = User.fromJson(
-                      await GetIt.I<Backend>().get(
-                        '/user/${purchase.userBookedId}',
-                      ),
-                    );
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserProfileScreen(
-                          currentUser: user,
-                          rebuild: () {
-                            setState(() {});
-                          },
+            !purchase.deleted
+                ? buildSettingCard(
+                    icon: Icons.cancel,
+                    name: 'Buchung stornieren',
+                    onTap: () async {
+                      await deletePurchase(purchase.id);
+                      if(context.mounted) Navigator.pop(context);
+                      setState(() {});
+                    },
+                  )
+                : Container(),
+            GetIt.I<PermissionSystem>().userHasPermission(
+                      Permission.canEditOtherUsers,
+                    ) &&
+                    purchase.userBookedName.trim() != '' &&
+                    purchase.userBookedId != GetIt.I<Backend>().loggedInUserId
+                ? buildSettingCard(
+                    icon: Icons.person,
+                    name: purchase.userBookedName,
+                    onTap: () async {
+                      User user = User.fromJson(
+                        await GetIt.I<Backend>().get(
+                          '/user/${purchase.userBookedId}',
                         ),
-                      ),
-                    );
-                    Navigator.pop(context);
-                    setState(() {});
-                  },
-                )
-              : Container(),
-          const SizedBox(height: 15),
-        ],
+                      );
+                      if(context.mounted){
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UserProfileScreen(
+                            currentUser: user,
+                            rebuild: () {
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                      );
+                      if(context.mounted) Navigator.pop(context);
+                      setState(() {});
+                      }
+                    },
+                  )
+                : Container(),
+            const SizedBox(height: 15),
+          ],
+        ),
       ),
     );
   }
@@ -370,7 +374,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     final child = Row(
       mainAxisSize: MainAxisSize.max,
       children: [
-        Icon(icon, size: 40),
+        Icon(icon, size: 32),
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(

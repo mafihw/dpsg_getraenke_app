@@ -35,7 +35,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(appBarTitle: "Freunde", onIconPress: performRebuild),
+      appBar: CustomAppBar(appBarTitle: "Freundschaften", onIconPress: performRebuild),
       drawer: const CustomDrawer(),
       body: FutureBuilder(
         builder: (context, AsyncSnapshot<dynamic> snapshot) {
@@ -213,11 +213,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.only(top: 10.0, bottom: 10.0, left: 20.0, right: 10.0),
             child: Row(
               mainAxisSize: MainAxisSize.max,
               children: [
-                FaIcon(icon, size: 40),
+                FaIcon(icon, size: 32),
                 Padding(
                   padding: const EdgeInsets.only(left: 20.0),
                   child: Text(
@@ -239,87 +239,89 @@ class _FriendsScreenState extends State<FriendsScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Text(
-                friend.userName,
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Text(
+                  friend.userName,
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(
-              thickness: 2,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            Padding(
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Divider(
+                thickness: 2,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          buildSettingCard(
-            icon: FontAwesomeIcons.wineBottle,
-            name: 'Getränk buchen',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DrinkScreen(userId: friend.uuid),
-                ),
-              );
-            },
-          ),
-          buildSettingCard(
-            icon: FontAwesomeIcons.userSlash,
-            name: 'Freundschaft kündigen',
-            onTap: () async {
-              if (GetIt.I<Backend>().isOnlineMode) {
-                await showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Freund*in entfernen?'),
-                    content: Text(
-                      'Möchtest du ${friend.userName} aus deiner Freundesliste entfernen?',
-                    ),
-                    actions: [
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.cancel),
-                        label: const Text('Nein'),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          await _removeFriend(friend.uuid, friend.userName);
-                          performRebuild();
-                          if (context.mounted) Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.check),
-                        label: const Text('Ja'),
-                      ),
-                    ],
+            buildSettingCard(
+              icon: FontAwesomeIcons.wineBottle,
+              name: 'Getränk buchen',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DrinkScreen(userId: friend.uuid),
                   ),
                 );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Dafür brauchst du eine Internetverbindung',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimary,
+              },
+            ),
+            buildSettingCard(
+              icon: FontAwesomeIcons.userSlash,
+              name: 'Freundschaft beenden',
+              onTap: () async {
+                if (GetIt.I<Backend>().isOnlineMode) {
+                  await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Freund*in entfernen?'),
+                      content: Text(
+                        'Möchtest du ${friend.userName} aus deiner Freundesliste entfernen?',
+                      ),
+                      actions: [
+                        OutlinedButton.icon(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.cancel),
+                          label: const Text('Nein'),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            await _removeFriend(friend.uuid, friend.userName);
+                            performRebuild();
+                            if (context.mounted) Navigator.pop(context);
+                          },
+                          icon: const Icon(Icons.check),
+                          label: const Text('Ja'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Dafür brauchst du eine Internetverbindung',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }
-              if (context.mounted) Navigator.pop(context);
-            },
-          ),
-          const SizedBox(height: 15),
-        ],
+                  );
+                }
+                if (context.mounted) Navigator.pop(context);
+              },
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
       ),
     );
   }
@@ -347,6 +349,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               children: [
                 TabBar(
                   indicatorColor: Theme.of(context).colorScheme.primary,
+                  labelColor: Theme.of(context).colorScheme.primary,
                   tabs: [
                     Tab(text: 'Mein QR-Code'),
                     Tab(text: 'QR-Code scannen'),
@@ -371,12 +374,15 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             ),
                           ),
                           version: QrVersions.auto,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surface,
+                          dataModuleStyle: QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          eyeStyle: QrEyeStyle(
+                            eyeShape: QrEyeShape.circle,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                           size: 200,
                         ),
                       ),

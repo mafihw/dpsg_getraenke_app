@@ -23,7 +23,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('DPSG Gladbach Getränke'),
         actions: [
@@ -66,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  OutlinedButton(
+                  TextButton(
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -75,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       );
                     },
-                    child: Text('Registrieren'),
+                    child: Text('Noch kein Konto?\nHier registrieren!'),
                   ),
                   OutlinedButton.icon(
                     icon: currentlyLoggingIn ? null : Icon(Icons.login),
@@ -98,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-              Expanded(flex: 2, child: Container()),
+              Expanded(flex: 3, child: Container()),
               if (kIsWeb)
                 Card(
                   child: Padding(

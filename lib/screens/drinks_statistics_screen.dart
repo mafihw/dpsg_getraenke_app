@@ -190,7 +190,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
     final child = Row(
       mainAxisSize: MainAxisSize.max,
       children: [
-        Icon(icon, size: 40),
+        Icon(icon, size: 32),
         Padding(
           padding: const EdgeInsets.only(left: 20.0),
           child: Text(
@@ -209,60 +209,62 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       context: context,
-      builder: (context) => Wrap(
-        children: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0),
-              child: Text(
-                drinkStatistics.drink.name,
-                style: TextStyle(
-                  fontSize: 30,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Text(
+                  drinkStatistics.drink.name,
+                  style: TextStyle(
+                    fontSize: 30,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(left: 10.0, right: 10.0),
-            child: Divider(
-              thickness: 2,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            Padding(
+              padding: EdgeInsets.only(left: 10.0, right: 10.0),
+              child: Divider(
+                thickness: 2,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
+              ),
             ),
-          ),
-          buildSettingCard(
-            icon: Icons.shopping_cart,
-            name: 'Einkauf hinzufügen',
-            onTap: () {
-              addNewDrinks(drinkStatistics.drink);
-              setState(() {});
-            },
-          ),
-          buildSettingCard(
-            icon: Icons.add_to_home_screen_outlined,
-            name: 'Bestand eintragen',
-            onTap: () {
-              addNewStock(drinkStatistics.drink);
-              setState(() {});
-            },
-          ),
-          buildSettingCard(
-            icon: Icons.history,
-            name: 'Bestandsverlauf anzeigen',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      InventoryDrinkScreen(drink: drinkStatistics.drink),
-                ),
-              );
-              setState(() {});
-            },
-          ),
-          SizedBox(height: 15),
-        ],
+            buildSettingCard(
+              icon: Icons.shopping_cart,
+              name: 'Einkauf hinzufügen',
+              onTap: () {
+                addNewDrinks(drinkStatistics.drink);
+                setState(() {});
+              },
+            ),
+            buildSettingCard(
+              icon: Icons.add_to_home_screen_outlined,
+              name: 'Bestand eintragen',
+              onTap: () {
+                addNewStock(drinkStatistics.drink);
+                setState(() {});
+              },
+            ),
+            buildSettingCard(
+              icon: Icons.history,
+              name: 'Bestandsverlauf anzeigen',
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        InventoryDrinkScreen(drink: drinkStatistics.drink),
+                  ),
+                );
+                setState(() {});
+              },
+            ),
+            SizedBox(height: 15),
+          ],
+        ),
       ),
     );
   }
@@ -323,7 +325,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
                     );
                   }
                 } finally {
-                  Navigator.pop(context);
+                  if(context.mounted) Navigator.pop(context);
                 }
                 return;
               },
@@ -389,7 +391,7 @@ class _DrinkStatisticsScreenState extends State<DrinkStatisticsScreen> {
                     );
                   }
                 } finally {
-                  Navigator.pop(context);
+                  if (context.mounted) Navigator.pop(context);
                 }
                 return;
               },

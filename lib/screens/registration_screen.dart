@@ -218,13 +218,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         passwordTextController.text,
         nameTextController.text,
       )) {
-        if (GetIt.instance<Backend>().loggedInUser!.role != 'none') {
+        if (GetIt.instance<Backend>().loggedInUser!.role != 'none' && mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => HomeScreen()),
             (route) => false,
           );
-        } else {
+        } else if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
@@ -237,13 +237,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           currentlyLoggingIn = false;
         });
       } else {
-        SnackBar snackBar = SnackBar(
-          content: Text(
-            'Registrierung fehlgeschlagen!',
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
-          ),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        if (mounted) {
+          SnackBar snackBar = SnackBar(
+            content: Text(
+              'Registrierung fehlgeschlagen!',
+              style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        }
         setState(() {
           currentlyLoggingIn = false;
         });
