@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.5.1+17
 
 environment:
-  sdk: ^3.11.4
+  sdk: ^3.12.2
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -32,17 +32,20 @@ dependencies:
     sdk: flutter
   font_awesome_flutter: ^11.0.0
   http: ^1.6.0
-  path_provider: ^2.1.5
+  path_provider: ^2.1.6
   get_it: ^9.2.1
   url_launcher: ^6.3.2
   intl: ^0.20.2
   jwt_decode: ^0.3.1
   extended_masked_text: ^3.0.1
-  sqflite: ^2.4.2
+  sqflite: ^2.4.3
   qr_flutter: ^4.1.0
   flutter_localizations:
     sdk: flutter
-  mobile_scanner: ^7.4.0
+  mobile_scanner: 
+    git:
+      url: https://github.com/juliansteenbakker/mobile_scanner.git
+      ref: 8fbebf9ca8566dfa9cd55ea738ad53df89005898
   web: ^1.1.1
   path: ^1.9.1
 

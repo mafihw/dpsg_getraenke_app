@@ -1,1 +1,1 @@
-flutter version: 3.32.4
+flutter version: 3.47.1
