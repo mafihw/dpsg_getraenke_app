@@ -15,7 +15,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:get_it/get_it.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-const String appVersion = '1.5.1';
+const String appVersion = '1.5.2';
 final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
