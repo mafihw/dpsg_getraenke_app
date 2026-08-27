@@ -50,10 +50,11 @@ jobs:
           
           # Append CI-specific signing configuration to Release.xcconfig
           echo "" >> ios/Flutter/Release.xcconfig
-          echo "# CI-specific signing configuration" >> ios/Flutter/Release.xcconfig
+          echo "" >> ios/Flutter/Release.xcconfig
           echo "CODE_SIGN_STYLE = Manual" >> ios/Flutter/Release.xcconfig
           echo "PROVISIONING_PROFILE_SPECIFIER = $PROFILE_UUID" >> ios/Flutter/Release.xcconfig
           echo "DEVELOPMENT_TEAM = $TEAM_ID" >> ios/Flutter/Release.xcconfig
+          echo "CODE_SIGN_IDENTITY = iPhone Distribution" >> ios/Flutter/Release.xcconfig
           
           # Update ExportOptions.plist with dynamic team ID
           plutil -replace teamID -string "$TEAM_ID" ios/ExportOptions.plist
