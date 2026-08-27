@@ -56,8 +56,9 @@ jobs:
           echo "DEVELOPMENT_TEAM = $TEAM_ID" >> ios/Flutter/Release.xcconfig
           echo "CODE_SIGN_IDENTITY = iPhone Distribution" >> ios/Flutter/Release.xcconfig
           
-          # Update ExportOptions.plist with dynamic team ID
+          # Update ExportOptions.plist with dynamic team ID and provisioning profile
           plutil -replace teamID -string "$TEAM_ID" ios/ExportOptions.plist
+          plutil -replace provisioningProfiles.dpsg.gladbach.app -string "$PROFILE_UUID" ios/ExportOptions.plist
           
           echo "Configured manual signing in Release.xcconfig with profile: $PROFILE_UUID"
 
