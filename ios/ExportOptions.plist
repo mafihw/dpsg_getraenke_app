@@ -14,13 +14,6 @@
 	<string>manual</string>
 	<key>stripSwiftSymbols</key>
 	<true/>
-	<key>teamID</key>
-	<string>6WH2HCP9G7</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>dpsg.gladbach.app</key>
-		<string></string>
-	</dict>
 	<key>testFlightInternalTestingOnly</key>
 	<false/>
 	<key>uploadSymbols</key>

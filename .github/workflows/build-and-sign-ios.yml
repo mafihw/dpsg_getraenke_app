@@ -56,9 +56,38 @@ jobs:
           echo "DEVELOPMENT_TEAM = $TEAM_ID" >> ios/Flutter/Release.xcconfig
           echo "CODE_SIGN_IDENTITY = iPhone Distribution" >> ios/Flutter/Release.xcconfig
           
-          # Update ExportOptions.plist with dynamic team ID and provisioning profile
-          plutil -replace teamID -string "$TEAM_ID" ios/ExportOptions.plist
-          plutil -replace provisioningProfiles.dpsg.gladbach.app -string "$PROFILE_UUID" ios/ExportOptions.plist
+          # Create ExportOptions.plist dynamically
+          cat > ios/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+          	<key>destination</key>
+          	<string>export</string>
+          	<key>generateAppStoreInformation</key>
+          	<false/>
+          	<key>manageAppVersionAndBuildNumber</key>
+          	<true/>
+          	<key>method</key>
+          	<string>app-store-connect</string>
+          	<key>provisioningProfiles</key>
+          	<dict>
+          		<key>dpsg.gladbach.app</key>
+          		<string>$PROFILE_UUID</string>
+          	</dict>
+          	<key>signingStyle</key>
+          	<string>manual</string>
+          	<key>stripSwiftSymbols</key>
+          	<true/>
+          	<key>teamID</key>
+          	<string>$TEAM_ID</string>
+          	<key>testFlightInternalTestingOnly</key>
+          	<false/>
+          	<key>uploadSymbols</key>
+          	<true/>
+          </dict>
+          </plist>
+          EOF
           
           echo "Configured manual signing in Release.xcconfig with profile: $PROFILE_UUID"
 
@@ -91,4 +120,3 @@ jobs:
           rm ~/Library/MobileDevice/Provisioning\ Profiles/build_pp.mobileprovision
           # Restore files to original state
           git checkout ios/Flutter/Release.xcconfig
-          git checkout ios/ExportOptions.plist
